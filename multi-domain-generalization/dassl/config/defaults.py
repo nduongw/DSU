@@ -178,6 +178,13 @@ _C.TEST.EVAL_FREQ = 1
 _C.TEST.SPLIT = 'test'
 
 ###########################
+# Log
+###########################
+_C.LOG = CN()
+_C.LOG.WANDB = 0
+_C.LOG.TRACKER = None
+
+###########################
 # Trainer specifics
 ###########################
 _C.TRAINER = CN()

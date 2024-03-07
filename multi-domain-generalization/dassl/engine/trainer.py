@@ -322,8 +322,9 @@ class TrainerBase:
 class SimpleTrainer(TrainerBase):
     """A simple trainer class implementing generic functions."""
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, args):
         super().__init__()
+        self.args = args
         self.check_cfg(cfg)
 
         if torch.cuda.is_available() and cfg.USE_CUDA:
@@ -458,6 +459,10 @@ class SimpleTrainer(TrainerBase):
 
         for k, v in results.items():
             tag = '{}/{}'.format(split, k)
+            if self.args.wandb:
+                self.args.tracker.log({
+                    f'{k}': v 
+                }, step=self.epoch+1)
             self.write_scalar(tag, v, self.epoch)
 
     @torch.no_grad()
@@ -655,6 +660,11 @@ class TrainerX(SimpleTrainer):
             n_iter = self.epoch * self.num_batches + self.batch_idx
             for name, meter in losses.meters.items():
                 self.write_scalar('train/' + name, meter.avg, n_iter)
+                if self.args.wandb:
+                    self.args.tracker.log({
+                        f'{name}': meter.avg 
+                    }, step=self.epoch+1)
+                    
             self.write_scalar('train/lr', self.get_current_lr(), n_iter)
 
             end = time.time()

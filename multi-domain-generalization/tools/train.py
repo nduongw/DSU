@@ -1,5 +1,6 @@
 import argparse
 import torch
+import wandb
 
 from dassl.utils import setup_logger, set_random_seed, collect_env_info
 from dassl.config import get_cfg_default
@@ -57,7 +58,6 @@ def reset_cfg(cfg, args):
     #if args.pos:
     cfg.MODEL.POS = args.pos
 
-
 def setup_cfg(args):
     cfg = get_cfg_default()
     reset_cfg(cfg, args)
@@ -72,6 +72,21 @@ def setup_cfg(args):
 
 def main(args):
     cfg = setup_cfg(args)
+    if args.wandb:
+        job_type = f'{cfg.TRAINER.NAME}'
+        if args.uncertainty:
+            job_type += f'-{cfg.MODEL.UNCERTAINTY}-{cfg.MODEL.POS}'
+            
+        tracker = wandb.init(
+            project = 'StyleDG',
+            entity = 'aiotlab',
+            config = args,
+            group = f'{cfg.DATASET.NAME}',
+            name = f'train={cfg.DATASET.SOURCE_DOMAINS}_test={cfg.DATASET.TARGET_DOMAINS}',
+            job_type = job_type
+        )
+        args.tracker = tracker
+
     if cfg.SEED >= 0:
         print('Setting fixed seed: {}'.format(cfg.SEED))
         set_random_seed(cfg.SEED)
@@ -81,10 +96,8 @@ def main(args):
         torch.backends.cudnn.benchmark = True
 
     print_args(args, cfg)
-    print('Collecting env info ...')
-    print('** System info **\n{}\n'.format(collect_env_info()))
 
-    trainer = build_trainer(cfg)
+    trainer = build_trainer(cfg, args)
 
     if args.eval_only:
         trainer.load_model(args.model_dir, epoch=args.load_epoch)
@@ -170,5 +183,7 @@ if __name__ == '__main__':
     parser.add_argument('--uncertainty', default=0.0, type=float)
     parser.add_argument('--pos', nargs='+', type=int, default=[],
                         help='pos for uncertainty')
+    parser.add_argument('--wandb', default=1, type=int, help='visualize on Wandb')
+    
     args = parser.parse_args()
     main(args)
