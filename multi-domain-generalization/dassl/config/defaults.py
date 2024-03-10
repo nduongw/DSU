@@ -110,6 +110,7 @@ _C.MODEL.BACKBONE.NAME = ''
 _C.MODEL.BACKBONE.PRETRAINED = True
 _C.MODEL.BACKBONE.UNCERTAINTY=0.0
 _C.MODEL.BACKBONE.POS=[]
+_C.MODEL.BACKBONE.PERTUBATION=1
 # Definition of embedding layer
 _C.MODEL.HEAD = CN()
 # If none, no embedding layer will be constructed

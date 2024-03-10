@@ -73,16 +73,22 @@ def setup_cfg(args):
 def main(args):
     cfg = setup_cfg(args)
     if args.wandb:
-        job_type = f'{cfg.TRAINER.NAME}'
-        if args.uncertainty:
-            job_type += f'-{cfg.MODEL.UNCERTAINTY}-{cfg.MODEL.POS}'
+        if 'u' in cfg.MODEL.BACKBONE.NAME:
+            job_type = 'DSU'
+        elif 'c' in cfg.MODEL.BACKBONE.NAME:
+            job_type = 'ConstStyle'
+        else:
+            job_type = 'Baseline'
+        
+        if cfg.MODEL.BACKBONE.PRETRAINED:
+            job_type += '-pretrained'
             
         tracker = wandb.init(
             project = 'StyleDG',
             entity = 'aiotlab',
             config = args,
             group = f'{cfg.DATASET.NAME}',
-            name = f'train={cfg.DATASET.SOURCE_DOMAINS}_test={cfg.DATASET.TARGET_DOMAINS}',
+            name = f'train={cfg.DATASET.SOURCE_DOMAINS}_test={cfg.DATASET.TARGET_DOMAINS}_type={args.option}',
             job_type = job_type
         )
         args.tracker = tracker
@@ -93,7 +99,8 @@ def main(args):
     setup_logger(cfg.OUTPUT_DIR)
 
     if torch.cuda.is_available() and cfg.USE_CUDA:
-        torch.backends.cudnn.benchmark = True
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
 
     print_args(args, cfg)
 
@@ -184,6 +191,8 @@ if __name__ == '__main__':
     parser.add_argument('--pos', nargs='+', type=int, default=[],
                         help='pos for uncertainty')
     parser.add_argument('--wandb', default=1, type=int, help='visualize on Wandb')
+    parser.add_argument('--option', default='', type=str, help='additional options')
+    parser.add_argument('--update_interval', default=20, type=int, help='update cluster interval')
     
     args = parser.parse_args()
     main(args)

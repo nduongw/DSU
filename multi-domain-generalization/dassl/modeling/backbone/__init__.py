@@ -21,3 +21,4 @@ from .shufflenetv2 import (
 )
 from .cnn_digitsingle import cnn_digitsingle
 from .cnn_digit5_m3sda import cnn_digit5_m3sda
+from .cresnet import cresnet18

@@ -27,6 +27,7 @@ class SimpleNet(nn.Module):
             model_cfg.BACKBONE.NAME,
             verbose=cfg.VERBOSE,
             pretrained=model_cfg.BACKBONE.PRETRAINED,
+            pertubration=model_cfg.BACKBONE.PERTUBATION,
             uncertainty=model_cfg.UNCERTAINTY,
             pos=model_cfg.POS,
             **kwargs
@@ -324,7 +325,6 @@ class SimpleTrainer(TrainerBase):
 
     def __init__(self, cfg, args):
         super().__init__()
-        self.args = args
         self.check_cfg(cfg)
 
         if torch.cuda.is_available() and cfg.USE_CUDA:
@@ -338,6 +338,7 @@ class SimpleTrainer(TrainerBase):
         self.output_dir = cfg.OUTPUT_DIR
 
         self.cfg = cfg
+        self.args = args
         self.build_data_loader()
         self.build_model()
         self.evaluator = build_evaluator(cfg, lab2cname=self.dm.lab2cname)
@@ -461,7 +462,7 @@ class SimpleTrainer(TrainerBase):
             tag = '{}/{}'.format(split, k)
             if self.args.wandb:
                 self.args.tracker.log({
-                    f'{k}': v 
+                    f'test {k}': v 
                 }, step=self.epoch+1)
             self.write_scalar(tag, v, self.epoch)
 
@@ -662,7 +663,7 @@ class TrainerX(SimpleTrainer):
                 self.write_scalar('train/' + name, meter.avg, n_iter)
                 if self.args.wandb:
                     self.args.tracker.log({
-                        f'{name}': meter.avg 
+                        f'training {name}': meter.avg 
                     }, step=self.epoch+1)
                     
             self.write_scalar('train/lr', self.get_current_lr(), n_iter)
