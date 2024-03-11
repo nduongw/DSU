@@ -1,11 +1,14 @@
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.mixture import BayesianGaussianMixture
 import torch
 import copy
 from .build import BACKBONE_REGISTRY
 from .backbone import Backbone
+from sklearn.manifold import TSNE
+import os
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -32,8 +35,9 @@ def conv3x3(in_planes, out_planes, stride=1):
     )
 
 class ConstStyle(nn.Module):
-    def __init__(self, eps=1e-6):
+    def __init__(self, cfg, eps=1e-6):
         super().__init__()
+        self.cfg = cfg
         self.mean = []
         self.std = []
         self.eps = eps
@@ -43,7 +47,6 @@ class ConstStyle(nn.Module):
         self.domain_list = []
         self.scaled_feats = []
         self.factor = 1.0
-        # self.args = args
     
     def clear_memory(self):
         self.mean = []
@@ -127,25 +130,25 @@ class ConstStyle(nn.Module):
         # elif args.test_domains == 's':
         #     classes = ['photo', 'art', 'cartoon']
         
-        # tsne = TSNE(n_components=2, random_state=args.seed)
-        # plot_data = tsne.fit_transform(reshaped_data)
+        tsne = TSNE(n_components=2, random_state=self.SEED)
+        plot_data = tsne.fit_transform(reshaped_data)
         
-        # scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=domain_list)
-        # plt.legend(handles=scatter.legend_elements()[0], labels=classes)
-        # save_path = os.path.join(f'results/{args.dataset}/{args.method}_{args.train_domains}_{args.test_domains}_{args.option}', f'training-features{idx}_epoch{epoch}.png')
-        # plt.savefig(save_path, dpi=200)
-        # plt.close()
-        # plt.cla()
-        # plt.clf()
+        scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=domain_list)
+        plt.legend(handles=scatter.legend_elements()[0], labels=classes)
+        save_path = os.path.join(f'{self.cfg.OUTPUT_DIR}', f'features{idx}_epoch{epoch}.png')
+        plt.savefig(save_path, dpi=200)
+        plt.close()
+        plt.cla()
+        plt.clf()
         
-        # classes = ['c1', 'c2', 'c3']
-        # scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=labels)
-        # plt.legend(handles=scatter.legend_elements()[0], labels=classes)
-        # save_path = os.path.join(f'results/{args.dataset}/{args.method}_{args.train_domains}_{args.test_domains}_{args.option}', f'cluster{idx}_epoch{epoch}.png')
-        # plt.savefig(save_path, dpi=200)
-        # plt.close()
-        # plt.cla()
-        # plt.clf()
+        classes = ['c1', 'c2', 'c3']
+        scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=labels)
+        plt.legend(handles=scatter.legend_elements()[0], labels=classes)
+        save_path = os.path.join(f'{self.cfg.OUTPUT_DIR}', f'cluster{idx}_epoch{epoch}.png')
+        plt.savefig(save_path, dpi=200)
+        plt.close()
+        plt.cla()
+        plt.clf()
         
         # if self.args.wandb:
         #     self.args.tracker.log({
@@ -156,33 +159,33 @@ class ConstStyle(nn.Module):
         #         f'Std_domain_{idx}': torch.mean(self.const_cov).item()
         #     }, step=epoch)
     
-    def plot_style(self, idx, epoch):
-        domain_list = np.array(self.domain_list)
-        scaled_feats = np.array(self.scaled_feats)
+    # def plot_style(self, idx, epoch):
+    #     domain_list = np.array(self.domain_list)
+    #     scaled_feats = np.array(self.scaled_feats)
         
-        mu = scaled_feats.mean(axis=(2, 3), keepdims=True)
-        var = scaled_feats.var(axis=(2, 3), keepdims=True)
-        stacked_data = np.stack((mu, var), axis=1)
+    #     mu = scaled_feats.mean(axis=(2, 3), keepdims=True) 
+    #     var = scaled_feats.var(axis=(2, 3), keepdims=True)
+    #     stacked_data = np.stack((mu, var), axis=1)
 
-        tsne3 = TSNE(n_components=2, random_state=self.args.seed)
-        transformed_data = tsne3.fit_transform(stacked_data)
+    #     tsne3 = TSNE(n_components=2, random_state=self.args.seed)
+    #     transformed_data = tsne3.fit_transform(stacked_data)
         
-        if args.test_domains == 'p':
-            classes = ['art', 'cartoon', 'sketch', 'photo']
-        elif args.test_domains == 'a':
-            classes = ['photo', 'cartoon', 'sketch', 'art']
-        elif args.test_domains == 'c':
-            classes = ['photo', 'art', 'sketch', 'cartoon']
-        elif args.test_domains == 's':
-            classes = ['photo', 'art', 'cartoon', 'sketch']
+    #     if args.test_domains == 'p':
+    #         classes = ['art', 'cartoon', 'sketch', 'photo']
+    #     elif args.test_domains == 'a':
+    #         classes = ['photo', 'cartoon', 'sketch', 'art']
+    #     elif args.test_domains == 'c':
+    #         classes = ['photo', 'art', 'sketch', 'cartoon']
+    #     elif args.test_domains == 's':
+    #         classes = ['photo', 'art', 'cartoon', 'sketch']
     
-        scatter = plt.scatter(transformed_data[:, 0], transformed_data[:, 1], c=domain_list)
-        plt.legend(handles=scatter.legend_elements()[0], labels=classes)
-        save_path = os.path.join(f'results/{args.dataset}/{args.method}_{args.train_domains}_{args.test_domains}_{args.option}', f'style{idx}_features_epoch{epoch}.png')
-        plt.savefig(save_path, dpi=200)
-        plt.close()
-        plt.cla()
-        plt.clf()
+    #     scatter = plt.scatter(transformed_data[:, 0], transformed_data[:, 1], c=domain_list)
+    #     plt.legend(handles=scatter.legend_elements()[0], labels=classes)
+    #     save_path = os.path.join(f'results/{args.dataset}/{args.method}_{args.train_domains}_{args.test_domains}_{args.option}', f'style{idx}_features_epoch{epoch}.png')
+    #     plt.savefig(save_path, dpi=200)
+    #     plt.close()
+    #     plt.cla()
+    #     plt.clf()
         
     def forward(self, x, store_feature=False, apply_conststyle=False):
         if store_feature:
@@ -219,11 +222,6 @@ class ConstStyle(nn.Module):
                 
             out = x_normed * const_std + const_mean
             return out
-        # mu = out.mean(dim=[2, 3], keepdim=True)
-        # var = out.var(dim=[2, 3], keepdim=True)
-        # sig = (var + self.eps).sqrt()
-        # mu, sig = mu.detach(), sig.detach()
-        # print(f'After applying ConstStyle: Mean: {torch.mean(mu.squeeze(), dim=(0,1))} | Std: {torch.mean(sig.squeeze(), dim=(0,1))}')
         else:
             return x
     
@@ -310,14 +308,13 @@ class Bottleneck(nn.Module):
 class CResNet(Backbone):
 
     def __init__(
-        self, block, layers, **kwargs
+        self, block, layers, cfg, **kwargs
     ):
         self.inplanes = 64
         super().__init__()
-
         # backbone network
         self.num_conststyle = 4
-        self.conststyle = [ConstStyle() for i in range(self.num_conststyle)]
+        self.conststyle = [ConstStyle(cfg) for i in range(self.num_conststyle)]
         self.conv1 = nn.Conv2d(
             3, 64, kernel_size=7, stride=2, padding=3, bias=False
         )
@@ -420,8 +417,8 @@ def set_bn_eval(m):
         m.eval()
 
 @BACKBONE_REGISTRY.register()
-def cresnet18(pretrained=True, **kwargs):
-    model = CResNet(block=BasicBlock, layers=[2, 2, 2, 2])
+def cresnet18(pretrained=True, cfg=None, **kwargs):
+    model = CResNet(block=BasicBlock, layers=[2, 2, 2, 2], cfg=cfg)
 
     if pretrained:
         init_pretrained_weights(model, model_urls['resnet18'])

@@ -2,22 +2,55 @@ from torch.nn import functional as F
 import torch
 import time
 import datetime
+import os.path as osp
 from dassl.engine import *
 from dassl.metrics import compute_accuracy
 from dassl.utils import (
-    MetricMeter, AverageMeter, tolist_if_not, count_num_param, load_checkpoint,
-    save_checkpoint, resume_from_checkpoint, load_pretrained_weights
+    MetricMeter, AverageMeter, count_num_param, load_checkpoint,
+    save_checkpoint, load_pretrained_weights
 )
 from dassl.modeling import build_head, build_backbone
-from dassl.evaluation import build_evaluator
-from dassl.data import DataManager
 from dassl.optim import build_optimizer, build_lr_scheduler
+import torch.nn as nn
 
 class ConstStyleModel(SimpleNet):
     """A simple neural network composed of a CNN backbone
     and optionally a head such as mlp for classification.
     """
+    def __init__(self, cfg, model_cfg, num_classes, **kwargs):
+        super().__init__(cfg, model_cfg, num_classes)
+        self.backbone = build_backbone(
+            model_cfg.BACKBONE.NAME,
+            verbose=cfg.VERBOSE,
+            pretrained=model_cfg.BACKBONE.PRETRAINED,
+            pertubration=model_cfg.BACKBONE.PERTUBATION,
+            uncertainty=model_cfg.UNCERTAINTY,
+            pos=model_cfg.POS,
+            cfg=cfg,
+            **kwargs
+        )
+        fdim = self.backbone.out_features
 
+        self.head = None
+        if model_cfg.HEAD.NAME and model_cfg.HEAD.HIDDEN_LAYERS:
+            self.head = build_head(
+                model_cfg.HEAD.NAME,
+                verbose=cfg.VERBOSE,
+                in_features=fdim,
+                hidden_layers=model_cfg.HEAD.HIDDEN_LAYERS,
+                activation=model_cfg.HEAD.ACTIVATION,
+                bn=model_cfg.HEAD.BN,
+                dropout=model_cfg.HEAD.DROPOUT,
+                **kwargs
+            )
+            fdim = self.head.out_features
+
+        self.classifier = None
+        if num_classes > 0:
+            self.classifier = nn.Linear(fdim, num_classes)
+
+        self._fdim = fdim
+    
     def forward(self, x, return_feature=False, store_feature=False, apply_conststyle=False):
         f = self.backbone(x, store_feature=store_feature, apply_conststyle=apply_conststyle)
         if self.head is not None:
@@ -48,11 +81,11 @@ class ConstStyleTrainer(SimpleTrainer):
         cfg = self.cfg
         print('Building model')
         self.model = ConstStyleModel(cfg, cfg.MODEL, self.num_classes)
-        print(self.model)
+        # print(self.model)
         if cfg.MODEL.INIT_WEIGHTS:
             load_pretrained_weights(self.model, cfg.MODEL.INIT_WEIGHTS)
         self.model.to(self.device)
-        print('# params: {:,}'.format(count_num_param(self.model)))
+        # print('# params: {:,}'.format(count_num_param(self.model)))
         self.optim = build_optimizer(self.model, cfg.OPTIM)
         self.sched = build_lr_scheduler(self.optim, cfg.OPTIM)
         self.register_model('model', self.model, self.optim, self.sched)
@@ -161,3 +194,65 @@ class ConstStyleTrainer(SimpleTrainer):
         input = input.to(self.device)
         label = label.to(self.device)
         return input, label
+    
+    def save_model(self, epoch, directory, is_best=False):
+        names = self.get_model_names()
+
+        for name in names:
+            model_dict = self._models[name].state_dict()
+            style_feats = {'mean': [], 'cov': [], 'std': []}
+            
+            for conststyle in self._models[name].backbone.conststyle:
+                style_feats['mean'].append(conststyle.const_mean)
+                style_feats['cov'].append(conststyle.const_cov)
+                style_feats['std'].append(conststyle.const_std)
+
+            optim_dict = None
+            if self._optims[name] is not None:
+                optim_dict = self._optims[name].state_dict()
+
+            sched_dict = None
+            if self._scheds[name] is not None:
+                sched_dict = self._scheds[name].state_dict()
+
+            save_checkpoint(
+                {
+                    'state_dict': model_dict,
+                    'epoch': epoch + 1,
+                    'optimizer': optim_dict,
+                    'scheduler': sched_dict,
+                    'style_feats': style_feats
+                },
+                osp.join(directory, name),
+                is_best=is_best
+            )
+
+    def load_model(self, directory, epoch=None):
+        names = self.get_model_names()
+        model_file = 'model.pth.tar-' + str(
+            epoch
+        ) if epoch else 'model-best.pth.tar'
+
+        for name in names:
+            model_path = osp.join(directory, name, model_file)
+
+            if not osp.exists(model_path):
+                raise FileNotFoundError(
+                    'Model not found at "{}"'.format(model_path)
+                )
+
+            checkpoint = load_checkpoint(model_path)
+            state_dict = checkpoint['state_dict']
+            epoch = checkpoint['epoch']
+
+            print(
+                'Loading weights to {} '
+                'from "{}" (epoch = {})'.format(name, model_path, epoch)
+            )
+            self._models[name].load_state_dict(state_dict)
+            
+            for idx, conststyle in enumerate(self._models[name].backbone.conststyle):
+                conststyle.const_mean = checkpoint['style_feats']['mean'][idx]
+                conststyle.const_cov = checkpoint['style_feats']['cov'][idx]
+                conststyle.const_std = checkpoint['style_feats']['std'][idx]
+                
