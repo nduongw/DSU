@@ -121,34 +121,34 @@ class ConstStyle(nn.Module):
         self.const_cov = torch.from_numpy(bayes_cluster.covariances_[idx_val])
 
         #plot features
-        # if args.test_domains == 'p':
+        # if self.cfg.DATASET.TARGET_DOMAINS == 'p':
         #     classes = ['art', 'cartoon', 'sketch']
-        # elif args.test_domains == 'a':
+        # elif self.cfg.DATASET.TARGET_DOMAINS == 'a':
         #     classes = ['photo', 'cartoon', 'sketch']
-        # elif args.test_domains == 'c':
+        # elif self.cfg.DATASET.TARGET_DOMAINS == 'c':
         #     classes = ['photo', 'art', 'sketch']
-        # elif args.test_domains == 's':
+        # elif self.cfg.DATASET.TARGET_DOMAINS == 's':
         #     classes = ['photo', 'art', 'cartoon']
         
-        tsne = TSNE(n_components=2, random_state=self.cfg.SEED)
-        plot_data = tsne.fit_transform(reshaped_data)
+        # tsne = TSNE(n_components=2, random_state=self.cfg.SEED)
+        # plot_data = tsne.fit_transform(reshaped_data)
         
-        scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=domain_list)
-        plt.legend(handles=scatter.legend_elements()[0], labels=classes)
-        save_path = os.path.join(f'{self.cfg.OUTPUT_DIR}', f'features{idx}_epoch{epoch}.png')
-        plt.savefig(save_path, dpi=200)
-        plt.close()
-        plt.cla()
-        plt.clf()
+        # scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=domain_list)
+        # plt.legend(handles=scatter.legend_elements()[0], labels=classes)
+        # save_path = os.path.join(f'{self.cfg.OUTPUT_DIR}', f'features{idx}_epoch{epoch}.png')
+        # plt.savefig(save_path, dpi=200)
+        # plt.close()
+        # plt.cla()
+        # plt.clf()
         
-        classes = ['c1', 'c2', 'c3']
-        scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=labels)
-        plt.legend(handles=scatter.legend_elements()[0], labels=classes)
-        save_path = os.path.join(f'{self.cfg.OUTPUT_DIR}', f'cluster{idx}_epoch{epoch}.png')
-        plt.savefig(save_path, dpi=200)
-        plt.close()
-        plt.cla()
-        plt.clf()
+        # classes = ['c1', 'c2', 'c3']
+        # scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=labels)
+        # plt.legend(handles=scatter.legend_elements()[0], labels=classes)
+        # save_path = os.path.join(f'{self.cfg.OUTPUT_DIR}', f'cluster{idx}_epoch{epoch}.png')
+        # plt.savefig(save_path, dpi=200)
+        # plt.close()
+        # plt.cla()
+        # plt.clf()
         
         # if self.args.wandb:
         #     self.args.tracker.log({
