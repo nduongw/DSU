@@ -130,7 +130,7 @@ class ConstStyle(nn.Module):
         # elif args.test_domains == 's':
         #     classes = ['photo', 'art', 'cartoon']
         
-        tsne = TSNE(n_components=2, random_state=self.SEED)
+        tsne = TSNE(n_components=2, random_state=self.cfg.SEED)
         plot_data = tsne.fit_transform(reshaped_data)
         
         scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=domain_list)
