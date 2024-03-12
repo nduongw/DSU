@@ -1,0 +1,1214 @@
+***************
+** Arguments **
+***************
+backbone: 
+config_file: configs/trainers/dg/vanilla/pacs.yaml
+dataset_config_file: configs/datasets/dg/pacs_cs.yaml
+eval_only: False
+head: 
+load_epoch: None
+model_dir: 
+no_train: False
+option: 
+opts: []
+output_dir: output/dg/pacs/conststyle/art_painting
+pos: []
+resume: false
+root: ./DATA
+seed: 42
+source_domains: ['cartoon', 'photo', 'sketch']
+target_domains: ['art_painting']
+tracker: <wandb.sdk.wandb_run.Run object at 0x7f87af2087d0>
+trainer: ConstStyleTrainer
+transforms: None
+uncertainty: 0.5
+update_interval: 20
+wandb: 1
+************
+** Config **
+************
+DATALOADER:
+  K_TRANSFORMS: 1
+  NUM_WORKERS: 8
+  TEST:
+    BATCH_SIZE: 128
+    SAMPLER: SequentialSampler
+  TRAIN_U:
+    BATCH_SIZE: 32
+    N_DOMAIN: 0
+    SAME_AS_X: True
+    SAMPLER: RandomSampler
+  TRAIN_X:
+    BATCH_SIZE: 64
+    N_DOMAIN: 0
+    SAMPLER: RandomSampler
+DATASET:
+  ALL_AS_UNLABELED: False
+  CIFAR_C_LEVEL: 1
+  CIFAR_C_TYPE: 
+  NAME: PACS
+  NUM_LABELED: 250
+  ROOT: ./DATA
+  SOURCE_DOMAINS: ['cartoon', 'photo', 'sketch']
+  STL10_FOLD: -1
+  TARGET_DOMAINS: ['art_painting']
+  VAL_PERCENT: 0.1
+INPUT:
+  CROP_PADDING: 4
+  CUTOUT_LEN: 16
+  CUTOUT_N: 1
+  GN_MEAN: 0.0
+  GN_STD: 0.15
+  NO_TRANSFORM: False
+  PIXEL_MEAN: [0.485, 0.456, 0.406]
+  PIXEL_STD: [0.229, 0.224, 0.225]
+  RANDAUGMENT_M: 10
+  RANDAUGMENT_N: 2
+  SIZE: (224, 224)
+  TRANSFORMS: ('random_flip', 'random_translation', 'normalize')
+LOG:
+  TRACKER: None
+  WANDB: 0
+MODEL:
+  BACKBONE:
+    NAME: cresnet18
+    PERTUBATION: 1
+    POS: []
+    PRETRAINED: True
+    UNCERTAINTY: 0.0
+  HEAD:
+    ACTIVATION: relu
+    BN: True
+    DROPOUT: 0.0
+    HIDDEN_LAYERS: ()
+    NAME: 
+  INIT_WEIGHTS: 
+  POS: []
+  UNCERTAINTY: 0.5
+OPTIM:
+  ADAM_BETA1: 0.9
+  ADAM_BETA2: 0.99
+  BASE_LR_MULT: 0.1
+  GAMMA: 0.1
+  LR: 0.001
+  LR_SCHEDULER: cosine
+  MAX_EPOCH: 50
+  MOMENTUM: 0.9
+  NAME: sgd
+  NEW_LAYERS: ()
+  RMSPROP_ALPHA: 0.99
+  SGD_DAMPNING: 0
+  SGD_NESTEROV: False
+  STAGED_LR: False
+  STEPSIZE: (10,)
+  WEIGHT_DECAY: 0.0005
+OUTPUT_DIR: output/dg/pacs/conststyle/art_painting
+RESUME: false
+SEED: 42
+TEST:
+  COMPUTE_CMAT: False
+  EVALUATOR: Classification
+  EVAL_FREQ: 1
+  NO_TEST: False
+  PER_CLASS_RESULT: False
+  SPLIT: test
+TRAIN:
+  CHECKPOINT_FREQ: 0
+  COUNT_ITER: train_x
+  PRINT_FREQ: 10
+TRAINER:
+  CG:
+    ALPHA_D: 0.5
+    ALPHA_F: 0.5
+    EPS_D: 1.0
+    EPS_F: 1.0
+  DAEL:
+    CONF_THRE: 0.95
+    STRONG_TRANSFORMS: ()
+    WEIGHT_U: 0.5
+  DDAIG:
+    ALPHA: 0.5
+    CLAMP: False
+    CLAMP_MAX: 1.0
+    CLAMP_MIN: -1.0
+    G_ARCH: 
+    LMDA: 0.3
+    WARMUP: 0
+  ENTMIN:
+    LMDA: 0.001
+  FIXMATCH:
+    CONF_THRE: 0.95
+    STRONG_TRANSFORMS: ()
+    WEIGHT_U: 1.0
+  M3SDA:
+    LMDA: 0.5
+    N_STEP_F: 4
+  MCD:
+    N_STEP_F: 4
+  MEANTEA:
+    EMA_ALPHA: 0.999
+    WEIGHT_U: 1.0
+  MIXMATCH:
+    MIXUP_BETA: 0.75
+    RAMPUP: 20000
+    TEMP: 2.0
+    WEIGHT_U: 100.0
+  MME:
+    LMDA: 0.1
+  NAME: ConstStyleTrainer
+  SE:
+    CONF_THRE: 0.95
+    EMA_ALPHA: 0.999
+    RAMPUP: 300
+USE_CUDA: True
+VERBOSE: True
+VERSION: 1
+Loading trainer: ConstStyleTrainer
+Loading dataset: PACS
+Building transform_train
++ resize to 224x224
++ random flip
++ random translation
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+Building transform_test
++ resize to 224x224
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+***** Dataset statistics *****
+  Dataset: PACS
+  Source domains: ['cartoon', 'photo', 'sketch']
+  Target domains: ['art_painting']
+  # classes: 7
+  # train_x: 7,136
+  # val: 806
+  # test: 2,048
+Building model
+Backbone: cresnet18
+Backbone: cresnet18
+Loading evaluator: Classification
+No checkpoint found, train from scratch
+Initializing summary writer for tensorboard with log_dir=output/dg/pacs/conststyle/art_painting
+epoch [1/50][10/111]	time 0.059 (0.320)	data 0.001 (0.107)	eta 0:29:34	loss 1.7886 (2.0203)	accuracy 25.0000 (21.0938)	lr 0.001
+epoch [1/50][20/111]	time 0.058 (0.188)	data 0.000 (0.054)	eta 0:17:21	loss 1.5054 (1.8209)	accuracy 48.4375 (30.0000)	lr 0.001
+epoch [1/50][30/111]	time 0.055 (0.145)	data 0.000 (0.036)	eta 0:13:18	loss 1.0997 (1.6211)	accuracy 70.3125 (41.0938)	lr 0.001
+epoch [1/50][40/111]	time 0.055 (0.122)	data 0.000 (0.027)	eta 0:11:14	loss 0.9749 (1.4637)	accuracy 65.6250 (48.8281)	lr 0.001
+epoch [1/50][50/111]	time 0.054 (0.109)	data 0.000 (0.022)	eta 0:10:01	loss 0.8728 (1.3438)	accuracy 78.1250 (54.0938)	lr 0.001
+epoch [1/50][60/111]	time 0.058 (0.101)	data 0.001 (0.018)	eta 0:09:11	loss 0.6068 (1.2377)	accuracy 85.9375 (58.7500)	lr 0.001
+epoch [1/50][70/111]	time 0.054 (0.094)	data 0.000 (0.016)	eta 0:08:36	loss 0.5900 (1.1525)	accuracy 82.8125 (62.1429)	lr 0.001
+epoch [1/50][80/111]	time 0.057 (0.090)	data 0.001 (0.014)	eta 0:08:09	loss 0.5604 (1.0821)	accuracy 87.5000 (64.7852)	lr 0.001
+epoch [1/50][90/111]	time 0.056 (0.086)	data 0.000 (0.012)	eta 0:07:48	loss 0.4919 (1.0196)	accuracy 90.6250 (67.1007)	lr 0.001
+epoch [1/50][100/111]	time 0.054 (0.083)	data 0.000 (0.011)	eta 0:07:30	loss 0.4682 (0.9633)	accuracy 90.6250 (69.1875)	lr 0.001
+epoch [1/50][110/111]	time 0.051 (0.080)	data 0.000 (0.010)	eta 0:07:14	loss 0.6079 (0.9182)	accuracy 78.1250 (70.8097)	lr 0.001
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,252
+* current accuracy: 61.13%
+* best accuracy: 61.13%
+* error: 38.87%
+Get samples belong to cluster 0
+Cluster 0 has 1963 samples
+Get samples belong to cluster 1
+Cluster 1 has 1628 samples
+Get samples belong to cluster 2
+Cluster 2 has 3513 samples
+Mean log likelihood of cluster 0 is 372.4391219397135
+Mean log likelihood of cluster 1 is 394.08904140866923
+Mean log likelihood of cluster 2 is 474.83220693885215
+Layer 0 chooses cluster 2 with log likelihood score 474.83220693885215
+Get samples belong to cluster 0
+Cluster 0 has 2963 samples
+Get samples belong to cluster 1
+Cluster 1 has 2774 samples
+Get samples belong to cluster 2
+Cluster 2 has 1367 samples
+Mean log likelihood of cluster 0 is 525.8705159000634
+Mean log likelihood of cluster 1 is 407.567933601108
+Mean log likelihood of cluster 2 is 462.27932245354134
+Layer 1 chooses cluster 0 with log likelihood score 525.8705159000634
+Get samples belong to cluster 0
+Cluster 0 has 1575 samples
+Get samples belong to cluster 1
+Cluster 1 has 3515 samples
+Get samples belong to cluster 2
+Cluster 2 has 2014 samples
+Mean log likelihood of cluster 0 is 286.5567346085501
+Mean log likelihood of cluster 1 is 409.16375455808316
+Mean log likelihood of cluster 2 is 291.48250182547406
+Layer 2 chooses cluster 1 with log likelihood score 409.16375455808316
+Get samples belong to cluster 0
+Cluster 0 has 2060 samples
+Get samples belong to cluster 1
+Cluster 1 has 3513 samples
+Get samples belong to cluster 2
+Cluster 2 has 1531 samples
+Mean log likelihood of cluster 0 is 640.9120769403465
+Mean log likelihood of cluster 1 is 846.3012489344512
+Mean log likelihood of cluster 2 is 643.1555812825801
+Layer 3 chooses cluster 1 with log likelihood score 846.3012489344512
+epoch [2/50][10/111]	time 0.099 (0.229)	data 0.000 (0.117)	eta 0:20:45	loss 0.6906 (0.6811)	accuracy 78.1250 (78.4375)	lr 0.0009990133642141358
+epoch [2/50][20/111]	time 0.096 (0.163)	data 0.000 (0.059)	eta 0:14:43	loss 0.6414 (0.6494)	accuracy 79.6875 (79.4531)	lr 0.0009990133642141358
+epoch [2/50][30/111]	time 0.092 (0.141)	data 0.000 (0.039)	eta 0:12:44	loss 0.5392 (0.6175)	accuracy 82.8125 (80.3646)	lr 0.0009990133642141358
+epoch [2/50][40/111]	time 0.096 (0.130)	data 0.000 (0.030)	eta 0:11:42	loss 0.5054 (0.5886)	accuracy 84.3750 (81.1719)	lr 0.0009990133642141358
+epoch [2/50][50/111]	time 0.091 (0.124)	data 0.000 (0.024)	eta 0:11:06	loss 0.4242 (0.5632)	accuracy 82.8125 (81.9062)	lr 0.0009990133642141358
+epoch [2/50][60/111]	time 0.091 (0.119)	data 0.001 (0.020)	eta 0:10:38	loss 0.5267 (0.5440)	accuracy 82.8125 (82.3177)	lr 0.0009990133642141358
+epoch [2/50][70/111]	time 0.091 (0.115)	data 0.000 (0.017)	eta 0:10:16	loss 0.5102 (0.5264)	accuracy 81.2500 (82.9911)	lr 0.0009990133642141358
+epoch [2/50][80/111]	time 0.088 (0.112)	data 0.000 (0.015)	eta 0:10:00	loss 0.2989 (0.5080)	accuracy 92.1875 (83.5742)	lr 0.0009990133642141358
+epoch [2/50][90/111]	time 0.092 (0.110)	data 0.000 (0.013)	eta 0:09:46	loss 0.4812 (0.4934)	accuracy 85.9375 (84.1146)	lr 0.0009990133642141358
+epoch [2/50][100/111]	time 0.081 (0.107)	data 0.000 (0.012)	eta 0:09:32	loss 0.3593 (0.4818)	accuracy 89.0625 (84.5156)	lr 0.0009990133642141358
+epoch [2/50][110/111]	time 0.082 (0.105)	data 0.000 (0.011)	eta 0:09:18	loss 0.5275 (0.4746)	accuracy 82.8125 (84.8011)	lr 0.0009990133642141358
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,445
+* current accuracy: 70.56%
+* best accuracy: 70.56%
+* error: 29.44%
+epoch [3/50][10/111]	time 0.093 (0.218)	data 0.000 (0.115)	eta 0:19:21	loss 0.3138 (0.3718)	accuracy 89.0625 (87.0312)	lr 0.000996057350657239
+epoch [3/50][20/111]	time 0.088 (0.158)	data 0.000 (0.057)	eta 0:14:00	loss 0.2640 (0.3517)	accuracy 92.1875 (87.8906)	lr 0.000996057350657239
+epoch [3/50][30/111]	time 0.089 (0.136)	data 0.000 (0.038)	eta 0:12:03	loss 0.3354 (0.3427)	accuracy 89.0625 (88.4896)	lr 0.000996057350657239
+epoch [3/50][40/111]	time 0.093 (0.126)	data 0.001 (0.029)	eta 0:11:07	loss 0.3136 (0.3328)	accuracy 90.6250 (89.0625)	lr 0.000996057350657239
+epoch [3/50][50/111]	time 0.099 (0.119)	data 0.000 (0.023)	eta 0:10:29	loss 0.2860 (0.3279)	accuracy 90.6250 (89.2812)	lr 0.000996057350657239
+epoch [3/50][60/111]	time 0.090 (0.115)	data 0.000 (0.019)	eta 0:10:05	loss 0.2924 (0.3213)	accuracy 87.5000 (89.4531)	lr 0.000996057350657239
+epoch [3/50][70/111]	time 0.103 (0.112)	data 0.001 (0.017)	eta 0:09:49	loss 0.1536 (0.3121)	accuracy 96.8750 (89.7321)	lr 0.000996057350657239
+epoch [3/50][80/111]	time 0.094 (0.110)	data 0.000 (0.015)	eta 0:09:36	loss 0.2760 (0.3083)	accuracy 87.5000 (89.9023)	lr 0.000996057350657239
+epoch [3/50][90/111]	time 0.091 (0.108)	data 0.001 (0.013)	eta 0:09:26	loss 0.2998 (0.3040)	accuracy 89.0625 (90.0174)	lr 0.000996057350657239
+epoch [3/50][100/111]	time 0.083 (0.107)	data 0.000 (0.012)	eta 0:09:17	loss 0.2504 (0.3043)	accuracy 90.6250 (90.0156)	lr 0.000996057350657239
+epoch [3/50][110/111]	time 0.085 (0.104)	data 0.000 (0.011)	eta 0:09:05	loss 0.3510 (0.3000)	accuracy 87.5000 (90.1420)	lr 0.000996057350657239
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,488
+* current accuracy: 72.66%
+* best accuracy: 72.66%
+* error: 27.34%
+epoch [4/50][10/111]	time 0.128 (0.207)	data 0.001 (0.095)	eta 0:17:56	loss 0.1187 (0.2418)	accuracy 96.8750 (92.9688)	lr 0.0009911436253643444
+epoch [4/50][20/111]	time 0.097 (0.154)	data 0.000 (0.048)	eta 0:13:20	loss 0.2280 (0.2402)	accuracy 90.6250 (92.4219)	lr 0.0009911436253643444
+epoch [4/50][30/111]	time 0.086 (0.135)	data 0.000 (0.032)	eta 0:11:38	loss 0.2270 (0.2354)	accuracy 89.0625 (92.3438)	lr 0.0009911436253643444
+epoch [4/50][40/111]	time 0.107 (0.125)	data 0.001 (0.024)	eta 0:10:48	loss 0.2537 (0.2454)	accuracy 90.6250 (91.9922)	lr 0.0009911436253643444
+epoch [4/50][50/111]	time 0.092 (0.119)	data 0.000 (0.019)	eta 0:10:14	loss 0.2629 (0.2428)	accuracy 90.6250 (92.0938)	lr 0.0009911436253643444
+epoch [4/50][60/111]	time 0.093 (0.115)	data 0.001 (0.016)	eta 0:09:51	loss 0.2443 (0.2411)	accuracy 93.7500 (92.0833)	lr 0.0009911436253643444
+epoch [4/50][70/111]	time 0.093 (0.111)	data 0.000 (0.014)	eta 0:09:32	loss 0.2360 (0.2362)	accuracy 90.6250 (92.1875)	lr 0.0009911436253643444
+epoch [4/50][80/111]	time 0.093 (0.109)	data 0.001 (0.012)	eta 0:09:19	loss 0.2329 (0.2355)	accuracy 92.1875 (92.2461)	lr 0.0009911436253643444
+epoch [4/50][90/111]	time 0.092 (0.107)	data 0.001 (0.011)	eta 0:09:09	loss 0.3578 (0.2357)	accuracy 87.5000 (92.1354)	lr 0.0009911436253643444
+epoch [4/50][100/111]	time 0.085 (0.106)	data 0.000 (0.010)	eta 0:09:00	loss 0.1607 (0.2396)	accuracy 95.3125 (91.9219)	lr 0.0009911436253643444
+epoch [4/50][110/111]	time 0.085 (0.104)	data 0.000 (0.009)	eta 0:08:49	loss 0.2494 (0.2391)	accuracy 92.1875 (91.8892)	lr 0.0009911436253643444
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,497
+* current accuracy: 73.10%
+* best accuracy: 73.10%
+* error: 26.90%
+epoch [5/50][10/111]	time 0.092 (0.192)	data 0.000 (0.096)	eta 0:16:17	loss 0.1948 (0.1838)	accuracy 93.7500 (94.2188)	lr 0.0009842915805643156
+epoch [5/50][20/111]	time 0.091 (0.143)	data 0.000 (0.048)	eta 0:12:05	loss 0.1965 (0.1941)	accuracy 95.3125 (94.0625)	lr 0.0009842915805643156
+epoch [5/50][30/111]	time 0.093 (0.126)	data 0.000 (0.032)	eta 0:10:41	loss 0.1520 (0.1946)	accuracy 96.8750 (93.8021)	lr 0.0009842915805643156
+epoch [5/50][40/111]	time 0.089 (0.118)	data 0.000 (0.024)	eta 0:09:59	loss 0.2893 (0.2090)	accuracy 87.5000 (92.9688)	lr 0.0009842915805643156
+epoch [5/50][50/111]	time 0.093 (0.113)	data 0.000 (0.019)	eta 0:09:30	loss 0.3002 (0.2038)	accuracy 87.5000 (93.2188)	lr 0.0009842915805643156
+epoch [5/50][60/111]	time 0.091 (0.109)	data 0.000 (0.016)	eta 0:09:11	loss 0.1038 (0.1996)	accuracy 95.3125 (93.4115)	lr 0.0009842915805643156
+epoch [5/50][70/111]	time 0.093 (0.107)	data 0.000 (0.014)	eta 0:08:58	loss 0.1910 (0.1983)	accuracy 96.8750 (93.4375)	lr 0.0009842915805643156
+epoch [5/50][80/111]	time 0.094 (0.105)	data 0.000 (0.012)	eta 0:08:48	loss 0.2069 (0.1930)	accuracy 92.1875 (93.6133)	lr 0.0009842915805643156
+epoch [5/50][90/111]	time 0.096 (0.104)	data 0.000 (0.011)	eta 0:08:39	loss 0.1741 (0.1930)	accuracy 93.7500 (93.6806)	lr 0.0009842915805643156
+epoch [5/50][100/111]	time 0.095 (0.102)	data 0.000 (0.010)	eta 0:08:32	loss 0.2191 (0.1907)	accuracy 93.7500 (93.7969)	lr 0.0009842915805643156
+epoch [5/50][110/111]	time 0.085 (0.101)	data 0.000 (0.009)	eta 0:08:23	loss 0.1909 (0.1909)	accuracy 95.3125 (93.7784)	lr 0.0009842915805643156
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,554
+* current accuracy: 75.88%
+* best accuracy: 75.88%
+* error: 24.12%
+epoch [6/50][10/111]	time 0.093 (0.200)	data 0.000 (0.099)	eta 0:16:35	loss 0.2467 (0.1648)	accuracy 90.6250 (95.0000)	lr 0.0009755282581475769
+epoch [6/50][20/111]	time 0.093 (0.146)	data 0.001 (0.050)	eta 0:12:05	loss 0.2743 (0.1619)	accuracy 89.0625 (94.7656)	lr 0.0009755282581475769
+epoch [6/50][30/111]	time 0.095 (0.128)	data 0.000 (0.033)	eta 0:10:37	loss 0.1140 (0.1616)	accuracy 98.4375 (95.0000)	lr 0.0009755282581475769
+epoch [6/50][40/111]	time 0.091 (0.119)	data 0.000 (0.025)	eta 0:09:48	loss 0.1115 (0.1649)	accuracy 98.4375 (95.0781)	lr 0.0009755282581475769
+epoch [6/50][50/111]	time 0.089 (0.113)	data 0.000 (0.020)	eta 0:09:19	loss 0.1201 (0.1596)	accuracy 100.0000 (95.3750)	lr 0.0009755282581475769
+epoch [6/50][60/111]	time 0.094 (0.110)	data 0.001 (0.017)	eta 0:09:01	loss 0.1672 (0.1581)	accuracy 92.1875 (95.1302)	lr 0.0009755282581475769
+epoch [6/50][70/111]	time 0.096 (0.107)	data 0.000 (0.015)	eta 0:08:47	loss 0.1115 (0.1614)	accuracy 96.8750 (95.1562)	lr 0.0009755282581475769
+epoch [6/50][80/111]	time 0.094 (0.105)	data 0.000 (0.013)	eta 0:08:37	loss 0.1519 (0.1646)	accuracy 95.3125 (94.8828)	lr 0.0009755282581475769
+epoch [6/50][90/111]	time 0.093 (0.104)	data 0.000 (0.011)	eta 0:08:29	loss 0.1919 (0.1662)	accuracy 93.7500 (94.7917)	lr 0.0009755282581475769
+epoch [6/50][100/111]	time 0.081 (0.102)	data 0.000 (0.010)	eta 0:08:20	loss 0.2082 (0.1662)	accuracy 90.6250 (94.7188)	lr 0.0009755282581475769
+epoch [6/50][110/111]	time 0.085 (0.101)	data 0.000 (0.009)	eta 0:08:11	loss 0.1812 (0.1668)	accuracy 98.4375 (94.7159)	lr 0.0009755282581475769
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,542
+* current accuracy: 75.29%
+* best accuracy: 75.88%
+* error: 24.71%
+epoch [7/50][10/111]	time 0.091 (0.184)	data 0.001 (0.089)	eta 0:14:58	loss 0.1557 (0.1393)	accuracy 92.1875 (95.3125)	lr 0.0009648882429441258
+epoch [7/50][20/111]	time 0.094 (0.139)	data 0.000 (0.045)	eta 0:11:16	loss 0.1303 (0.1381)	accuracy 96.8750 (95.0000)	lr 0.0009648882429441258
+epoch [7/50][30/111]	time 0.092 (0.123)	data 0.000 (0.030)	eta 0:09:59	loss 0.1404 (0.1406)	accuracy 96.8750 (95.3646)	lr 0.0009648882429441258
+epoch [7/50][40/111]	time 0.092 (0.115)	data 0.000 (0.023)	eta 0:09:18	loss 0.1182 (0.1409)	accuracy 96.8750 (95.3906)	lr 0.0009648882429441258
+epoch [7/50][50/111]	time 0.090 (0.111)	data 0.000 (0.018)	eta 0:08:55	loss 0.1630 (0.1438)	accuracy 96.8750 (95.4062)	lr 0.0009648882429441258
+epoch [7/50][60/111]	time 0.092 (0.107)	data 0.000 (0.015)	eta 0:08:38	loss 0.1842 (0.1453)	accuracy 90.6250 (95.1823)	lr 0.0009648882429441258
+epoch [7/50][70/111]	time 0.095 (0.106)	data 0.000 (0.013)	eta 0:08:30	loss 0.1045 (0.1438)	accuracy 95.3125 (95.2455)	lr 0.0009648882429441258
+epoch [7/50][80/111]	time 0.095 (0.105)	data 0.000 (0.011)	eta 0:08:24	loss 0.0478 (0.1396)	accuracy 100.0000 (95.4102)	lr 0.0009648882429441258
+epoch [7/50][90/111]	time 0.098 (0.104)	data 0.000 (0.010)	eta 0:08:17	loss 0.0544 (0.1395)	accuracy 100.0000 (95.4861)	lr 0.0009648882429441258
+epoch [7/50][100/111]	time 0.088 (0.103)	data 0.000 (0.009)	eta 0:08:11	loss 0.1987 (0.1393)	accuracy 92.1875 (95.4688)	lr 0.0009648882429441258
+epoch [7/50][110/111]	time 0.088 (0.101)	data 0.000 (0.008)	eta 0:08:03	loss 0.0861 (0.1372)	accuracy 98.4375 (95.5256)	lr 0.0009648882429441258
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,500
+* current accuracy: 73.24%
+* best accuracy: 75.88%
+* error: 26.76%
+epoch [8/50][10/111]	time 0.106 (0.213)	data 0.001 (0.103)	eta 0:16:54	loss 0.0760 (0.1013)	accuracy 98.4375 (97.0312)	lr 0.0009524135262330099
+epoch [8/50][20/111]	time 0.093 (0.154)	data 0.000 (0.052)	eta 0:12:12	loss 0.2260 (0.1157)	accuracy 89.0625 (96.3281)	lr 0.0009524135262330099
+epoch [8/50][30/111]	time 0.097 (0.135)	data 0.000 (0.035)	eta 0:10:38	loss 0.1097 (0.1203)	accuracy 96.8750 (96.1979)	lr 0.0009524135262330099
+epoch [8/50][40/111]	time 0.106 (0.126)	data 0.000 (0.026)	eta 0:09:57	loss 0.1200 (0.1186)	accuracy 95.3125 (96.2109)	lr 0.0009524135262330099
+epoch [8/50][50/111]	time 0.103 (0.120)	data 0.000 (0.021)	eta 0:09:28	loss 0.1764 (0.1221)	accuracy 92.1875 (96.0000)	lr 0.0009524135262330099
+epoch [8/50][60/111]	time 0.089 (0.115)	data 0.000 (0.018)	eta 0:09:03	loss 0.0822 (0.1210)	accuracy 96.8750 (96.0156)	lr 0.0009524135262330099
+epoch [8/50][70/111]	time 0.097 (0.112)	data 0.000 (0.015)	eta 0:08:49	loss 0.1477 (0.1186)	accuracy 95.3125 (96.1607)	lr 0.0009524135262330099
+epoch [8/50][80/111]	time 0.089 (0.111)	data 0.000 (0.013)	eta 0:08:38	loss 0.0842 (0.1157)	accuracy 98.4375 (96.2500)	lr 0.0009524135262330099
+epoch [8/50][90/111]	time 0.097 (0.109)	data 0.000 (0.012)	eta 0:08:30	loss 0.1736 (0.1177)	accuracy 93.7500 (96.1458)	lr 0.0009524135262330099
+epoch [8/50][100/111]	time 0.090 (0.107)	data 0.000 (0.011)	eta 0:08:22	loss 0.1475 (0.1196)	accuracy 95.3125 (96.0625)	lr 0.0009524135262330099
+epoch [8/50][110/111]	time 0.089 (0.106)	data 0.000 (0.010)	eta 0:08:13	loss 0.0575 (0.1198)	accuracy 98.4375 (96.0369)	lr 0.0009524135262330099
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,516
+* current accuracy: 74.02%
+* best accuracy: 75.88%
+* error: 25.98%
+epoch [9/50][10/111]	time 0.089 (0.178)	data 0.000 (0.085)	eta 0:13:48	loss 0.1487 (0.1024)	accuracy 93.7500 (96.8750)	lr 0.0009381533400219318
+epoch [9/50][20/111]	time 0.089 (0.134)	data 0.000 (0.043)	eta 0:10:23	loss 0.1517 (0.1048)	accuracy 93.7500 (96.4062)	lr 0.0009381533400219318
+epoch [9/50][30/111]	time 0.092 (0.120)	data 0.000 (0.029)	eta 0:09:14	loss 0.0995 (0.1031)	accuracy 95.3125 (96.5104)	lr 0.0009381533400219318
+epoch [9/50][40/111]	time 0.090 (0.112)	data 0.000 (0.022)	eta 0:08:39	loss 0.1306 (0.1038)	accuracy 93.7500 (96.5234)	lr 0.0009381533400219318
+epoch [9/50][50/111]	time 0.095 (0.109)	data 0.000 (0.017)	eta 0:08:20	loss 0.0815 (0.1036)	accuracy 98.4375 (96.5625)	lr 0.0009381533400219318
+epoch [9/50][60/111]	time 0.093 (0.106)	data 0.000 (0.014)	eta 0:08:07	loss 0.0869 (0.1044)	accuracy 98.4375 (96.5104)	lr 0.0009381533400219318
+epoch [9/50][70/111]	time 0.093 (0.104)	data 0.000 (0.012)	eta 0:07:59	loss 0.0712 (0.1035)	accuracy 98.4375 (96.5179)	lr 0.0009381533400219318
+epoch [9/50][80/111]	time 0.102 (0.104)	data 0.000 (0.011)	eta 0:07:54	loss 0.0886 (0.1034)	accuracy 96.8750 (96.5430)	lr 0.0009381533400219318
+epoch [9/50][90/111]	time 0.089 (0.102)	data 0.000 (0.010)	eta 0:07:46	loss 0.0483 (0.1028)	accuracy 100.0000 (96.6146)	lr 0.0009381533400219318
+epoch [9/50][100/111]	time 0.082 (0.101)	data 0.000 (0.009)	eta 0:07:40	loss 0.0637 (0.1024)	accuracy 98.4375 (96.6094)	lr 0.0009381533400219318
+epoch [9/50][110/111]	time 0.086 (0.099)	data 0.000 (0.008)	eta 0:07:32	loss 0.1093 (0.1037)	accuracy 96.8750 (96.5767)	lr 0.0009381533400219318
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,536
+* current accuracy: 75.00%
+* best accuracy: 75.88%
+* error: 25.00%
+epoch [10/50][10/111]	time 0.093 (0.180)	data 0.000 (0.085)	eta 0:13:38	loss 0.0906 (0.0982)	accuracy 96.8750 (96.8750)	lr 0.0009221639627510075
+epoch [10/50][20/111]	time 0.090 (0.136)	data 0.000 (0.043)	eta 0:10:17	loss 0.0610 (0.0933)	accuracy 98.4375 (97.2656)	lr 0.0009221639627510075
+epoch [10/50][30/111]	time 0.089 (0.122)	data 0.000 (0.029)	eta 0:09:09	loss 0.1232 (0.0961)	accuracy 98.4375 (97.0312)	lr 0.0009221639627510075
+epoch [10/50][40/111]	time 0.088 (0.114)	data 0.000 (0.022)	eta 0:08:33	loss 0.0752 (0.0937)	accuracy 98.4375 (97.2656)	lr 0.0009221639627510075
+epoch [10/50][50/111]	time 0.088 (0.109)	data 0.000 (0.017)	eta 0:08:09	loss 0.0709 (0.0955)	accuracy 98.4375 (97.1250)	lr 0.0009221639627510075
+epoch [10/50][60/111]	time 0.088 (0.106)	data 0.000 (0.015)	eta 0:07:53	loss 0.2359 (0.0954)	accuracy 93.7500 (97.1875)	lr 0.0009221639627510075
+epoch [10/50][70/111]	time 0.091 (0.103)	data 0.000 (0.012)	eta 0:07:43	loss 0.1014 (0.0931)	accuracy 98.4375 (97.3661)	lr 0.0009221639627510075
+epoch [10/50][80/111]	time 0.087 (0.102)	data 0.000 (0.011)	eta 0:07:34	loss 0.0845 (0.0905)	accuracy 98.4375 (97.3828)	lr 0.0009221639627510075
+epoch [10/50][90/111]	time 0.093 (0.100)	data 0.000 (0.010)	eta 0:07:27	loss 0.0768 (0.0917)	accuracy 98.4375 (97.3785)	lr 0.0009221639627510075
+epoch [10/50][100/111]	time 0.084 (0.099)	data 0.000 (0.009)	eta 0:07:21	loss 0.0921 (0.0905)	accuracy 96.8750 (97.3750)	lr 0.0009221639627510075
+epoch [10/50][110/111]	time 0.085 (0.098)	data 0.000 (0.008)	eta 0:07:15	loss 0.0930 (0.0899)	accuracy 96.8750 (97.4290)	lr 0.0009221639627510075
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,553
+* current accuracy: 75.83%
+* best accuracy: 75.88%
+* error: 24.17%
+epoch [11/50][10/111]	time 0.099 (0.200)	data 0.001 (0.095)	eta 0:14:44	loss 0.1162 (0.0733)	accuracy 95.3125 (97.9688)	lr 0.0009045084971874736
+epoch [11/50][20/111]	time 0.095 (0.148)	data 0.001 (0.048)	eta 0:10:53	loss 0.0648 (0.0816)	accuracy 98.4375 (97.5781)	lr 0.0009045084971874736
+epoch [11/50][30/111]	time 0.097 (0.131)	data 0.001 (0.032)	eta 0:09:36	loss 0.0903 (0.0795)	accuracy 95.3125 (97.6562)	lr 0.0009045084971874736
+epoch [11/50][40/111]	time 0.099 (0.122)	data 0.000 (0.024)	eta 0:08:57	loss 0.0796 (0.0796)	accuracy 98.4375 (97.6953)	lr 0.0009045084971874736
+epoch [11/50][50/111]	time 0.090 (0.117)	data 0.000 (0.019)	eta 0:08:33	loss 0.0612 (0.0775)	accuracy 98.4375 (97.8750)	lr 0.0009045084971874736
+epoch [11/50][60/111]	time 0.090 (0.113)	data 0.000 (0.016)	eta 0:08:14	loss 0.0863 (0.0799)	accuracy 95.3125 (97.6823)	lr 0.0009045084971874736
+epoch [11/50][70/111]	time 0.095 (0.110)	data 0.000 (0.014)	eta 0:08:00	loss 0.1142 (0.0795)	accuracy 96.8750 (97.7232)	lr 0.0009045084971874736
+epoch [11/50][80/111]	time 0.091 (0.108)	data 0.000 (0.012)	eta 0:07:50	loss 0.1556 (0.0803)	accuracy 92.1875 (97.7148)	lr 0.0009045084971874736
+epoch [11/50][90/111]	time 0.125 (0.107)	data 0.000 (0.011)	eta 0:07:44	loss 0.0435 (0.0783)	accuracy 98.4375 (97.7778)	lr 0.0009045084971874736
+epoch [11/50][100/111]	time 0.082 (0.105)	data 0.000 (0.010)	eta 0:07:36	loss 0.0236 (0.0764)	accuracy 100.0000 (97.8750)	lr 0.0009045084971874736
+epoch [11/50][110/111]	time 0.084 (0.103)	data 0.000 (0.009)	eta 0:07:27	loss 0.0839 (0.0784)	accuracy 98.4375 (97.8409)	lr 0.0009045084971874736
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,568
+* current accuracy: 76.56%
+* best accuracy: 76.56%
+* error: 23.44%
+epoch [12/50][10/111]	time 0.096 (0.219)	data 0.000 (0.104)	eta 0:15:46	loss 0.0629 (0.0791)	accuracy 98.4375 (97.5000)	lr 0.0008852566213878945
+epoch [12/50][20/111]	time 0.094 (0.160)	data 0.000 (0.052)	eta 0:11:27	loss 0.0218 (0.0702)	accuracy 100.0000 (97.8125)	lr 0.0008852566213878945
+epoch [12/50][30/111]	time 0.089 (0.138)	data 0.000 (0.035)	eta 0:09:51	loss 0.0433 (0.0711)	accuracy 100.0000 (97.9167)	lr 0.0008852566213878945
+epoch [12/50][40/111]	time 0.085 (0.126)	data 0.000 (0.026)	eta 0:09:01	loss 0.0476 (0.0706)	accuracy 100.0000 (97.9297)	lr 0.0008852566213878945
+epoch [12/50][50/111]	time 0.088 (0.119)	data 0.000 (0.021)	eta 0:08:29	loss 0.0762 (0.0739)	accuracy 96.8750 (97.8125)	lr 0.0008852566213878945
+epoch [12/50][60/111]	time 0.099 (0.115)	data 0.001 (0.018)	eta 0:08:09	loss 0.0940 (0.0736)	accuracy 95.3125 (97.8125)	lr 0.0008852566213878945
+epoch [12/50][70/111]	time 0.090 (0.112)	data 0.000 (0.015)	eta 0:07:55	loss 0.0944 (0.0726)	accuracy 96.8750 (97.9464)	lr 0.0008852566213878945
+epoch [12/50][80/111]	time 0.093 (0.109)	data 0.000 (0.013)	eta 0:07:43	loss 0.0763 (0.0757)	accuracy 96.8750 (97.8125)	lr 0.0008852566213878945
+epoch [12/50][90/111]	time 0.087 (0.107)	data 0.000 (0.012)	eta 0:07:32	loss 0.0549 (0.0756)	accuracy 98.4375 (97.7778)	lr 0.0008852566213878945
+epoch [12/50][100/111]	time 0.082 (0.105)	data 0.000 (0.011)	eta 0:07:24	loss 0.0621 (0.0735)	accuracy 98.4375 (97.8438)	lr 0.0008852566213878945
+epoch [12/50][110/111]	time 0.088 (0.103)	data 0.000 (0.010)	eta 0:07:15	loss 0.0776 (0.0727)	accuracy 96.8750 (97.9261)	lr 0.0008852566213878945
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,539
+* current accuracy: 75.15%
+* best accuracy: 76.56%
+* error: 24.85%
+epoch [13/50][10/111]	time 0.094 (0.190)	data 0.000 (0.097)	eta 0:13:20	loss 0.0546 (0.0626)	accuracy 98.4375 (98.4375)	lr 0.0008644843137107056
+epoch [13/50][20/111]	time 0.093 (0.139)	data 0.000 (0.048)	eta 0:09:44	loss 0.0621 (0.0644)	accuracy 98.4375 (98.1250)	lr 0.0008644843137107056
+epoch [13/50][30/111]	time 0.093 (0.123)	data 0.000 (0.032)	eta 0:08:34	loss 0.0646 (0.0630)	accuracy 98.4375 (98.2812)	lr 0.0008644843137107056
+epoch [13/50][40/111]	time 0.086 (0.114)	data 0.000 (0.024)	eta 0:07:57	loss 0.0440 (0.0663)	accuracy 100.0000 (98.2812)	lr 0.0008644843137107056
+epoch [13/50][50/111]	time 0.098 (0.109)	data 0.000 (0.020)	eta 0:07:35	loss 0.0551 (0.0636)	accuracy 100.0000 (98.4062)	lr 0.0008644843137107056
+epoch [13/50][60/111]	time 0.089 (0.106)	data 0.000 (0.016)	eta 0:07:19	loss 0.0517 (0.0638)	accuracy 96.8750 (98.3854)	lr 0.0008644843137107056
+epoch [13/50][70/111]	time 0.088 (0.103)	data 0.000 (0.014)	eta 0:07:08	loss 0.0715 (0.0631)	accuracy 98.4375 (98.4152)	lr 0.0008644843137107056
+epoch [13/50][80/111]	time 0.085 (0.101)	data 0.000 (0.012)	eta 0:06:58	loss 0.0458 (0.0641)	accuracy 100.0000 (98.3203)	lr 0.0008644843137107056
+epoch [13/50][90/111]	time 0.089 (0.100)	data 0.000 (0.011)	eta 0:06:54	loss 0.0423 (0.0632)	accuracy 98.4375 (98.3681)	lr 0.0008644843137107056
+epoch [13/50][100/111]	time 0.085 (0.099)	data 0.000 (0.010)	eta 0:06:47	loss 0.0368 (0.0629)	accuracy 100.0000 (98.3438)	lr 0.0008644843137107056
+epoch [13/50][110/111]	time 0.085 (0.098)	data 0.000 (0.009)	eta 0:06:41	loss 0.0276 (0.0611)	accuracy 100.0000 (98.4517)	lr 0.0008644843137107056
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,505
+* current accuracy: 73.49%
+* best accuracy: 76.56%
+* error: 26.51%
+epoch [14/50][10/111]	time 0.088 (0.180)	data 0.000 (0.086)	eta 0:12:17	loss 0.0654 (0.0711)	accuracy 96.8750 (97.6562)	lr 0.0008422735529643443
+epoch [14/50][20/111]	time 0.091 (0.136)	data 0.000 (0.043)	eta 0:09:14	loss 0.0568 (0.0688)	accuracy 98.4375 (97.8906)	lr 0.0008422735529643443
+epoch [14/50][30/111]	time 0.094 (0.122)	data 0.000 (0.029)	eta 0:08:16	loss 0.0539 (0.0709)	accuracy 98.4375 (97.6562)	lr 0.0008422735529643443
+epoch [14/50][40/111]	time 0.094 (0.115)	data 0.000 (0.022)	eta 0:07:46	loss 0.0252 (0.0678)	accuracy 100.0000 (97.9297)	lr 0.0008422735529643443
+epoch [14/50][50/111]	time 0.087 (0.110)	data 0.000 (0.018)	eta 0:07:27	loss 0.0465 (0.0669)	accuracy 98.4375 (98.0000)	lr 0.0008422735529643443
+epoch [14/50][60/111]	time 0.091 (0.107)	data 0.001 (0.015)	eta 0:07:12	loss 0.0312 (0.0647)	accuracy 100.0000 (98.0729)	lr 0.0008422735529643443
+epoch [14/50][70/111]	time 0.088 (0.105)	data 0.000 (0.013)	eta 0:07:01	loss 0.0639 (0.0627)	accuracy 98.4375 (98.1250)	lr 0.0008422735529643443
+epoch [14/50][80/111]	time 0.093 (0.103)	data 0.000 (0.011)	eta 0:06:54	loss 0.0633 (0.0614)	accuracy 98.4375 (98.1055)	lr 0.0008422735529643443
+epoch [14/50][90/111]	time 0.091 (0.102)	data 0.000 (0.010)	eta 0:06:48	loss 0.0519 (0.0624)	accuracy 98.4375 (98.0729)	lr 0.0008422735529643443
+epoch [14/50][100/111]	time 0.085 (0.101)	data 0.000 (0.009)	eta 0:06:42	loss 0.0601 (0.0617)	accuracy 98.4375 (98.1094)	lr 0.0008422735529643443
+epoch [14/50][110/111]	time 0.084 (0.099)	data 0.000 (0.008)	eta 0:06:36	loss 0.0651 (0.0631)	accuracy 98.4375 (98.0824)	lr 0.0008422735529643443
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,542
+* current accuracy: 75.29%
+* best accuracy: 76.56%
+* error: 24.71%
+epoch [15/50][10/111]	time 0.093 (0.182)	data 0.000 (0.085)	eta 0:12:05	loss 0.0309 (0.0529)	accuracy 100.0000 (98.7500)	lr 0.0008187119948743448
+epoch [15/50][20/111]	time 0.089 (0.137)	data 0.000 (0.042)	eta 0:09:06	loss 0.0384 (0.0529)	accuracy 98.4375 (98.5938)	lr 0.0008187119948743448
+epoch [15/50][30/111]	time 0.090 (0.122)	data 0.000 (0.028)	eta 0:08:03	loss 0.0258 (0.0500)	accuracy 100.0000 (98.6979)	lr 0.0008187119948743448
+epoch [15/50][40/111]	time 0.089 (0.114)	data 0.000 (0.021)	eta 0:07:31	loss 0.2147 (0.0545)	accuracy 93.7500 (98.6328)	lr 0.0008187119948743448
+epoch [15/50][50/111]	time 0.085 (0.110)	data 0.000 (0.017)	eta 0:07:13	loss 0.0350 (0.0554)	accuracy 100.0000 (98.5938)	lr 0.0008187119948743448
+epoch [15/50][60/111]	time 0.096 (0.107)	data 0.001 (0.014)	eta 0:07:01	loss 0.0658 (0.0569)	accuracy 96.8750 (98.5417)	lr 0.0008187119948743448
+epoch [15/50][70/111]	time 0.087 (0.105)	data 0.000 (0.012)	eta 0:06:52	loss 0.0629 (0.0563)	accuracy 98.4375 (98.5938)	lr 0.0008187119948743448
+epoch [15/50][80/111]	time 0.085 (0.103)	data 0.000 (0.011)	eta 0:06:43	loss 0.0582 (0.0541)	accuracy 98.4375 (98.6523)	lr 0.0008187119948743448
+epoch [15/50][90/111]	time 0.090 (0.101)	data 0.000 (0.010)	eta 0:06:35	loss 0.0254 (0.0538)	accuracy 100.0000 (98.6806)	lr 0.0008187119948743448
+epoch [15/50][100/111]	time 0.086 (0.100)	data 0.000 (0.009)	eta 0:06:30	loss 0.0619 (0.0544)	accuracy 98.4375 (98.6562)	lr 0.0008187119948743448
+epoch [15/50][110/111]	time 0.089 (0.099)	data 0.000 (0.008)	eta 0:06:23	loss 0.0831 (0.0566)	accuracy 96.8750 (98.5653)	lr 0.0008187119948743448
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,548
+* current accuracy: 75.59%
+* best accuracy: 76.56%
+* error: 24.41%
+epoch [16/50][10/111]	time 0.096 (0.193)	data 0.000 (0.095)	eta 0:12:29	loss 0.1478 (0.0624)	accuracy 96.8750 (98.5938)	lr 0.0007938926261462366
+epoch [16/50][20/111]	time 0.098 (0.145)	data 0.000 (0.048)	eta 0:09:20	loss 0.0458 (0.0588)	accuracy 100.0000 (98.6719)	lr 0.0007938926261462366
+epoch [16/50][30/111]	time 0.093 (0.129)	data 0.000 (0.032)	eta 0:08:17	loss 0.0272 (0.0533)	accuracy 100.0000 (98.6979)	lr 0.0007938926261462366
+epoch [16/50][40/111]	time 0.091 (0.120)	data 0.000 (0.024)	eta 0:07:41	loss 0.0186 (0.0536)	accuracy 100.0000 (98.6719)	lr 0.0007938926261462366
+epoch [16/50][50/111]	time 0.089 (0.114)	data 0.000 (0.019)	eta 0:07:18	loss 0.0505 (0.0525)	accuracy 100.0000 (98.7188)	lr 0.0007938926261462366
+epoch [16/50][60/111]	time 0.093 (0.111)	data 0.000 (0.016)	eta 0:07:02	loss 0.0238 (0.0517)	accuracy 100.0000 (98.6979)	lr 0.0007938926261462366
+epoch [16/50][70/111]	time 0.094 (0.109)	data 0.000 (0.014)	eta 0:06:56	loss 0.0801 (0.0518)	accuracy 96.8750 (98.6830)	lr 0.0007938926261462366
+epoch [16/50][80/111]	time 0.089 (0.107)	data 0.000 (0.012)	eta 0:06:45	loss 0.0860 (0.0535)	accuracy 96.8750 (98.6328)	lr 0.0007938926261462366
+epoch [16/50][90/111]	time 0.090 (0.105)	data 0.000 (0.011)	eta 0:06:38	loss 0.0284 (0.0528)	accuracy 100.0000 (98.6632)	lr 0.0007938926261462366
+epoch [16/50][100/111]	time 0.090 (0.103)	data 0.000 (0.010)	eta 0:06:31	loss 0.0406 (0.0523)	accuracy 100.0000 (98.6562)	lr 0.0007938926261462366
+epoch [16/50][110/111]	time 0.086 (0.102)	data 0.000 (0.009)	eta 0:06:23	loss 0.0304 (0.0529)	accuracy 98.4375 (98.5938)	lr 0.0007938926261462366
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,521
+* current accuracy: 74.27%
+* best accuracy: 76.56%
+* error: 25.73%
+epoch [17/50][10/111]	time 0.087 (0.177)	data 0.000 (0.085)	eta 0:11:08	loss 0.0246 (0.0384)	accuracy 100.0000 (99.0625)	lr 0.0007679133974894982
+epoch [17/50][20/111]	time 0.091 (0.134)	data 0.000 (0.043)	eta 0:08:23	loss 0.0080 (0.0398)	accuracy 100.0000 (99.0625)	lr 0.0007679133974894982
+epoch [17/50][30/111]	time 0.085 (0.121)	data 0.000 (0.029)	eta 0:07:32	loss 0.0229 (0.0380)	accuracy 100.0000 (99.0104)	lr 0.0007679133974894982
+epoch [17/50][40/111]	time 0.101 (0.114)	data 0.000 (0.022)	eta 0:07:06	loss 0.0404 (0.0386)	accuracy 98.4375 (98.8672)	lr 0.0007679133974894982
+epoch [17/50][50/111]	time 0.085 (0.111)	data 0.000 (0.017)	eta 0:06:52	loss 0.0151 (0.0398)	accuracy 100.0000 (98.8125)	lr 0.0007679133974894982
+epoch [17/50][60/111]	time 0.090 (0.107)	data 0.000 (0.014)	eta 0:06:38	loss 0.0558 (0.0414)	accuracy 96.8750 (98.7760)	lr 0.0007679133974894982
+epoch [17/50][70/111]	time 0.086 (0.105)	data 0.000 (0.012)	eta 0:06:28	loss 0.0195 (0.0425)	accuracy 100.0000 (98.7500)	lr 0.0007679133974894982
+epoch [17/50][80/111]	time 0.092 (0.103)	data 0.000 (0.011)	eta 0:06:21	loss 0.0112 (0.0414)	accuracy 100.0000 (98.8477)	lr 0.0007679133974894982
+epoch [17/50][90/111]	time 0.092 (0.102)	data 0.000 (0.010)	eta 0:06:16	loss 0.0183 (0.0424)	accuracy 100.0000 (98.8194)	lr 0.0007679133974894982
+epoch [17/50][100/111]	time 0.088 (0.101)	data 0.000 (0.009)	eta 0:06:11	loss 0.0338 (0.0443)	accuracy 100.0000 (98.7812)	lr 0.0007679133974894982
+epoch [17/50][110/111]	time 0.087 (0.100)	data 0.000 (0.008)	eta 0:06:06	loss 0.1165 (0.0455)	accuracy 93.7500 (98.7216)	lr 0.0007679133974894982
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,576
+* current accuracy: 76.95%
+* best accuracy: 76.95%
+* error: 23.05%
+epoch [18/50][10/111]	time 0.097 (0.184)	data 0.000 (0.082)	eta 0:11:12	loss 0.0183 (0.0354)	accuracy 100.0000 (99.5312)	lr 0.0007408768370508576
+epoch [18/50][20/111]	time 0.093 (0.139)	data 0.000 (0.041)	eta 0:08:24	loss 0.0299 (0.0386)	accuracy 100.0000 (99.0625)	lr 0.0007408768370508576
+epoch [18/50][30/111]	time 0.092 (0.123)	data 0.000 (0.027)	eta 0:07:28	loss 0.0159 (0.0390)	accuracy 100.0000 (99.0104)	lr 0.0007408768370508576
+epoch [18/50][40/111]	time 0.090 (0.116)	data 0.000 (0.021)	eta 0:06:59	loss 0.0653 (0.0389)	accuracy 98.4375 (98.9844)	lr 0.0007408768370508576
+epoch [18/50][50/111]	time 0.089 (0.110)	data 0.000 (0.017)	eta 0:06:38	loss 0.0381 (0.0386)	accuracy 98.4375 (99.0000)	lr 0.0007408768370508576
+epoch [18/50][60/111]	time 0.089 (0.107)	data 0.000 (0.014)	eta 0:06:24	loss 0.0172 (0.0411)	accuracy 100.0000 (98.9583)	lr 0.0007408768370508576
+epoch [18/50][70/111]	time 0.090 (0.104)	data 0.000 (0.012)	eta 0:06:14	loss 0.1326 (0.0422)	accuracy 95.3125 (98.8616)	lr 0.0007408768370508576
+epoch [18/50][80/111]	time 0.090 (0.102)	data 0.000 (0.010)	eta 0:06:07	loss 0.0321 (0.0413)	accuracy 98.4375 (98.8672)	lr 0.0007408768370508576
+epoch [18/50][90/111]	time 0.092 (0.101)	data 0.000 (0.009)	eta 0:06:00	loss 0.0143 (0.0420)	accuracy 100.0000 (98.8368)	lr 0.0007408768370508576
+epoch [18/50][100/111]	time 0.087 (0.100)	data 0.000 (0.008)	eta 0:05:56	loss 0.0314 (0.0428)	accuracy 100.0000 (98.7656)	lr 0.0007408768370508576
+epoch [18/50][110/111]	time 0.082 (0.099)	data 0.000 (0.008)	eta 0:05:50	loss 0.0174 (0.0421)	accuracy 100.0000 (98.7926)	lr 0.0007408768370508576
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,512
+* current accuracy: 73.83%
+* best accuracy: 76.95%
+* error: 26.17%
+epoch [19/50][10/111]	time 0.093 (0.187)	data 0.000 (0.089)	eta 0:11:01	loss 0.0677 (0.0329)	accuracy 96.8750 (99.3750)	lr 0.0007128896457825362
+epoch [19/50][20/111]	time 0.086 (0.139)	data 0.000 (0.045)	eta 0:08:09	loss 0.0185 (0.0400)	accuracy 100.0000 (99.0625)	lr 0.0007128896457825362
+epoch [19/50][30/111]	time 0.087 (0.122)	data 0.000 (0.030)	eta 0:07:09	loss 0.0270 (0.0412)	accuracy 98.4375 (99.0625)	lr 0.0007128896457825362
+epoch [19/50][40/111]	time 0.098 (0.114)	data 0.000 (0.022)	eta 0:06:40	loss 0.0121 (0.0391)	accuracy 100.0000 (99.1797)	lr 0.0007128896457825362
+epoch [19/50][50/111]	time 0.090 (0.109)	data 0.000 (0.018)	eta 0:06:22	loss 0.0127 (0.0377)	accuracy 100.0000 (99.1250)	lr 0.0007128896457825362
+epoch [19/50][60/111]	time 0.087 (0.106)	data 0.000 (0.015)	eta 0:06:10	loss 0.0585 (0.0406)	accuracy 96.8750 (98.9844)	lr 0.0007128896457825362
+epoch [19/50][70/111]	time 0.089 (0.104)	data 0.000 (0.013)	eta 0:06:02	loss 0.0331 (0.0411)	accuracy 100.0000 (98.9509)	lr 0.0007128896457825362
+epoch [19/50][80/111]	time 0.091 (0.102)	data 0.000 (0.011)	eta 0:05:55	loss 0.1114 (0.0411)	accuracy 95.3125 (98.8867)	lr 0.0007128896457825362
+epoch [19/50][90/111]	time 0.088 (0.101)	data 0.000 (0.010)	eta 0:05:49	loss 0.0406 (0.0402)	accuracy 100.0000 (98.9236)	lr 0.0007128896457825362
+epoch [19/50][100/111]	time 0.082 (0.100)	data 0.000 (0.009)	eta 0:05:46	loss 0.0310 (0.0404)	accuracy 100.0000 (98.9062)	lr 0.0007128896457825362
+epoch [19/50][110/111]	time 0.084 (0.099)	data 0.000 (0.008)	eta 0:05:39	loss 0.0369 (0.0412)	accuracy 98.4375 (98.8920)	lr 0.0007128896457825362
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,568
+* current accuracy: 76.56%
+* best accuracy: 76.95%
+* error: 23.44%
+epoch [20/50][10/111]	time 0.126 (0.223)	data 0.000 (0.113)	eta 0:12:43	loss 0.0667 (0.0379)	accuracy 96.8750 (98.9062)	lr 0.0006840622763423389
+epoch [20/50][20/111]	time 0.100 (0.160)	data 0.001 (0.057)	eta 0:09:08	loss 0.0305 (0.0382)	accuracy 98.4375 (98.8281)	lr 0.0006840622763423389
+epoch [20/50][30/111]	time 0.100 (0.140)	data 0.000 (0.038)	eta 0:07:58	loss 0.0253 (0.0360)	accuracy 100.0000 (99.0104)	lr 0.0006840622763423389
+epoch [20/50][40/111]	time 0.114 (0.132)	data 0.000 (0.029)	eta 0:07:30	loss 0.0969 (0.0377)	accuracy 96.8750 (98.9062)	lr 0.0006840622763423389
+epoch [20/50][50/111]	time 0.094 (0.127)	data 0.000 (0.023)	eta 0:07:10	loss 0.0162 (0.0358)	accuracy 100.0000 (99.0000)	lr 0.0006840622763423389
+epoch [20/50][60/111]	time 0.098 (0.122)	data 0.001 (0.019)	eta 0:06:52	loss 0.0155 (0.0360)	accuracy 100.0000 (99.0625)	lr 0.0006840622763423389
+epoch [20/50][70/111]	time 0.098 (0.118)	data 0.000 (0.017)	eta 0:06:39	loss 0.1600 (0.0398)	accuracy 95.3125 (98.9509)	lr 0.0006840622763423389
+epoch [20/50][80/111]	time 0.107 (0.117)	data 0.000 (0.015)	eta 0:06:32	loss 0.0379 (0.0402)	accuracy 98.4375 (98.9258)	lr 0.0006840622763423389
+epoch [20/50][90/111]	time 0.109 (0.115)	data 0.000 (0.013)	eta 0:06:26	loss 0.0188 (0.0397)	accuracy 100.0000 (98.9236)	lr 0.0006840622763423389
+epoch [20/50][100/111]	time 0.094 (0.114)	data 0.000 (0.012)	eta 0:06:20	loss 0.0236 (0.0394)	accuracy 98.4375 (98.8906)	lr 0.0006840622763423389
+epoch [20/50][110/111]	time 0.092 (0.112)	data 0.000 (0.011)	eta 0:06:13	loss 0.0233 (0.0399)	accuracy 100.0000 (98.8636)	lr 0.0006840622763423389
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,569
+* current accuracy: 76.61%
+* best accuracy: 76.95%
+* error: 23.39%
+epoch [21/50][10/111]	time 0.110 (0.225)	data 0.001 (0.108)	eta 0:12:25	loss 0.0434 (0.0391)	accuracy 98.4375 (98.7500)	lr 0.0006545084971874735
+epoch [21/50][20/111]	time 0.107 (0.167)	data 0.000 (0.054)	eta 0:09:11	loss 0.0381 (0.0416)	accuracy 98.4375 (98.6719)	lr 0.0006545084971874735
+epoch [21/50][30/111]	time 0.116 (0.148)	data 0.000 (0.036)	eta 0:08:09	loss 0.0246 (0.0386)	accuracy 100.0000 (98.8542)	lr 0.0006545084971874735
+epoch [21/50][40/111]	time 0.112 (0.139)	data 0.000 (0.027)	eta 0:07:36	loss 0.0336 (0.0386)	accuracy 98.4375 (98.7891)	lr 0.0006545084971874735
+epoch [21/50][50/111]	time 0.109 (0.133)	data 0.001 (0.022)	eta 0:07:15	loss 0.0222 (0.0371)	accuracy 100.0000 (98.8438)	lr 0.0006545084971874735
+epoch [21/50][60/111]	time 0.108 (0.129)	data 0.001 (0.018)	eta 0:07:01	loss 0.0175 (0.0355)	accuracy 100.0000 (98.9062)	lr 0.0006545084971874735
+epoch [21/50][70/111]	time 0.113 (0.126)	data 0.000 (0.016)	eta 0:06:52	loss 0.0187 (0.0353)	accuracy 100.0000 (98.9062)	lr 0.0006545084971874735
+epoch [21/50][80/111]	time 0.119 (0.125)	data 0.001 (0.014)	eta 0:06:45	loss 0.0367 (0.0355)	accuracy 98.4375 (98.9062)	lr 0.0006545084971874735
+epoch [21/50][90/111]	time 0.120 (0.123)	data 0.001 (0.012)	eta 0:06:40	loss 0.0368 (0.0373)	accuracy 100.0000 (98.8021)	lr 0.0006545084971874735
+epoch [21/50][100/111]	time 0.098 (0.122)	data 0.000 (0.011)	eta 0:06:32	loss 0.0112 (0.0362)	accuracy 100.0000 (98.8594)	lr 0.0006545084971874735
+epoch [21/50][110/111]	time 0.095 (0.119)	data 0.000 (0.010)	eta 0:06:24	loss 0.0283 (0.0371)	accuracy 98.4375 (98.8778)	lr 0.0006545084971874735
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,561
+* current accuracy: 76.22%
+* best accuracy: 76.95%
+* error: 23.78%
+Get samples belong to cluster 0
+Cluster 0 has 1626 samples
+Get samples belong to cluster 1
+Cluster 1 has 3490 samples
+Get samples belong to cluster 2
+Cluster 2 has 1988 samples
+Mean log likelihood of cluster 0 is 417.48304426897334
+Mean log likelihood of cluster 1 is 512.7093471570225
+Mean log likelihood of cluster 2 is 398.8102309126532
+Layer 0 chooses cluster 1 with log likelihood score 512.7093471570225
+Get samples belong to cluster 0
+Cluster 0 has 3505 samples
+Get samples belong to cluster 1
+Cluster 1 has 1773 samples
+Get samples belong to cluster 2
+Cluster 2 has 1826 samples
+Mean log likelihood of cluster 0 is 469.49294818101316
+Mean log likelihood of cluster 1 is 391.15709268223566
+Mean log likelihood of cluster 2 is 409.7252538115852
+Layer 1 chooses cluster 0 with log likelihood score 469.49294818101316
+Get samples belong to cluster 0
+Cluster 0 has 3392 samples
+Get samples belong to cluster 1
+Cluster 1 has 1596 samples
+Get samples belong to cluster 2
+Cluster 2 has 2116 samples
+Mean log likelihood of cluster 0 is 365.0057304513682
+Mean log likelihood of cluster 1 is 296.2517073762567
+Mean log likelihood of cluster 2 is 301.4302234137705
+Layer 2 chooses cluster 0 with log likelihood score 365.0057304513682
+Get samples belong to cluster 0
+Cluster 0 has 1887 samples
+Get samples belong to cluster 1
+Cluster 1 has 1753 samples
+Get samples belong to cluster 2
+Cluster 2 has 3464 samples
+Mean log likelihood of cluster 0 is 682.4266410163943
+Mean log likelihood of cluster 1 is 690.4813650352742
+Mean log likelihood of cluster 2 is 777.531835225432
+Layer 3 chooses cluster 2 with log likelihood score 777.531835225432
+epoch [22/50][10/111]	time 0.096 (0.197)	data 0.000 (0.080)	eta 0:10:33	loss 0.0610 (0.0619)	accuracy 98.4375 (98.2812)	lr 0.0006243449435824271
+epoch [22/50][20/111]	time 0.098 (0.146)	data 0.000 (0.040)	eta 0:07:47	loss 0.0965 (0.0571)	accuracy 96.8750 (98.3594)	lr 0.0006243449435824271
+epoch [22/50][30/111]	time 0.102 (0.130)	data 0.001 (0.027)	eta 0:06:54	loss 0.0276 (0.0500)	accuracy 100.0000 (98.6979)	lr 0.0006243449435824271
+epoch [22/50][40/111]	time 0.095 (0.123)	data 0.000 (0.020)	eta 0:06:32	loss 0.0124 (0.0486)	accuracy 100.0000 (98.7500)	lr 0.0006243449435824271
+epoch [22/50][50/111]	time 0.089 (0.118)	data 0.000 (0.016)	eta 0:06:14	loss 0.0303 (0.0446)	accuracy 100.0000 (98.9062)	lr 0.0006243449435824271
+epoch [22/50][60/111]	time 0.110 (0.115)	data 0.001 (0.014)	eta 0:06:03	loss 0.0502 (0.0464)	accuracy 98.4375 (98.8281)	lr 0.0006243449435824271
+epoch [22/50][70/111]	time 0.105 (0.112)	data 0.001 (0.012)	eta 0:05:54	loss 0.0129 (0.0461)	accuracy 100.0000 (98.7946)	lr 0.0006243449435824271
+epoch [22/50][80/111]	time 0.090 (0.110)	data 0.000 (0.010)	eta 0:05:46	loss 0.1333 (0.0474)	accuracy 92.1875 (98.6719)	lr 0.0006243449435824271
+epoch [22/50][90/111]	time 0.127 (0.109)	data 0.001 (0.009)	eta 0:05:41	loss 0.0257 (0.0470)	accuracy 100.0000 (98.7326)	lr 0.0006243449435824271
+epoch [22/50][100/111]	time 0.100 (0.110)	data 0.000 (0.008)	eta 0:05:44	loss 0.0080 (0.0477)	accuracy 100.0000 (98.7188)	lr 0.0006243449435824271
+epoch [22/50][110/111]	time 0.085 (0.108)	data 0.000 (0.008)	eta 0:05:37	loss 0.0758 (0.0493)	accuracy 98.4375 (98.6932)	lr 0.0006243449435824271
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,606
+* current accuracy: 78.42%
+* best accuracy: 78.42%
+* error: 21.58%
+epoch [23/50][10/111]	time 0.092 (0.192)	data 0.001 (0.092)	eta 0:09:54	loss 0.0283 (0.0368)	accuracy 100.0000 (99.0625)	lr 0.0005936906572928622
+epoch [23/50][20/111]	time 0.098 (0.143)	data 0.000 (0.046)	eta 0:07:21	loss 0.0142 (0.0431)	accuracy 100.0000 (98.6719)	lr 0.0005936906572928622
+epoch [23/50][30/111]	time 0.087 (0.126)	data 0.000 (0.031)	eta 0:06:29	loss 0.0134 (0.0380)	accuracy 100.0000 (98.8542)	lr 0.0005936906572928622
+epoch [23/50][40/111]	time 0.088 (0.119)	data 0.000 (0.023)	eta 0:06:04	loss 0.0143 (0.0376)	accuracy 100.0000 (98.7891)	lr 0.0005936906572928622
+epoch [23/50][50/111]	time 0.104 (0.114)	data 0.000 (0.019)	eta 0:05:47	loss 0.0897 (0.0374)	accuracy 96.8750 (98.7812)	lr 0.0005936906572928622
+epoch [23/50][60/111]	time 0.088 (0.111)	data 0.001 (0.016)	eta 0:05:37	loss 0.0428 (0.0388)	accuracy 98.4375 (98.8281)	lr 0.0005936906572928622
+epoch [23/50][70/111]	time 0.086 (0.108)	data 0.000 (0.013)	eta 0:05:26	loss 0.0557 (0.0378)	accuracy 98.4375 (98.9509)	lr 0.0005936906572928622
+epoch [23/50][80/111]	time 0.091 (0.105)	data 0.000 (0.012)	eta 0:05:18	loss 0.0687 (0.0402)	accuracy 96.8750 (98.8672)	lr 0.0005936906572928622
+epoch [23/50][90/111]	time 0.093 (0.104)	data 0.000 (0.011)	eta 0:05:13	loss 0.0153 (0.0404)	accuracy 100.0000 (98.9236)	lr 0.0005936906572928622
+epoch [23/50][100/111]	time 0.088 (0.103)	data 0.000 (0.010)	eta 0:05:09	loss 0.0202 (0.0410)	accuracy 100.0000 (98.9062)	lr 0.0005936906572928622
+epoch [23/50][110/111]	time 0.085 (0.101)	data 0.000 (0.009)	eta 0:05:03	loss 0.0118 (0.0407)	accuracy 100.0000 (98.9062)	lr 0.0005936906572928622
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,597
+* current accuracy: 77.98%
+* best accuracy: 78.42%
+* error: 22.02%
+epoch [24/50][10/111]	time 0.092 (0.174)	data 0.000 (0.077)	eta 0:08:40	loss 0.0230 (0.0357)	accuracy 100.0000 (99.0625)	lr 0.000562666616782152
+epoch [24/50][20/111]	time 0.092 (0.134)	data 0.000 (0.039)	eta 0:06:40	loss 0.0161 (0.0397)	accuracy 100.0000 (98.8281)	lr 0.000562666616782152
+epoch [24/50][30/111]	time 0.104 (0.123)	data 0.000 (0.026)	eta 0:06:05	loss 0.0152 (0.0406)	accuracy 100.0000 (98.9583)	lr 0.000562666616782152
+epoch [24/50][40/111]	time 0.091 (0.116)	data 0.000 (0.019)	eta 0:05:42	loss 0.0286 (0.0405)	accuracy 98.4375 (98.9062)	lr 0.000562666616782152
+epoch [24/50][50/111]	time 0.093 (0.111)	data 0.001 (0.016)	eta 0:05:27	loss 0.0230 (0.0385)	accuracy 100.0000 (99.0000)	lr 0.000562666616782152
+epoch [24/50][60/111]	time 0.089 (0.108)	data 0.000 (0.013)	eta 0:05:15	loss 0.0553 (0.0385)	accuracy 98.4375 (98.9844)	lr 0.000562666616782152
+epoch [24/50][70/111]	time 0.089 (0.105)	data 0.000 (0.011)	eta 0:05:07	loss 0.0729 (0.0404)	accuracy 96.8750 (98.9062)	lr 0.000562666616782152
+epoch [24/50][80/111]	time 0.085 (0.104)	data 0.000 (0.010)	eta 0:05:02	loss 0.0360 (0.0400)	accuracy 98.4375 (98.9062)	lr 0.000562666616782152
+epoch [24/50][90/111]	time 0.089 (0.102)	data 0.000 (0.009)	eta 0:04:56	loss 0.0113 (0.0399)	accuracy 100.0000 (98.8715)	lr 0.000562666616782152
+epoch [24/50][100/111]	time 0.084 (0.101)	data 0.000 (0.008)	eta 0:04:51	loss 0.0530 (0.0412)	accuracy 98.4375 (98.8125)	lr 0.000562666616782152
+epoch [24/50][110/111]	time 0.080 (0.099)	data 0.000 (0.007)	eta 0:04:46	loss 0.0337 (0.0417)	accuracy 98.4375 (98.7926)	lr 0.000562666616782152
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,588
+* current accuracy: 77.54%
+* best accuracy: 78.42%
+* error: 22.46%
+epoch [25/50][10/111]	time 0.093 (0.188)	data 0.000 (0.083)	eta 0:08:59	loss 0.0261 (0.0343)	accuracy 100.0000 (99.0625)	lr 0.0005313952597646566
+epoch [25/50][20/111]	time 0.090 (0.140)	data 0.000 (0.042)	eta 0:06:41	loss 0.0185 (0.0369)	accuracy 100.0000 (99.0625)	lr 0.0005313952597646566
+epoch [25/50][30/111]	time 0.090 (0.123)	data 0.000 (0.028)	eta 0:05:52	loss 0.0526 (0.0348)	accuracy 96.8750 (99.1667)	lr 0.0005313952597646566
+epoch [25/50][40/111]	time 0.089 (0.115)	data 0.000 (0.021)	eta 0:05:26	loss 0.0226 (0.0354)	accuracy 100.0000 (99.1016)	lr 0.0005313952597646566
+epoch [25/50][50/111]	time 0.090 (0.110)	data 0.000 (0.017)	eta 0:05:11	loss 0.0827 (0.0392)	accuracy 96.8750 (98.9062)	lr 0.0005313952597646566
+epoch [25/50][60/111]	time 0.091 (0.107)	data 0.000 (0.014)	eta 0:05:01	loss 0.0431 (0.0373)	accuracy 98.4375 (98.9323)	lr 0.0005313952597646566
+epoch [25/50][70/111]	time 0.093 (0.105)	data 0.000 (0.012)	eta 0:04:55	loss 0.0158 (0.0373)	accuracy 100.0000 (98.9509)	lr 0.0005313952597646566
+epoch [25/50][80/111]	time 0.099 (0.103)	data 0.000 (0.011)	eta 0:04:49	loss 0.0116 (0.0360)	accuracy 100.0000 (99.0039)	lr 0.0005313952597646566
+epoch [25/50][90/111]	time 0.094 (0.102)	data 0.000 (0.010)	eta 0:04:45	loss 0.0210 (0.0358)	accuracy 100.0000 (99.0104)	lr 0.0005313952597646566
+epoch [25/50][100/111]	time 0.084 (0.101)	data 0.000 (0.009)	eta 0:04:40	loss 0.0415 (0.0372)	accuracy 98.4375 (98.9375)	lr 0.0005313952597646566
+epoch [25/50][110/111]	time 0.082 (0.099)	data 0.000 (0.008)	eta 0:04:35	loss 0.0107 (0.0365)	accuracy 100.0000 (98.9773)	lr 0.0005313952597646566
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,583
+* current accuracy: 77.29%
+* best accuracy: 78.42%
+* error: 22.71%
+epoch [26/50][10/111]	time 0.092 (0.170)	data 0.000 (0.075)	eta 0:07:49	loss 0.0154 (0.0403)	accuracy 100.0000 (98.7500)	lr 0.0004999999999999998
+epoch [26/50][20/111]	time 0.098 (0.132)	data 0.000 (0.037)	eta 0:06:03	loss 0.0556 (0.0374)	accuracy 98.4375 (98.9844)	lr 0.0004999999999999998
+epoch [26/50][30/111]	time 0.091 (0.118)	data 0.000 (0.025)	eta 0:05:24	loss 0.0150 (0.0342)	accuracy 100.0000 (99.1146)	lr 0.0004999999999999998
+epoch [26/50][40/111]	time 0.089 (0.112)	data 0.000 (0.019)	eta 0:05:05	loss 0.0613 (0.0372)	accuracy 98.4375 (98.9062)	lr 0.0004999999999999998
+epoch [26/50][50/111]	time 0.086 (0.108)	data 0.000 (0.015)	eta 0:04:53	loss 0.0488 (0.0379)	accuracy 100.0000 (98.8750)	lr 0.0004999999999999998
+epoch [26/50][60/111]	time 0.086 (0.104)	data 0.001 (0.013)	eta 0:04:42	loss 0.0262 (0.0391)	accuracy 100.0000 (98.8802)	lr 0.0004999999999999998
+epoch [26/50][70/111]	time 0.089 (0.102)	data 0.000 (0.011)	eta 0:04:35	loss 0.0170 (0.0391)	accuracy 100.0000 (98.8393)	lr 0.0004999999999999998
+epoch [26/50][80/111]	time 0.090 (0.100)	data 0.000 (0.010)	eta 0:04:30	loss 0.0505 (0.0392)	accuracy 98.4375 (98.8281)	lr 0.0004999999999999998
+epoch [26/50][90/111]	time 0.088 (0.099)	data 0.000 (0.009)	eta 0:04:26	loss 0.0240 (0.0386)	accuracy 100.0000 (98.8542)	lr 0.0004999999999999998
+epoch [26/50][100/111]	time 0.085 (0.098)	data 0.000 (0.008)	eta 0:04:22	loss 0.0100 (0.0385)	accuracy 100.0000 (98.8594)	lr 0.0004999999999999998
+epoch [26/50][110/111]	time 0.084 (0.097)	data 0.000 (0.007)	eta 0:04:18	loss 0.0392 (0.0381)	accuracy 98.4375 (98.8494)	lr 0.0004999999999999998
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,578
+* current accuracy: 77.05%
+* best accuracy: 78.42%
+* error: 22.95%
+epoch [27/50][10/111]	time 0.094 (0.185)	data 0.000 (0.085)	eta 0:08:09	loss 0.0146 (0.0317)	accuracy 100.0000 (99.3750)	lr 0.00046860474023534314
+epoch [27/50][20/111]	time 0.089 (0.138)	data 0.000 (0.043)	eta 0:06:04	loss 0.0085 (0.0337)	accuracy 100.0000 (98.9062)	lr 0.00046860474023534314
+epoch [27/50][30/111]	time 0.092 (0.122)	data 0.000 (0.029)	eta 0:05:21	loss 0.0156 (0.0310)	accuracy 100.0000 (99.1146)	lr 0.00046860474023534314
+epoch [27/50][40/111]	time 0.088 (0.114)	data 0.000 (0.022)	eta 0:05:00	loss 0.0059 (0.0291)	accuracy 100.0000 (99.2578)	lr 0.00046860474023534314
+epoch [27/50][50/111]	time 0.103 (0.110)	data 0.000 (0.017)	eta 0:04:47	loss 0.0769 (0.0309)	accuracy 98.4375 (99.1250)	lr 0.00046860474023534314
+epoch [27/50][60/111]	time 0.102 (0.109)	data 0.001 (0.014)	eta 0:04:42	loss 0.0438 (0.0320)	accuracy 98.4375 (99.0885)	lr 0.00046860474023534314
+epoch [27/50][70/111]	time 0.107 (0.107)	data 0.001 (0.012)	eta 0:04:36	loss 0.0719 (0.0333)	accuracy 96.8750 (99.0402)	lr 0.00046860474023534314
+epoch [27/50][80/111]	time 0.102 (0.106)	data 0.000 (0.011)	eta 0:04:33	loss 0.0368 (0.0327)	accuracy 98.4375 (99.0820)	lr 0.00046860474023534314
+epoch [27/50][90/111]	time 0.097 (0.105)	data 0.000 (0.010)	eta 0:04:30	loss 0.0377 (0.0333)	accuracy 98.4375 (99.0451)	lr 0.00046860474023534314
+epoch [27/50][100/111]	time 0.080 (0.103)	data 0.000 (0.009)	eta 0:04:24	loss 0.0322 (0.0326)	accuracy 98.4375 (99.0625)	lr 0.00046860474023534314
+epoch [27/50][110/111]	time 0.082 (0.101)	data 0.000 (0.008)	eta 0:04:19	loss 0.0110 (0.0323)	accuracy 100.0000 (99.0909)	lr 0.00046860474023534314
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,597
+* current accuracy: 77.98%
+* best accuracy: 78.42%
+* error: 22.02%
+epoch [28/50][10/111]	time 0.090 (0.183)	data 0.000 (0.088)	eta 0:07:44	loss 0.0330 (0.0266)	accuracy 98.4375 (99.5312)	lr 0.00043733338321784774
+epoch [28/50][20/111]	time 0.088 (0.136)	data 0.000 (0.044)	eta 0:05:45	loss 0.0140 (0.0306)	accuracy 100.0000 (99.1406)	lr 0.00043733338321784774
+epoch [28/50][30/111]	time 0.095 (0.122)	data 0.000 (0.029)	eta 0:05:07	loss 0.0094 (0.0284)	accuracy 100.0000 (99.2188)	lr 0.00043733338321784774
+epoch [28/50][40/111]	time 0.089 (0.114)	data 0.000 (0.022)	eta 0:04:46	loss 0.0083 (0.0289)	accuracy 100.0000 (99.1797)	lr 0.00043733338321784774
+epoch [28/50][50/111]	time 0.091 (0.109)	data 0.000 (0.018)	eta 0:04:33	loss 0.0363 (0.0292)	accuracy 98.4375 (99.1875)	lr 0.00043733338321784774
+epoch [28/50][60/111]	time 0.090 (0.106)	data 0.000 (0.015)	eta 0:04:25	loss 0.0056 (0.0290)	accuracy 100.0000 (99.1406)	lr 0.00043733338321784774
+epoch [28/50][70/111]	time 0.097 (0.104)	data 0.000 (0.013)	eta 0:04:19	loss 0.0289 (0.0295)	accuracy 100.0000 (99.1741)	lr 0.00043733338321784774
+epoch [28/50][80/111]	time 0.086 (0.103)	data 0.000 (0.011)	eta 0:04:13	loss 0.0368 (0.0293)	accuracy 98.4375 (99.2383)	lr 0.00043733338321784774
+epoch [28/50][90/111]	time 0.090 (0.101)	data 0.000 (0.010)	eta 0:04:09	loss 0.0196 (0.0288)	accuracy 100.0000 (99.2882)	lr 0.00043733338321784774
+epoch [28/50][100/111]	time 0.089 (0.100)	data 0.000 (0.009)	eta 0:04:05	loss 0.0348 (0.0286)	accuracy 98.4375 (99.2812)	lr 0.00043733338321784774
+epoch [28/50][110/111]	time 0.083 (0.099)	data 0.000 (0.008)	eta 0:04:01	loss 0.0374 (0.0289)	accuracy 98.4375 (99.2898)	lr 0.00043733338321784774
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,592
+* current accuracy: 77.73%
+* best accuracy: 78.42%
+* error: 22.27%
+epoch [29/50][10/111]	time 0.090 (0.174)	data 0.000 (0.081)	eta 0:07:04	loss 0.0039 (0.0213)	accuracy 100.0000 (99.5312)	lr 0.00040630934270713756
+epoch [29/50][20/111]	time 0.088 (0.133)	data 0.000 (0.041)	eta 0:05:22	loss 0.0242 (0.0291)	accuracy 100.0000 (99.2188)	lr 0.00040630934270713756
+epoch [29/50][30/111]	time 0.090 (0.118)	data 0.000 (0.027)	eta 0:04:45	loss 0.0802 (0.0329)	accuracy 96.8750 (99.0625)	lr 0.00040630934270713756
+epoch [29/50][40/111]	time 0.089 (0.111)	data 0.000 (0.021)	eta 0:04:26	loss 0.0111 (0.0359)	accuracy 100.0000 (98.9453)	lr 0.00040630934270713756
+epoch [29/50][50/111]	time 0.096 (0.107)	data 0.000 (0.016)	eta 0:04:15	loss 0.0376 (0.0381)	accuracy 100.0000 (98.7812)	lr 0.00040630934270713756
+epoch [29/50][60/111]	time 0.098 (0.105)	data 0.001 (0.014)	eta 0:04:10	loss 0.0123 (0.0370)	accuracy 100.0000 (98.8542)	lr 0.00040630934270713756
+epoch [29/50][70/111]	time 0.091 (0.103)	data 0.000 (0.012)	eta 0:04:05	loss 0.0522 (0.0373)	accuracy 96.8750 (98.8839)	lr 0.00040630934270713756
+epoch [29/50][80/111]	time 0.091 (0.102)	data 0.000 (0.010)	eta 0:04:00	loss 0.0250 (0.0368)	accuracy 98.4375 (98.9258)	lr 0.00040630934270713756
+epoch [29/50][90/111]	time 0.092 (0.101)	data 0.000 (0.009)	eta 0:03:56	loss 0.0114 (0.0358)	accuracy 100.0000 (98.9236)	lr 0.00040630934270713756
+epoch [29/50][100/111]	time 0.085 (0.099)	data 0.000 (0.008)	eta 0:03:52	loss 0.0194 (0.0349)	accuracy 100.0000 (98.9531)	lr 0.00040630934270713756
+epoch [29/50][110/111]	time 0.088 (0.098)	data 0.000 (0.008)	eta 0:03:48	loss 0.0192 (0.0338)	accuracy 100.0000 (99.0057)	lr 0.00040630934270713756
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,614
+* current accuracy: 78.81%
+* best accuracy: 78.81%
+* error: 21.19%
+epoch [30/50][10/111]	time 0.094 (0.169)	data 0.000 (0.075)	eta 0:06:32	loss 0.0392 (0.0347)	accuracy 96.8750 (98.5938)	lr 0.00037565505641757246
+epoch [30/50][20/111]	time 0.102 (0.131)	data 0.000 (0.038)	eta 0:05:01	loss 0.0098 (0.0265)	accuracy 100.0000 (99.2188)	lr 0.00037565505641757246
+epoch [30/50][30/111]	time 0.097 (0.118)	data 0.000 (0.025)	eta 0:04:31	loss 0.0178 (0.0251)	accuracy 98.4375 (99.3229)	lr 0.00037565505641757246
+epoch [30/50][40/111]	time 0.093 (0.111)	data 0.000 (0.019)	eta 0:04:15	loss 0.0426 (0.0257)	accuracy 98.4375 (99.3359)	lr 0.00037565505641757246
+epoch [30/50][50/111]	time 0.096 (0.108)	data 0.001 (0.015)	eta 0:04:05	loss 0.0325 (0.0278)	accuracy 100.0000 (99.2500)	lr 0.00037565505641757246
+epoch [30/50][60/111]	time 0.090 (0.105)	data 0.000 (0.013)	eta 0:03:58	loss 0.0488 (0.0285)	accuracy 98.4375 (99.2188)	lr 0.00037565505641757246
+epoch [30/50][70/111]	time 0.088 (0.103)	data 0.000 (0.011)	eta 0:03:53	loss 0.0629 (0.0287)	accuracy 98.4375 (99.2411)	lr 0.00037565505641757246
+epoch [30/50][80/111]	time 0.088 (0.102)	data 0.000 (0.010)	eta 0:03:48	loss 0.0178 (0.0290)	accuracy 100.0000 (99.2383)	lr 0.00037565505641757246
+epoch [30/50][90/111]	time 0.090 (0.100)	data 0.000 (0.009)	eta 0:03:45	loss 0.0154 (0.0286)	accuracy 100.0000 (99.2708)	lr 0.00037565505641757246
+epoch [30/50][100/111]	time 0.084 (0.099)	data 0.000 (0.008)	eta 0:03:41	loss 0.0352 (0.0288)	accuracy 100.0000 (99.2500)	lr 0.00037565505641757246
+epoch [30/50][110/111]	time 0.085 (0.098)	data 0.000 (0.007)	eta 0:03:37	loss 0.0254 (0.0285)	accuracy 100.0000 (99.2756)	lr 0.00037565505641757246
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,621
+* current accuracy: 79.15%
+* best accuracy: 79.15%
+* error: 20.85%
+epoch [31/50][10/111]	time 0.097 (0.180)	data 0.000 (0.084)	eta 0:06:38	loss 0.0149 (0.0271)	accuracy 100.0000 (99.2188)	lr 0.00034549150281252633
+epoch [31/50][20/111]	time 0.085 (0.136)	data 0.000 (0.042)	eta 0:04:59	loss 0.0048 (0.0321)	accuracy 100.0000 (98.9844)	lr 0.00034549150281252633
+epoch [31/50][30/111]	time 0.083 (0.120)	data 0.000 (0.028)	eta 0:04:21	loss 0.0345 (0.0339)	accuracy 98.4375 (98.9583)	lr 0.00034549150281252633
+epoch [31/50][40/111]	time 0.086 (0.111)	data 0.000 (0.021)	eta 0:04:01	loss 0.0183 (0.0340)	accuracy 98.4375 (98.9062)	lr 0.00034549150281252633
+epoch [31/50][50/111]	time 0.089 (0.106)	data 0.000 (0.017)	eta 0:03:50	loss 0.0052 (0.0313)	accuracy 100.0000 (99.0625)	lr 0.00034549150281252633
+epoch [31/50][60/111]	time 0.089 (0.104)	data 0.000 (0.014)	eta 0:03:44	loss 0.0091 (0.0300)	accuracy 100.0000 (99.1406)	lr 0.00034549150281252633
+epoch [31/50][70/111]	time 0.086 (0.102)	data 0.000 (0.012)	eta 0:03:39	loss 0.0309 (0.0296)	accuracy 100.0000 (99.1964)	lr 0.00034549150281252633
+epoch [31/50][80/111]	time 0.090 (0.100)	data 0.000 (0.011)	eta 0:03:34	loss 0.0075 (0.0298)	accuracy 100.0000 (99.1602)	lr 0.00034549150281252633
+epoch [31/50][90/111]	time 0.094 (0.099)	data 0.000 (0.010)	eta 0:03:30	loss 0.0080 (0.0289)	accuracy 100.0000 (99.2188)	lr 0.00034549150281252633
+epoch [31/50][100/111]	time 0.090 (0.098)	data 0.000 (0.009)	eta 0:03:27	loss 0.0259 (0.0283)	accuracy 100.0000 (99.2656)	lr 0.00034549150281252633
+epoch [31/50][110/111]	time 0.081 (0.097)	data 0.000 (0.008)	eta 0:03:24	loss 0.0223 (0.0275)	accuracy 100.0000 (99.2898)	lr 0.00034549150281252633
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,611
+* current accuracy: 78.66%
+* best accuracy: 79.15%
+* error: 21.34%
+epoch [32/50][10/111]	time 0.089 (0.222)	data 0.000 (0.091)	eta 0:07:46	loss 0.0167 (0.0304)	accuracy 100.0000 (99.3750)	lr 0.00031593772365766105
+epoch [32/50][20/111]	time 0.089 (0.159)	data 0.000 (0.046)	eta 0:05:31	loss 0.0114 (0.0314)	accuracy 100.0000 (98.9844)	lr 0.00031593772365766105
+epoch [32/50][30/111]	time 0.092 (0.137)	data 0.000 (0.031)	eta 0:04:44	loss 0.0393 (0.0282)	accuracy 100.0000 (99.2188)	lr 0.00031593772365766105
+epoch [32/50][40/111]	time 0.096 (0.126)	data 0.000 (0.023)	eta 0:04:20	loss 0.0138 (0.0271)	accuracy 100.0000 (99.2969)	lr 0.00031593772365766105
+epoch [32/50][50/111]	time 0.090 (0.119)	data 0.000 (0.019)	eta 0:04:04	loss 0.0251 (0.0272)	accuracy 98.4375 (99.2812)	lr 0.00031593772365766105
+epoch [32/50][60/111]	time 0.088 (0.114)	data 0.000 (0.015)	eta 0:03:53	loss 0.0150 (0.0268)	accuracy 100.0000 (99.3490)	lr 0.00031593772365766105
+epoch [32/50][70/111]	time 0.090 (0.111)	data 0.000 (0.013)	eta 0:03:45	loss 0.0124 (0.0262)	accuracy 100.0000 (99.3750)	lr 0.00031593772365766105
+epoch [32/50][80/111]	time 0.092 (0.108)	data 0.000 (0.012)	eta 0:03:39	loss 0.0095 (0.0258)	accuracy 100.0000 (99.3750)	lr 0.00031593772365766105
+epoch [32/50][90/111]	time 0.095 (0.107)	data 0.000 (0.010)	eta 0:03:35	loss 0.0146 (0.0272)	accuracy 100.0000 (99.3229)	lr 0.00031593772365766105
+epoch [32/50][100/111]	time 0.086 (0.105)	data 0.000 (0.009)	eta 0:03:30	loss 0.0245 (0.0275)	accuracy 100.0000 (99.2969)	lr 0.00031593772365766105
+epoch [32/50][110/111]	time 0.089 (0.103)	data 0.000 (0.009)	eta 0:03:26	loss 0.0548 (0.0275)	accuracy 96.8750 (99.2756)	lr 0.00031593772365766105
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,588
+* current accuracy: 77.54%
+* best accuracy: 79.15%
+* error: 22.46%
+epoch [33/50][10/111]	time 0.096 (0.176)	data 0.001 (0.076)	eta 0:05:50	loss 0.0544 (0.0236)	accuracy 96.8750 (99.0625)	lr 0.00028711035421746355
+epoch [33/50][20/111]	time 0.099 (0.134)	data 0.000 (0.038)	eta 0:04:25	loss 0.0457 (0.0250)	accuracy 100.0000 (99.2188)	lr 0.00028711035421746355
+epoch [33/50][30/111]	time 0.096 (0.121)	data 0.000 (0.026)	eta 0:03:57	loss 0.0210 (0.0256)	accuracy 100.0000 (99.2708)	lr 0.00028711035421746355
+epoch [33/50][40/111]	time 0.089 (0.113)	data 0.000 (0.019)	eta 0:03:41	loss 0.0169 (0.0254)	accuracy 100.0000 (99.2969)	lr 0.00028711035421746355
+epoch [33/50][50/111]	time 0.090 (0.109)	data 0.000 (0.015)	eta 0:03:31	loss 0.0166 (0.0273)	accuracy 100.0000 (99.1250)	lr 0.00028711035421746355
+epoch [33/50][60/111]	time 0.090 (0.105)	data 0.000 (0.013)	eta 0:03:23	loss 0.0177 (0.0268)	accuracy 100.0000 (99.1927)	lr 0.00028711035421746355
+epoch [33/50][70/111]	time 0.095 (0.103)	data 0.000 (0.011)	eta 0:03:19	loss 0.0097 (0.0257)	accuracy 100.0000 (99.2411)	lr 0.00028711035421746355
+epoch [33/50][80/111]	time 0.096 (0.103)	data 0.000 (0.010)	eta 0:03:17	loss 0.0082 (0.0248)	accuracy 100.0000 (99.2773)	lr 0.00028711035421746355
+epoch [33/50][90/111]	time 0.091 (0.102)	data 0.000 (0.009)	eta 0:03:15	loss 0.0224 (0.0253)	accuracy 98.4375 (99.2708)	lr 0.00028711035421746355
+epoch [33/50][100/111]	time 0.087 (0.101)	data 0.000 (0.008)	eta 0:03:11	loss 0.0288 (0.0255)	accuracy 98.4375 (99.2656)	lr 0.00028711035421746355
+epoch [33/50][110/111]	time 0.088 (0.100)	data 0.000 (0.007)	eta 0:03:08	loss 0.0324 (0.0250)	accuracy 98.4375 (99.2898)	lr 0.00028711035421746355
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,597
+* current accuracy: 77.98%
+* best accuracy: 79.15%
+* error: 22.02%
+epoch [34/50][10/111]	time 0.089 (0.183)	data 0.000 (0.089)	eta 0:05:43	loss 0.0254 (0.0248)	accuracy 98.4375 (99.2188)	lr 0.0002591231629491422
+epoch [34/50][20/111]	time 0.087 (0.137)	data 0.000 (0.045)	eta 0:04:15	loss 0.0743 (0.0271)	accuracy 98.4375 (99.2969)	lr 0.0002591231629491422
+epoch [34/50][30/111]	time 0.091 (0.122)	data 0.000 (0.030)	eta 0:03:45	loss 0.0588 (0.0285)	accuracy 98.4375 (99.3229)	lr 0.0002591231629491422
+epoch [34/50][40/111]	time 0.096 (0.114)	data 0.000 (0.023)	eta 0:03:30	loss 0.0200 (0.0292)	accuracy 100.0000 (99.3750)	lr 0.0002591231629491422
+epoch [34/50][50/111]	time 0.088 (0.109)	data 0.000 (0.018)	eta 0:03:20	loss 0.0090 (0.0270)	accuracy 100.0000 (99.3750)	lr 0.0002591231629491422
+epoch [34/50][60/111]	time 0.091 (0.107)	data 0.001 (0.015)	eta 0:03:15	loss 0.0474 (0.0259)	accuracy 98.4375 (99.4271)	lr 0.0002591231629491422
+epoch [34/50][70/111]	time 0.095 (0.106)	data 0.001 (0.013)	eta 0:03:12	loss 0.0119 (0.0243)	accuracy 100.0000 (99.4866)	lr 0.0002591231629491422
+epoch [34/50][80/111]	time 0.091 (0.104)	data 0.000 (0.011)	eta 0:03:07	loss 0.0568 (0.0239)	accuracy 96.8750 (99.4531)	lr 0.0002591231629491422
+epoch [34/50][90/111]	time 0.089 (0.102)	data 0.000 (0.010)	eta 0:03:03	loss 0.0173 (0.0257)	accuracy 100.0000 (99.3924)	lr 0.0002591231629491422
+epoch [34/50][100/111]	time 0.086 (0.101)	data 0.000 (0.009)	eta 0:03:00	loss 0.0226 (0.0267)	accuracy 98.4375 (99.3750)	lr 0.0002591231629491422
+epoch [34/50][110/111]	time 0.089 (0.100)	data 0.000 (0.008)	eta 0:02:56	loss 0.0105 (0.0261)	accuracy 100.0000 (99.3750)	lr 0.0002591231629491422
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,602
+* current accuracy: 78.22%
+* best accuracy: 79.15%
+* error: 21.78%
+epoch [35/50][10/111]	time 0.090 (0.173)	data 0.000 (0.078)	eta 0:05:04	loss 0.0381 (0.0263)	accuracy 98.4375 (99.5312)	lr 0.00023208660251050145
+epoch [35/50][20/111]	time 0.096 (0.134)	data 0.000 (0.039)	eta 0:03:55	loss 0.0450 (0.0270)	accuracy 100.0000 (99.6094)	lr 0.00023208660251050145
+epoch [35/50][30/111]	time 0.090 (0.121)	data 0.000 (0.026)	eta 0:03:30	loss 0.0629 (0.0299)	accuracy 96.8750 (99.3229)	lr 0.00023208660251050145
+epoch [35/50][40/111]	time 0.092 (0.114)	data 0.000 (0.020)	eta 0:03:17	loss 0.0111 (0.0262)	accuracy 100.0000 (99.4141)	lr 0.00023208660251050145
+epoch [35/50][50/111]	time 0.096 (0.110)	data 0.000 (0.016)	eta 0:03:09	loss 0.0101 (0.0243)	accuracy 100.0000 (99.4688)	lr 0.00023208660251050145
+epoch [35/50][60/111]	time 0.115 (0.107)	data 0.000 (0.013)	eta 0:03:03	loss 0.0300 (0.0245)	accuracy 100.0000 (99.4531)	lr 0.00023208660251050145
+epoch [35/50][70/111]	time 0.092 (0.105)	data 0.000 (0.012)	eta 0:02:59	loss 0.0514 (0.0236)	accuracy 98.4375 (99.4866)	lr 0.00023208660251050145
+epoch [35/50][80/111]	time 0.105 (0.104)	data 0.001 (0.010)	eta 0:02:56	loss 0.0149 (0.0234)	accuracy 100.0000 (99.4922)	lr 0.00023208660251050145
+epoch [35/50][90/111]	time 0.085 (0.102)	data 0.000 (0.009)	eta 0:02:52	loss 0.0053 (0.0241)	accuracy 100.0000 (99.4792)	lr 0.00023208660251050145
+epoch [35/50][100/111]	time 0.091 (0.102)	data 0.000 (0.008)	eta 0:02:50	loss 0.0149 (0.0248)	accuracy 100.0000 (99.4531)	lr 0.00023208660251050145
+epoch [35/50][110/111]	time 0.094 (0.100)	data 0.000 (0.007)	eta 0:02:47	loss 0.0100 (0.0248)	accuracy 100.0000 (99.4460)	lr 0.00023208660251050145
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,609
+* current accuracy: 78.56%
+* best accuracy: 79.15%
+* error: 21.44%
+epoch [36/50][10/111]	time 0.089 (0.180)	data 0.000 (0.083)	eta 0:04:58	loss 0.0192 (0.0279)	accuracy 100.0000 (99.0625)	lr 0.00020610737385376337
+epoch [36/50][20/111]	time 0.089 (0.135)	data 0.000 (0.042)	eta 0:03:42	loss 0.0069 (0.0281)	accuracy 100.0000 (98.9844)	lr 0.00020610737385376337
+epoch [36/50][30/111]	time 0.088 (0.120)	data 0.000 (0.028)	eta 0:03:16	loss 0.0448 (0.0275)	accuracy 98.4375 (99.1146)	lr 0.00020610737385376337
+epoch [36/50][40/111]	time 0.087 (0.112)	data 0.000 (0.021)	eta 0:03:02	loss 0.0100 (0.0278)	accuracy 100.0000 (99.1016)	lr 0.00020610737385376337
+epoch [36/50][50/111]	time 0.088 (0.108)	data 0.000 (0.017)	eta 0:02:54	loss 0.0209 (0.0260)	accuracy 100.0000 (99.1875)	lr 0.00020610737385376337
+epoch [36/50][60/111]	time 0.092 (0.105)	data 0.000 (0.014)	eta 0:02:48	loss 0.0309 (0.0265)	accuracy 98.4375 (99.1146)	lr 0.00020610737385376337
+epoch [36/50][70/111]	time 0.093 (0.103)	data 0.000 (0.012)	eta 0:02:44	loss 0.0318 (0.0260)	accuracy 98.4375 (99.1295)	lr 0.00020610737385376337
+epoch [36/50][80/111]	time 0.091 (0.102)	data 0.000 (0.011)	eta 0:02:41	loss 0.0052 (0.0254)	accuracy 100.0000 (99.1992)	lr 0.00020610737385376337
+epoch [36/50][90/111]	time 0.092 (0.101)	data 0.000 (0.010)	eta 0:02:38	loss 0.0999 (0.0281)	accuracy 96.8750 (99.0799)	lr 0.00020610737385376337
+epoch [36/50][100/111]	time 0.086 (0.100)	data 0.000 (0.009)	eta 0:02:35	loss 0.0266 (0.0273)	accuracy 100.0000 (99.1406)	lr 0.00020610737385376337
+epoch [36/50][110/111]	time 0.087 (0.098)	data 0.000 (0.008)	eta 0:02:32	loss 0.0187 (0.0281)	accuracy 100.0000 (99.0909)	lr 0.00020610737385376337
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,590
+* current accuracy: 77.64%
+* best accuracy: 79.15%
+* error: 22.36%
+epoch [37/50][10/111]	time 0.095 (0.219)	data 0.000 (0.108)	eta 0:05:38	loss 0.0079 (0.0263)	accuracy 100.0000 (99.0625)	lr 0.00018128800512565502
+epoch [37/50][20/111]	time 0.089 (0.155)	data 0.000 (0.054)	eta 0:03:57	loss 0.0079 (0.0247)	accuracy 100.0000 (99.2188)	lr 0.00018128800512565502
+epoch [37/50][30/111]	time 0.088 (0.133)	data 0.000 (0.036)	eta 0:03:22	loss 0.0176 (0.0227)	accuracy 100.0000 (99.4271)	lr 0.00018128800512565502
+epoch [37/50][40/111]	time 0.089 (0.122)	data 0.000 (0.027)	eta 0:03:03	loss 0.0218 (0.0237)	accuracy 98.4375 (99.2969)	lr 0.00018128800512565502
+epoch [37/50][50/111]	time 0.082 (0.114)	data 0.000 (0.022)	eta 0:02:51	loss 0.1035 (0.0252)	accuracy 95.3125 (99.2500)	lr 0.00018128800512565502
+epoch [37/50][60/111]	time 0.082 (0.109)	data 0.000 (0.018)	eta 0:02:43	loss 0.0116 (0.0270)	accuracy 100.0000 (99.1667)	lr 0.00018128800512565502
+epoch [37/50][70/111]	time 0.109 (0.107)	data 0.000 (0.016)	eta 0:02:38	loss 0.0286 (0.0267)	accuracy 98.4375 (99.2188)	lr 0.00018128800512565502
+epoch [37/50][80/111]	time 0.089 (0.105)	data 0.000 (0.014)	eta 0:02:35	loss 0.0042 (0.0267)	accuracy 100.0000 (99.1992)	lr 0.00018128800512565502
+epoch [37/50][90/111]	time 0.088 (0.103)	data 0.000 (0.012)	eta 0:02:31	loss 0.0287 (0.0275)	accuracy 100.0000 (99.2014)	lr 0.00018128800512565502
+epoch [37/50][100/111]	time 0.089 (0.102)	data 0.000 (0.011)	eta 0:02:28	loss 0.0132 (0.0261)	accuracy 100.0000 (99.2500)	lr 0.00018128800512565502
+epoch [37/50][110/111]	time 0.087 (0.101)	data 0.000 (0.010)	eta 0:02:25	loss 0.1284 (0.0276)	accuracy 95.3125 (99.2188)	lr 0.00018128800512565502
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,616
+* current accuracy: 78.91%
+* best accuracy: 79.15%
+* error: 21.09%
+epoch [38/50][10/111]	time 0.092 (0.191)	data 0.000 (0.092)	eta 0:04:33	loss 0.0142 (0.0140)	accuracy 100.0000 (100.0000)	lr 0.00015772644703565555
+epoch [38/50][20/111]	time 0.088 (0.143)	data 0.000 (0.046)	eta 0:03:22	loss 0.0085 (0.0190)	accuracy 100.0000 (99.5312)	lr 0.00015772644703565555
+epoch [38/50][30/111]	time 0.089 (0.125)	data 0.000 (0.031)	eta 0:02:57	loss 0.0109 (0.0193)	accuracy 100.0000 (99.5833)	lr 0.00015772644703565555
+epoch [38/50][40/111]	time 0.087 (0.117)	data 0.000 (0.023)	eta 0:02:43	loss 0.0108 (0.0230)	accuracy 100.0000 (99.4531)	lr 0.00015772644703565555
+epoch [38/50][50/111]	time 0.090 (0.111)	data 0.000 (0.019)	eta 0:02:35	loss 0.0185 (0.0218)	accuracy 100.0000 (99.5312)	lr 0.00015772644703565555
+epoch [38/50][60/111]	time 0.090 (0.108)	data 0.000 (0.016)	eta 0:02:29	loss 0.0144 (0.0226)	accuracy 100.0000 (99.4531)	lr 0.00015772644703565555
+epoch [38/50][70/111]	time 0.090 (0.105)	data 0.000 (0.013)	eta 0:02:24	loss 0.0076 (0.0222)	accuracy 100.0000 (99.4420)	lr 0.00015772644703565555
+epoch [38/50][80/111]	time 0.086 (0.103)	data 0.000 (0.012)	eta 0:02:20	loss 0.0047 (0.0219)	accuracy 100.0000 (99.4141)	lr 0.00015772644703565555
+epoch [38/50][90/111]	time 0.092 (0.102)	data 0.000 (0.011)	eta 0:02:17	loss 0.0377 (0.0227)	accuracy 98.4375 (99.3750)	lr 0.00015772644703565555
+epoch [38/50][100/111]	time 0.091 (0.101)	data 0.000 (0.010)	eta 0:02:15	loss 0.0112 (0.0233)	accuracy 100.0000 (99.3281)	lr 0.00015772644703565555
+epoch [38/50][110/111]	time 0.087 (0.100)	data 0.000 (0.009)	eta 0:02:12	loss 0.0075 (0.0230)	accuracy 100.0000 (99.3466)	lr 0.00015772644703565555
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,596
+* current accuracy: 77.93%
+* best accuracy: 79.15%
+* error: 22.07%
+epoch [39/50][10/111]	time 0.107 (0.192)	data 0.000 (0.090)	eta 0:04:13	loss 0.0220 (0.0302)	accuracy 100.0000 (99.2188)	lr 0.00013551568628929425
+epoch [39/50][20/111]	time 0.092 (0.143)	data 0.000 (0.045)	eta 0:03:08	loss 0.0111 (0.0263)	accuracy 100.0000 (99.3750)	lr 0.00013551568628929425
+epoch [39/50][30/111]	time 0.091 (0.127)	data 0.000 (0.030)	eta 0:02:45	loss 0.0245 (0.0250)	accuracy 98.4375 (99.3229)	lr 0.00013551568628929425
+epoch [39/50][40/111]	time 0.097 (0.119)	data 0.000 (0.023)	eta 0:02:33	loss 0.0051 (0.0234)	accuracy 100.0000 (99.3359)	lr 0.00013551568628929425
+epoch [39/50][50/111]	time 0.093 (0.114)	data 0.000 (0.018)	eta 0:02:26	loss 0.0194 (0.0230)	accuracy 100.0000 (99.3750)	lr 0.00013551568628929425
+epoch [39/50][60/111]	time 0.094 (0.111)	data 0.000 (0.015)	eta 0:02:21	loss 0.0148 (0.0222)	accuracy 100.0000 (99.4271)	lr 0.00013551568628929425
+epoch [39/50][70/111]	time 0.097 (0.108)	data 0.000 (0.013)	eta 0:02:16	loss 0.0200 (0.0221)	accuracy 100.0000 (99.3750)	lr 0.00013551568628929425
+epoch [39/50][80/111]	time 0.090 (0.107)	data 0.000 (0.011)	eta 0:02:14	loss 0.0162 (0.0209)	accuracy 100.0000 (99.4531)	lr 0.00013551568628929425
+epoch [39/50][90/111]	time 0.087 (0.105)	data 0.000 (0.010)	eta 0:02:10	loss 0.0436 (0.0206)	accuracy 98.4375 (99.4965)	lr 0.00013551568628929425
+epoch [39/50][100/111]	time 0.086 (0.104)	data 0.000 (0.009)	eta 0:02:07	loss 0.0112 (0.0213)	accuracy 100.0000 (99.4844)	lr 0.00013551568628929425
+epoch [39/50][110/111]	time 0.083 (0.102)	data 0.000 (0.008)	eta 0:02:04	loss 0.0069 (0.0217)	accuracy 100.0000 (99.4602)	lr 0.00013551568628929425
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,598
+* current accuracy: 78.03%
+* best accuracy: 79.15%
+* error: 21.97%
+epoch [40/50][10/111]	time 0.096 (0.198)	data 0.000 (0.091)	eta 0:03:59	loss 0.0142 (0.0281)	accuracy 100.0000 (99.0625)	lr 0.00011474337861210535
+epoch [40/50][20/111]	time 0.094 (0.147)	data 0.000 (0.046)	eta 0:02:56	loss 0.0090 (0.0209)	accuracy 100.0000 (99.3750)	lr 0.00011474337861210535
+epoch [40/50][30/111]	time 0.095 (0.130)	data 0.001 (0.031)	eta 0:02:35	loss 0.0118 (0.0228)	accuracy 100.0000 (99.2708)	lr 0.00011474337861210535
+epoch [40/50][40/111]	time 0.091 (0.122)	data 0.000 (0.023)	eta 0:02:23	loss 0.0163 (0.0221)	accuracy 100.0000 (99.3359)	lr 0.00011474337861210535
+epoch [40/50][50/111]	time 0.091 (0.117)	data 0.000 (0.019)	eta 0:02:16	loss 0.0242 (0.0224)	accuracy 98.4375 (99.3125)	lr 0.00011474337861210535
+epoch [40/50][60/111]	time 0.102 (0.113)	data 0.001 (0.016)	eta 0:02:11	loss 0.0112 (0.0214)	accuracy 100.0000 (99.3750)	lr 0.00011474337861210535
+epoch [40/50][70/111]	time 0.102 (0.110)	data 0.001 (0.013)	eta 0:02:07	loss 0.0507 (0.0223)	accuracy 96.8750 (99.3750)	lr 0.00011474337861210535
+epoch [40/50][80/111]	time 0.094 (0.109)	data 0.000 (0.012)	eta 0:02:03	loss 0.0107 (0.0224)	accuracy 100.0000 (99.4141)	lr 0.00011474337861210535
+epoch [40/50][90/111]	time 0.099 (0.107)	data 0.001 (0.011)	eta 0:02:01	loss 0.0318 (0.0220)	accuracy 98.4375 (99.4444)	lr 0.00011474337861210535
+epoch [40/50][100/111]	time 0.092 (0.106)	data 0.000 (0.010)	eta 0:01:58	loss 0.0337 (0.0217)	accuracy 98.4375 (99.4688)	lr 0.00011474337861210535
+epoch [40/50][110/111]	time 0.085 (0.104)	data 0.000 (0.009)	eta 0:01:55	loss 0.0113 (0.0210)	accuracy 100.0000 (99.4886)	lr 0.00011474337861210535
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,592
+* current accuracy: 77.73%
+* best accuracy: 79.15%
+* error: 22.27%
+epoch [41/50][10/111]	time 0.101 (0.214)	data 0.000 (0.105)	eta 0:03:55	loss 0.0054 (0.0203)	accuracy 100.0000 (99.5312)	lr 9.549150281252626e-05
+epoch [41/50][20/111]	time 0.099 (0.156)	data 0.000 (0.053)	eta 0:02:49	loss 0.0157 (0.0209)	accuracy 100.0000 (99.4531)	lr 9.549150281252626e-05
+epoch [41/50][30/111]	time 0.110 (0.138)	data 0.000 (0.035)	eta 0:02:29	loss 0.0074 (0.0215)	accuracy 100.0000 (99.5312)	lr 9.549150281252626e-05
+epoch [41/50][40/111]	time 0.113 (0.130)	data 0.000 (0.027)	eta 0:02:19	loss 0.0298 (0.0199)	accuracy 98.4375 (99.6094)	lr 9.549150281252626e-05
+epoch [41/50][50/111]	time 0.117 (0.126)	data 0.001 (0.021)	eta 0:02:13	loss 0.0551 (0.0204)	accuracy 96.8750 (99.5938)	lr 9.549150281252626e-05
+epoch [41/50][60/111]	time 0.095 (0.123)	data 0.001 (0.018)	eta 0:02:09	loss 0.0151 (0.0196)	accuracy 100.0000 (99.6354)	lr 9.549150281252626e-05
+epoch [41/50][70/111]	time 0.102 (0.120)	data 0.000 (0.015)	eta 0:02:05	loss 0.0356 (0.0200)	accuracy 98.4375 (99.5982)	lr 9.549150281252626e-05
+epoch [41/50][80/111]	time 0.100 (0.118)	data 0.000 (0.014)	eta 0:02:02	loss 0.0513 (0.0210)	accuracy 98.4375 (99.5508)	lr 9.549150281252626e-05
+epoch [41/50][90/111]	time 0.107 (0.117)	data 0.000 (0.012)	eta 0:01:59	loss 0.0224 (0.0209)	accuracy 100.0000 (99.5660)	lr 9.549150281252626e-05
+epoch [41/50][100/111]	time 0.093 (0.116)	data 0.000 (0.011)	eta 0:01:56	loss 0.0675 (0.0226)	accuracy 96.8750 (99.4844)	lr 9.549150281252626e-05
+epoch [41/50][110/111]	time 0.095 (0.114)	data 0.000 (0.010)	eta 0:01:53	loss 0.0114 (0.0226)	accuracy 100.0000 (99.4744)	lr 9.549150281252626e-05
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,624
+* current accuracy: 79.30%
+* best accuracy: 79.30%
+* error: 20.70%
+Get samples belong to cluster 0
+Cluster 0 has 1874 samples
+Get samples belong to cluster 1
+Cluster 1 has 1736 samples
+Get samples belong to cluster 2
+Cluster 2 has 3494 samples
+Mean log likelihood of cluster 0 is 432.83552088237377
+Mean log likelihood of cluster 1 is 435.50466111509803
+Mean log likelihood of cluster 2 is 549.1425974239954
+Layer 0 chooses cluster 2 with log likelihood score 549.1425974239954
+Get samples belong to cluster 0
+Cluster 0 has 1975 samples
+Get samples belong to cluster 1
+Cluster 1 has 1621 samples
+Get samples belong to cluster 2
+Cluster 2 has 3508 samples
+Mean log likelihood of cluster 0 is 394.06566191252915
+Mean log likelihood of cluster 1 is 427.51436474288687
+Mean log likelihood of cluster 2 is 488.4667064758861
+Layer 1 chooses cluster 2 with log likelihood score 488.4667064758861
+Get samples belong to cluster 0
+Cluster 0 has 3398 samples
+Get samples belong to cluster 1
+Cluster 1 has 1493 samples
+Get samples belong to cluster 2
+Cluster 2 has 2213 samples
+Mean log likelihood of cluster 0 is 322.6130595765609
+Mean log likelihood of cluster 1 is 276.6068017798531
+Mean log likelihood of cluster 2 is 256.2538656155074
+Layer 2 chooses cluster 0 with log likelihood score 322.6130595765609
+Get samples belong to cluster 0
+Cluster 0 has 1976 samples
+Get samples belong to cluster 1
+Cluster 1 has 1630 samples
+Get samples belong to cluster 2
+Cluster 2 has 3498 samples
+Mean log likelihood of cluster 0 is 658.2034236801608
+Mean log likelihood of cluster 1 is 674.5210628744078
+Mean log likelihood of cluster 2 is 749.7907164257343
+Layer 3 chooses cluster 2 with log likelihood score 749.7907164257343
+epoch [42/50][10/111]	time 0.111 (0.286)	data 0.000 (0.144)	eta 0:04:43	loss 0.0216 (0.0322)	accuracy 100.0000 (99.2188)	lr 7.783603724899252e-05
+epoch [42/50][20/111]	time 0.109 (0.195)	data 0.000 (0.072)	eta 0:03:11	loss 0.0133 (0.0303)	accuracy 100.0000 (99.2188)	lr 7.783603724899252e-05
+epoch [42/50][30/111]	time 0.102 (0.163)	data 0.001 (0.048)	eta 0:02:38	loss 0.1312 (0.0376)	accuracy 95.3125 (98.8021)	lr 7.783603724899252e-05
+epoch [42/50][40/111]	time 0.091 (0.147)	data 0.000 (0.036)	eta 0:02:21	loss 0.0189 (0.0328)	accuracy 100.0000 (99.0234)	lr 7.783603724899252e-05
+epoch [42/50][50/111]	time 0.097 (0.137)	data 0.001 (0.029)	eta 0:02:10	loss 0.0358 (0.0334)	accuracy 98.4375 (99.0000)	lr 7.783603724899252e-05
+epoch [42/50][60/111]	time 0.091 (0.130)	data 0.000 (0.024)	eta 0:02:02	loss 0.0226 (0.0317)	accuracy 100.0000 (99.0885)	lr 7.783603724899252e-05
+epoch [42/50][70/111]	time 0.089 (0.126)	data 0.000 (0.021)	eta 0:01:56	loss 0.0107 (0.0315)	accuracy 100.0000 (99.0625)	lr 7.783603724899252e-05
+epoch [42/50][80/111]	time 0.093 (0.122)	data 0.000 (0.018)	eta 0:01:51	loss 0.0031 (0.0300)	accuracy 100.0000 (99.1016)	lr 7.783603724899252e-05
+epoch [42/50][90/111]	time 0.099 (0.119)	data 0.001 (0.017)	eta 0:01:47	loss 0.0157 (0.0305)	accuracy 100.0000 (99.1319)	lr 7.783603724899252e-05
+epoch [42/50][100/111]	time 0.090 (0.117)	data 0.000 (0.015)	eta 0:01:44	loss 0.0672 (0.0304)	accuracy 98.4375 (99.1406)	lr 7.783603724899252e-05
+epoch [42/50][110/111]	time 0.093 (0.114)	data 0.000 (0.014)	eta 0:01:41	loss 0.0287 (0.0302)	accuracy 100.0000 (99.2045)	lr 7.783603724899252e-05
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,605
+* current accuracy: 78.37%
+* best accuracy: 79.30%
+* error: 21.63%
+epoch [43/50][10/111]	time 0.087 (0.205)	data 0.000 (0.098)	eta 0:02:59	loss 0.0117 (0.0306)	accuracy 100.0000 (99.2188)	lr 6.184665997806817e-05
+epoch [43/50][20/111]	time 0.086 (0.147)	data 0.000 (0.049)	eta 0:02:07	loss 0.0206 (0.0282)	accuracy 98.4375 (99.0625)	lr 6.184665997806817e-05
+epoch [43/50][30/111]	time 0.087 (0.127)	data 0.000 (0.033)	eta 0:01:49	loss 0.0267 (0.0264)	accuracy 98.4375 (99.0104)	lr 6.184665997806817e-05
+epoch [43/50][40/111]	time 0.087 (0.117)	data 0.000 (0.025)	eta 0:01:39	loss 0.0150 (0.0245)	accuracy 100.0000 (99.1797)	lr 6.184665997806817e-05
+epoch [43/50][50/111]	time 0.085 (0.111)	data 0.000 (0.020)	eta 0:01:33	loss 0.0191 (0.0263)	accuracy 100.0000 (99.1562)	lr 6.184665997806817e-05
+epoch [43/50][60/111]	time 0.087 (0.108)	data 0.000 (0.017)	eta 0:01:29	loss 0.0365 (0.0262)	accuracy 98.4375 (99.1927)	lr 6.184665997806817e-05
+epoch [43/50][70/111]	time 0.082 (0.104)	data 0.000 (0.014)	eta 0:01:25	loss 0.0110 (0.0278)	accuracy 100.0000 (99.1295)	lr 6.184665997806817e-05
+epoch [43/50][80/111]	time 0.081 (0.102)	data 0.000 (0.013)	eta 0:01:22	loss 0.0157 (0.0275)	accuracy 100.0000 (99.1406)	lr 6.184665997806817e-05
+epoch [43/50][90/111]	time 0.090 (0.100)	data 0.001 (0.011)	eta 0:01:20	loss 0.0166 (0.0276)	accuracy 100.0000 (99.1667)	lr 6.184665997806817e-05
+epoch [43/50][100/111]	time 0.086 (0.099)	data 0.000 (0.010)	eta 0:01:18	loss 0.0135 (0.0278)	accuracy 100.0000 (99.1719)	lr 6.184665997806817e-05
+epoch [43/50][110/111]	time 0.087 (0.098)	data 0.000 (0.009)	eta 0:01:16	loss 0.0166 (0.0272)	accuracy 100.0000 (99.2188)	lr 6.184665997806817e-05
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,591
+* current accuracy: 77.69%
+* best accuracy: 79.30%
+* error: 22.31%
+epoch [44/50][10/111]	time 0.094 (0.190)	data 0.000 (0.094)	eta 0:02:25	loss 0.0125 (0.0257)	accuracy 100.0000 (99.2188)	lr 4.7586473766990294e-05
+epoch [44/50][20/111]	time 0.099 (0.143)	data 0.000 (0.047)	eta 0:01:48	loss 0.0372 (0.0259)	accuracy 98.4375 (99.3750)	lr 4.7586473766990294e-05
+epoch [44/50][30/111]	time 0.099 (0.128)	data 0.000 (0.031)	eta 0:01:35	loss 0.0270 (0.0267)	accuracy 98.4375 (99.2188)	lr 4.7586473766990294e-05
+epoch [44/50][40/111]	time 0.096 (0.119)	data 0.000 (0.024)	eta 0:01:27	loss 0.0122 (0.0270)	accuracy 100.0000 (99.1797)	lr 4.7586473766990294e-05
+epoch [44/50][50/111]	time 0.090 (0.113)	data 0.000 (0.019)	eta 0:01:22	loss 0.0142 (0.0264)	accuracy 100.0000 (99.2188)	lr 4.7586473766990294e-05
+epoch [44/50][60/111]	time 0.096 (0.110)	data 0.000 (0.016)	eta 0:01:18	loss 0.0100 (0.0254)	accuracy 100.0000 (99.3229)	lr 4.7586473766990294e-05
+epoch [44/50][70/111]	time 0.096 (0.109)	data 0.000 (0.014)	eta 0:01:17	loss 0.0283 (0.0256)	accuracy 98.4375 (99.3304)	lr 4.7586473766990294e-05
+epoch [44/50][80/111]	time 0.107 (0.109)	data 0.000 (0.012)	eta 0:01:15	loss 0.0123 (0.0261)	accuracy 100.0000 (99.2773)	lr 4.7586473766990294e-05
+epoch [44/50][90/111]	time 0.114 (0.108)	data 0.000 (0.011)	eta 0:01:13	loss 0.0289 (0.0251)	accuracy 98.4375 (99.3229)	lr 4.7586473766990294e-05
+epoch [44/50][100/111]	time 0.102 (0.108)	data 0.000 (0.010)	eta 0:01:13	loss 0.0484 (0.0252)	accuracy 98.4375 (99.3125)	lr 4.7586473766990294e-05
+epoch [44/50][110/111]	time 0.089 (0.106)	data 0.000 (0.009)	eta 0:01:11	loss 0.0282 (0.0256)	accuracy 100.0000 (99.3040)	lr 4.7586473766990294e-05
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,591
+* current accuracy: 77.69%
+* best accuracy: 79.30%
+* error: 22.31%
+epoch [45/50][10/111]	time 0.101 (0.184)	data 0.000 (0.082)	eta 0:02:00	loss 0.0165 (0.0226)	accuracy 100.0000 (99.5312)	lr 3.5111757055874305e-05
+epoch [45/50][20/111]	time 0.089 (0.138)	data 0.000 (0.041)	eta 0:01:29	loss 0.0439 (0.0301)	accuracy 96.8750 (99.1406)	lr 3.5111757055874305e-05
+epoch [45/50][30/111]	time 0.090 (0.125)	data 0.000 (0.028)	eta 0:01:19	loss 0.0166 (0.0267)	accuracy 100.0000 (99.3229)	lr 3.5111757055874305e-05
+epoch [45/50][40/111]	time 0.082 (0.116)	data 0.000 (0.021)	eta 0:01:12	loss 0.0381 (0.0266)	accuracy 98.4375 (99.3359)	lr 3.5111757055874305e-05
+epoch [45/50][50/111]	time 0.089 (0.110)	data 0.000 (0.017)	eta 0:01:07	loss 0.0463 (0.0278)	accuracy 96.8750 (99.2812)	lr 3.5111757055874305e-05
+epoch [45/50][60/111]	time 0.092 (0.106)	data 0.001 (0.014)	eta 0:01:04	loss 0.0194 (0.0268)	accuracy 100.0000 (99.2969)	lr 3.5111757055874305e-05
+epoch [45/50][70/111]	time 0.084 (0.104)	data 0.000 (0.012)	eta 0:01:01	loss 0.0298 (0.0259)	accuracy 98.4375 (99.3527)	lr 3.5111757055874305e-05
+epoch [45/50][80/111]	time 0.090 (0.102)	data 0.000 (0.011)	eta 0:00:59	loss 0.0039 (0.0258)	accuracy 100.0000 (99.3750)	lr 3.5111757055874305e-05
+epoch [45/50][90/111]	time 0.085 (0.100)	data 0.000 (0.009)	eta 0:00:57	loss 0.0237 (0.0255)	accuracy 98.4375 (99.3576)	lr 3.5111757055874305e-05
+epoch [45/50][100/111]	time 0.088 (0.100)	data 0.000 (0.009)	eta 0:00:56	loss 0.0183 (0.0254)	accuracy 100.0000 (99.3594)	lr 3.5111757055874305e-05
+epoch [45/50][110/111]	time 0.083 (0.098)	data 0.000 (0.008)	eta 0:00:54	loss 0.0608 (0.0255)	accuracy 98.4375 (99.3608)	lr 3.5111757055874305e-05
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,572
+* current accuracy: 76.76%
+* best accuracy: 79.30%
+* error: 23.24%
+epoch [46/50][10/111]	time 0.102 (0.225)	data 0.000 (0.120)	eta 0:02:02	loss 0.0330 (0.0376)	accuracy 98.4375 (98.4375)	lr 2.4471741852423218e-05
+epoch [46/50][20/111]	time 0.111 (0.162)	data 0.000 (0.060)	eta 0:01:26	loss 0.0144 (0.0309)	accuracy 100.0000 (98.8281)	lr 2.4471741852423218e-05
+epoch [46/50][30/111]	time 0.093 (0.139)	data 0.000 (0.040)	eta 0:01:13	loss 0.0226 (0.0323)	accuracy 100.0000 (98.9062)	lr 2.4471741852423218e-05
+epoch [46/50][40/111]	time 0.100 (0.128)	data 0.000 (0.030)	eta 0:01:06	loss 0.0205 (0.0306)	accuracy 100.0000 (99.0234)	lr 2.4471741852423218e-05
+epoch [46/50][50/111]	time 0.099 (0.122)	data 0.000 (0.024)	eta 0:01:01	loss 0.0073 (0.0301)	accuracy 100.0000 (99.0312)	lr 2.4471741852423218e-05
+epoch [46/50][60/111]	time 0.100 (0.118)	data 0.001 (0.020)	eta 0:00:58	loss 0.0392 (0.0298)	accuracy 98.4375 (99.0365)	lr 2.4471741852423218e-05
+epoch [46/50][70/111]	time 0.100 (0.116)	data 0.001 (0.018)	eta 0:00:56	loss 0.0299 (0.0287)	accuracy 100.0000 (99.1518)	lr 2.4471741852423218e-05
+epoch [46/50][80/111]	time 0.098 (0.113)	data 0.000 (0.015)	eta 0:00:53	loss 0.0107 (0.0277)	accuracy 100.0000 (99.1992)	lr 2.4471741852423218e-05
+epoch [46/50][90/111]	time 0.105 (0.112)	data 0.000 (0.014)	eta 0:00:52	loss 0.0111 (0.0269)	accuracy 100.0000 (99.2535)	lr 2.4471741852423218e-05
+epoch [46/50][100/111]	time 0.085 (0.110)	data 0.000 (0.012)	eta 0:00:50	loss 0.0053 (0.0265)	accuracy 100.0000 (99.2656)	lr 2.4471741852423218e-05
+epoch [46/50][110/111]	time 0.083 (0.108)	data 0.000 (0.011)	eta 0:00:47	loss 0.0384 (0.0259)	accuracy 100.0000 (99.2898)	lr 2.4471741852423218e-05
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,572
+* current accuracy: 76.76%
+* best accuracy: 79.30%
+* error: 23.24%
+epoch [47/50][10/111]	time 0.092 (0.234)	data 0.000 (0.099)	eta 0:01:41	loss 0.0548 (0.0296)	accuracy 96.8750 (99.0625)	lr 1.5708419435684507e-05
+epoch [47/50][20/111]	time 0.090 (0.165)	data 0.000 (0.050)	eta 0:01:10	loss 0.1005 (0.0351)	accuracy 95.3125 (98.6719)	lr 1.5708419435684507e-05
+epoch [47/50][30/111]	time 0.099 (0.142)	data 0.000 (0.033)	eta 0:00:58	loss 0.0417 (0.0342)	accuracy 98.4375 (98.8542)	lr 1.5708419435684507e-05
+epoch [47/50][40/111]	time 0.106 (0.133)	data 0.000 (0.025)	eta 0:00:53	loss 0.0116 (0.0335)	accuracy 100.0000 (98.8672)	lr 1.5708419435684507e-05
+epoch [47/50][50/111]	time 0.103 (0.127)	data 0.000 (0.020)	eta 0:00:49	loss 0.0104 (0.0316)	accuracy 100.0000 (98.9688)	lr 1.5708419435684507e-05
+epoch [47/50][60/111]	time 0.113 (0.122)	data 0.001 (0.017)	eta 0:00:47	loss 0.0539 (0.0323)	accuracy 98.4375 (98.9323)	lr 1.5708419435684507e-05
+epoch [47/50][70/111]	time 0.095 (0.118)	data 0.001 (0.015)	eta 0:00:44	loss 0.0101 (0.0309)	accuracy 100.0000 (98.9732)	lr 1.5708419435684507e-05
+epoch [47/50][80/111]	time 0.106 (0.117)	data 0.001 (0.013)	eta 0:00:42	loss 0.0342 (0.0304)	accuracy 98.4375 (99.0234)	lr 1.5708419435684507e-05
+epoch [47/50][90/111]	time 0.092 (0.115)	data 0.000 (0.011)	eta 0:00:40	loss 0.0160 (0.0318)	accuracy 100.0000 (98.9410)	lr 1.5708419435684507e-05
+epoch [47/50][100/111]	time 0.087 (0.113)	data 0.000 (0.010)	eta 0:00:38	loss 0.0243 (0.0317)	accuracy 100.0000 (98.9688)	lr 1.5708419435684507e-05
+epoch [47/50][110/111]	time 0.081 (0.110)	data 0.000 (0.009)	eta 0:00:36	loss 0.0364 (0.0317)	accuracy 98.4375 (98.9915)	lr 1.5708419435684507e-05
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,592
+* current accuracy: 77.73%
+* best accuracy: 79.30%
+* error: 22.27%
+epoch [48/50][10/111]	time 0.107 (0.213)	data 0.001 (0.104)	eta 0:01:08	loss 0.0224 (0.0291)	accuracy 98.4375 (99.3750)	lr 8.856374635655634e-06
+epoch [48/50][20/111]	time 0.098 (0.157)	data 0.000 (0.052)	eta 0:00:49	loss 0.0448 (0.0297)	accuracy 98.4375 (99.2969)	lr 8.856374635655634e-06
+epoch [48/50][30/111]	time 0.097 (0.138)	data 0.001 (0.035)	eta 0:00:41	loss 0.0215 (0.0272)	accuracy 100.0000 (99.2708)	lr 8.856374635655634e-06
+epoch [48/50][40/111]	time 0.146 (0.132)	data 0.001 (0.026)	eta 0:00:38	loss 0.0073 (0.0261)	accuracy 100.0000 (99.3359)	lr 8.856374635655634e-06
+epoch [48/50][50/111]	time 0.113 (0.128)	data 0.001 (0.021)	eta 0:00:36	loss 0.0290 (0.0258)	accuracy 100.0000 (99.3125)	lr 8.856374635655634e-06
+epoch [48/50][60/111]	time 0.096 (0.124)	data 0.000 (0.018)	eta 0:00:33	loss 0.0059 (0.0238)	accuracy 100.0000 (99.4271)	lr 8.856374635655634e-06
+epoch [48/50][70/111]	time 0.126 (0.122)	data 0.001 (0.015)	eta 0:00:32	loss 0.0066 (0.0240)	accuracy 100.0000 (99.3750)	lr 8.856374635655634e-06
+epoch [48/50][80/111]	time 0.095 (0.121)	data 0.000 (0.014)	eta 0:00:30	loss 0.0321 (0.0258)	accuracy 100.0000 (99.3164)	lr 8.856374635655634e-06
+epoch [48/50][90/111]	time 0.098 (0.119)	data 0.000 (0.012)	eta 0:00:28	loss 0.0629 (0.0258)	accuracy 98.4375 (99.3229)	lr 8.856374635655634e-06
+epoch [48/50][100/111]	time 0.090 (0.116)	data 0.000 (0.011)	eta 0:00:27	loss 0.0243 (0.0264)	accuracy 100.0000 (99.3125)	lr 8.856374635655634e-06
+epoch [48/50][110/111]	time 0.090 (0.114)	data 0.000 (0.010)	eta 0:00:25	loss 0.0266 (0.0268)	accuracy 100.0000 (99.2898)	lr 8.856374635655634e-06
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,579
+* current accuracy: 77.10%
+* best accuracy: 79.30%
+* error: 22.90%
+epoch [49/50][10/111]	time 0.098 (0.226)	data 0.001 (0.108)	eta 0:00:47	loss 0.0081 (0.0288)	accuracy 100.0000 (99.3750)	lr 3.942649342761115e-06
+epoch [49/50][20/111]	time 0.095 (0.162)	data 0.001 (0.054)	eta 0:00:32	loss 0.0105 (0.0241)	accuracy 100.0000 (99.6094)	lr 3.942649342761115e-06
+epoch [49/50][30/111]	time 0.103 (0.141)	data 0.000 (0.036)	eta 0:00:27	loss 0.0925 (0.0266)	accuracy 95.3125 (99.3229)	lr 3.942649342761115e-06
+epoch [49/50][40/111]	time 0.091 (0.131)	data 0.000 (0.027)	eta 0:00:23	loss 0.0170 (0.0246)	accuracy 100.0000 (99.3359)	lr 3.942649342761115e-06
+epoch [49/50][50/111]	time 0.105 (0.126)	data 0.000 (0.022)	eta 0:00:21	loss 0.0085 (0.0253)	accuracy 100.0000 (99.2812)	lr 3.942649342761115e-06
+epoch [49/50][60/111]	time 0.098 (0.121)	data 0.000 (0.018)	eta 0:00:19	loss 0.0225 (0.0251)	accuracy 100.0000 (99.3229)	lr 3.942649342761115e-06
+epoch [49/50][70/111]	time 0.092 (0.118)	data 0.000 (0.016)	eta 0:00:17	loss 0.0389 (0.0260)	accuracy 100.0000 (99.2411)	lr 3.942649342761115e-06
+epoch [49/50][80/111]	time 0.097 (0.115)	data 0.001 (0.014)	eta 0:00:16	loss 0.0114 (0.0250)	accuracy 100.0000 (99.3164)	lr 3.942649342761115e-06
+epoch [49/50][90/111]	time 0.094 (0.113)	data 0.000 (0.012)	eta 0:00:14	loss 0.0385 (0.0256)	accuracy 98.4375 (99.3056)	lr 3.942649342761115e-06
+epoch [49/50][100/111]	time 0.084 (0.112)	data 0.000 (0.011)	eta 0:00:13	loss 0.0199 (0.0250)	accuracy 100.0000 (99.3281)	lr 3.942649342761115e-06
+epoch [49/50][110/111]	time 0.085 (0.109)	data 0.000 (0.010)	eta 0:00:12	loss 0.0213 (0.0248)	accuracy 100.0000 (99.3466)	lr 3.942649342761115e-06
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,610
+* current accuracy: 78.61%
+* best accuracy: 79.30%
+* error: 21.39%
+epoch [50/50][10/111]	time 0.104 (0.196)	data 0.000 (0.095)	eta 0:00:19	loss 0.0359 (0.0358)	accuracy 98.4375 (98.9062)	lr 9.866357858642198e-07
+epoch [50/50][20/111]	time 0.091 (0.144)	data 0.000 (0.048)	eta 0:00:13	loss 0.0300 (0.0347)	accuracy 98.4375 (99.0625)	lr 9.866357858642198e-07
+epoch [50/50][30/111]	time 0.088 (0.126)	data 0.000 (0.032)	eta 0:00:10	loss 0.0294 (0.0311)	accuracy 100.0000 (99.1146)	lr 9.866357858642198e-07
+epoch [50/50][40/111]	time 0.086 (0.117)	data 0.000 (0.024)	eta 0:00:08	loss 0.0078 (0.0299)	accuracy 100.0000 (99.1016)	lr 9.866357858642198e-07
+epoch [50/50][50/111]	time 0.089 (0.111)	data 0.000 (0.019)	eta 0:00:06	loss 0.0100 (0.0276)	accuracy 100.0000 (99.1875)	lr 9.866357858642198e-07
+epoch [50/50][60/111]	time 0.087 (0.108)	data 0.000 (0.016)	eta 0:00:05	loss 0.0114 (0.0263)	accuracy 100.0000 (99.2188)	lr 9.866357858642198e-07
+epoch [50/50][70/111]	time 0.090 (0.106)	data 0.000 (0.014)	eta 0:00:04	loss 0.0114 (0.0255)	accuracy 100.0000 (99.3080)	lr 9.866357858642198e-07
+epoch [50/50][80/111]	time 0.092 (0.104)	data 0.000 (0.012)	eta 0:00:03	loss 0.0081 (0.0271)	accuracy 100.0000 (99.2383)	lr 9.866357858642198e-07
+epoch [50/50][90/111]	time 0.090 (0.103)	data 0.000 (0.011)	eta 0:00:02	loss 0.0049 (0.0265)	accuracy 100.0000 (99.2535)	lr 9.866357858642198e-07
+epoch [50/50][100/111]	time 0.087 (0.101)	data 0.000 (0.010)	eta 0:00:01	loss 0.0041 (0.0260)	accuracy 100.0000 (99.3125)	lr 9.866357858642198e-07
+epoch [50/50][110/111]	time 0.090 (0.100)	data 0.000 (0.009)	eta 0:00:00	loss 0.0394 (0.0262)	accuracy 96.8750 (99.3040)	lr 9.866357858642198e-07
+Finished training
+Do evaluation on test set
+=> result
+* total: 2,048
+* correct: 1,615
+* current accuracy: 78.86%
+* best accuracy: 79.30%
+* error: 21.14%
+Checkpoint saved to "output/dg/pacs/conststyle/art_painting/model/model.pth.tar-50"
+Elapsed: 0:13:26
