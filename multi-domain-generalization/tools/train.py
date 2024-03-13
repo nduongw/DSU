@@ -51,6 +51,9 @@ def reset_cfg(cfg, args):
 
     if args.head:
         cfg.MODEL.HEAD.NAME = args.head
+    
+    if args.cluster:
+        cfg.CLUSTER = args.cluster
 
     #if args.uncertainty:
     cfg.MODEL.UNCERTAINTY = args.uncertainty
@@ -82,6 +85,11 @@ def main(args):
         
         if cfg.MODEL.BACKBONE.PRETRAINED:
             job_type += '-pretrained'
+        
+        if cfg.CLUSTER == 'ot':
+            job_type += '-OT'
+        elif cfg.CLUSTER == 'llh':
+            job_type += '-LogLikelihood'
             
         tracker = wandb.init(
             project = 'StyleDG',
@@ -192,7 +200,8 @@ if __name__ == '__main__':
                         help='pos for uncertainty')
     parser.add_argument('--wandb', default=1, type=int, help='visualize on Wandb')
     parser.add_argument('--option', default='', type=str, help='additional options')
-    parser.add_argument('--update_interval', default=20, type=int, help='update cluster interval')
+    parser.add_argument('--update_interval', default=25, type=int, help='update cluster interval')
+    parser.add_argument('--cluster', default='ot', type=str, help='cluster choosing method')
     
     args = parser.parse_args()
     main(args)

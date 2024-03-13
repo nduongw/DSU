@@ -9,6 +9,7 @@ from .build import BACKBONE_REGISTRY
 from .backbone import Backbone
 from sklearn.manifold import TSNE
 import os
+import ot
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -106,16 +107,35 @@ class ConstStyle(nn.Module):
             cluster_samples.append(samples)
             cluster_samples_idx.append(samples_idx)
         
-        log_likelihood_score = []
-        for cluster_idx, cluster_sample_idx in enumerate(cluster_samples_idx):
-            cluster_sample = [pca_data[i] for i in cluster_sample_idx]
-            sample_score = bayes_cluster.score_samples(cluster_sample)
-            mean_score = np.mean(sample_score)
-            print(f'Mean log likelihood of cluster {cluster_idx} is {mean_score}')
-            log_likelihood_score.append(mean_score)
+        if self.cfg.CLUSTER == 'llh':
+            log_likelihood_score = []
+            for cluster_idx, cluster_sample_idx in enumerate(cluster_samples_idx):
+                cluster_sample = [pca_data[i] for i in cluster_sample_idx]
+                sample_score = bayes_cluster.score_samples(cluster_sample)
+                mean_score = np.mean(sample_score)
+                print(f'Mean log likelihood of cluster {cluster_idx} is {mean_score}')
+                log_likelihood_score.append(mean_score)
 
-        idx_val = np.argmax(log_likelihood_score)
-        print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with log likelihood score {log_likelihood_score[idx_val]}')
+            idx_val = np.argmax(log_likelihood_score)
+            print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with log likelihood score {log_likelihood_score[idx_val]}')
+        elif self.cfg.CLUSTER == 'ot':
+            ot_score = []
+            for i in range(len(cluster_samples_idx)):
+                total_cost = 0.0
+                cluster_sample_x = [pca_data[x] for x in cluster_samples_idx[i]]
+                for j in range(len(cluster_samples_idx)):
+                    if i == j:
+                        continue
+                    else:
+                        cluster_sample_y = [pca_data[k] for k in cluster_samples_idx[j]]
+                        pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, cluster_sample_x, seed=self.cfg.SEED, n_projections=50)
+                        print(f'Cost to move from cluster {j} to cluster {i} is {pwd}')
+                        total_cost += pwd
+                print(f'Total cost of cluster {i}: {total_cost}')
+                ot_score.append(total_cost)
+                        
+            idx_val = np.argmin(ot_score)
+            print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with log optimal transport score {ot_score[idx_val]}')
 
         self.const_mean = torch.from_numpy(bayes_cluster.means_[idx_val])
         self.const_cov = torch.from_numpy(bayes_cluster.covariances_[idx_val])
@@ -372,7 +392,20 @@ class CResNet(Backbone):
                 nn.init.normal_(m.weight, 0, 0.01)
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
-
+    
+    def stylemaps(self, x, store_feature=False, apply_conststyle=False):
+        x = self.conv1(x)
+        x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.conststyle[1](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        x = self.layer1(x)
+        x = self.conststyle[2](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        x = self.layer2(x)
+        x = self.conststyle[3](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        return x
+    
     def featuremaps(self, x, store_feature=False, apply_conststyle=False):
         x = self.conv1(x)
         x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle)

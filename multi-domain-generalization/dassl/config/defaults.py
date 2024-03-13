@@ -19,7 +19,7 @@ _C.USE_CUDA = True
 # Print detailed information (e.g. what trainer,
 # dataset, backbone, etc.)
 _C.VERBOSE = True
-
+_C.CLUSTER = ''
 ###########################
 # Input
 ###########################
