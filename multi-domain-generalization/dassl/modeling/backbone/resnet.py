@@ -108,7 +108,7 @@ class Bottleneck(nn.Module):
 class ResNet(Backbone):
 
     def __init__(
-        self, block, layers, **kwargs
+        self, block, layers, ms_class=None, ms_layers=[], ms_p=0.5, ms_a=0.1, **kwargs
     ):
         self.inplanes = 64
         super().__init__()
@@ -128,6 +128,15 @@ class ResNet(Backbone):
 
         self._out_features = 512 * block.expansion
 
+        self.mixstyle = None
+        if ms_layers:
+            self.mixstyle = ms_class(p=ms_p, alpha=ms_a)
+            for layer_name in ms_layers:
+                assert layer_name in ["layer1", "layer2", "layer3"]
+            print(
+                f"Insert {self.mixstyle.__class__.__name__} after {ms_layers}"
+            )
+        self.ms_layers = ms_layers
 
         self._init_params()
 
@@ -178,8 +187,14 @@ class ResNet(Backbone):
         x = self.relu(x)
         x = self.maxpool(x)
         x = self.layer1(x)
+        if "layer1" in self.ms_layers:
+            x = self.mixstyle(x)
         x = self.layer2(x)
+        if "layer2" in self.ms_layers:
+            x = self.mixstyle(x)
         x = self.layer3(x)
+        if "layer3" in self.ms_layers:
+            x = self.mixstyle(x)
         return self.layer4(x)
 
     def forward(self, x):
@@ -260,3 +275,317 @@ def resnet152(pretrained=True, **kwargs):
 
     return model
 
+"""
+Residual networks with mixstyle
+"""
+
+
+@BACKBONE_REGISTRY.register()
+def resnet18_ms_l123(pretrained=True, **kwargs):
+    from dassl.modeling.ops import MixStyle
+
+    model = ResNet(
+        block=BasicBlock,
+        layers=[2, 2, 2, 2],
+        ms_class=MixStyle,
+        ms_layers=["layer1", "layer2", "layer3"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet18"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet18_ms_l12(pretrained=True, **kwargs):
+    from dassl.modeling.ops import MixStyle
+
+    model = ResNet(
+        block=BasicBlock,
+        layers=[2, 2, 2, 2],
+        ms_class=MixStyle,
+        ms_layers=["layer1", "layer2"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet18"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet18_ms_l1(pretrained=True, **kwargs):
+    from dassl.modeling.ops import MixStyle
+
+    model = ResNet(
+        block=BasicBlock,
+        layers=[2, 2, 2, 2],
+        ms_class=MixStyle,
+        ms_layers=["layer1"]
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet18"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet50_ms_l123(pretrained=True, **kwargs):
+    from dassl.modeling.ops import MixStyle
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 6, 3],
+        ms_class=MixStyle,
+        ms_layers=["layer1", "layer2", "layer3"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet50"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet50_ms_l12(pretrained=True, **kwargs):
+    from dassl.modeling.ops import MixStyle
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 6, 3],
+        ms_class=MixStyle,
+        ms_layers=["layer1", "layer2"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet50"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet50_ms_l1(pretrained=True, **kwargs):
+    from dassl.modeling.ops import MixStyle
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 6, 3],
+        ms_class=MixStyle,
+        ms_layers=["layer1"]
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet50"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet101_ms_l123(pretrained=True, **kwargs):
+    from dassl.modeling.ops import MixStyle
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 23, 3],
+        ms_class=MixStyle,
+        ms_layers=["layer1", "layer2", "layer3"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet101"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet101_ms_l12(pretrained=True, **kwargs):
+    from dassl.modeling.ops import MixStyle
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 23, 3],
+        ms_class=MixStyle,
+        ms_layers=["layer1", "layer2"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet101"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet101_ms_l1(pretrained=True, **kwargs):
+    from dassl.modeling.ops import MixStyle
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 23, 3],
+        ms_class=MixStyle,
+        ms_layers=["layer1"]
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet101"])
+
+    return model
+
+
+"""
+Residual networks with efdmix
+"""
+
+
+@BACKBONE_REGISTRY.register()
+def resnet18_efdmix_l123(pretrained=True, **kwargs):
+    from dassl.modeling.ops import EFDMix
+
+    model = ResNet(
+        block=BasicBlock,
+        layers=[2, 2, 2, 2],
+        ms_class=EFDMix,
+        ms_layers=["layer1", "layer2", "layer3"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet18"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet18_efdmix_l12(pretrained=True, **kwargs):
+    from dassl.modeling.ops import EFDMix
+
+    model = ResNet(
+        block=BasicBlock,
+        layers=[2, 2, 2, 2],
+        ms_class=EFDMix,
+        ms_layers=["layer1", "layer2"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet18"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet18_efdmix_l1(pretrained=True, **kwargs):
+    from dassl.modeling.ops import EFDMix
+
+    model = ResNet(
+        block=BasicBlock,
+        layers=[2, 2, 2, 2],
+        ms_class=EFDMix,
+        ms_layers=["layer1"]
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet18"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet50_efdmix_l123(pretrained=True, **kwargs):
+    from dassl.modeling.ops import EFDMix
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 6, 3],
+        ms_class=EFDMix,
+        ms_layers=["layer1", "layer2", "layer3"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet50"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet50_efdmix_l12(pretrained=True, **kwargs):
+    from dassl.modeling.ops import EFDMix
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 6, 3],
+        ms_class=EFDMix,
+        ms_layers=["layer1", "layer2"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet50"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet50_efdmix_l1(pretrained=True, **kwargs):
+    from dassl.modeling.ops import EFDMix
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 6, 3],
+        ms_class=EFDMix,
+        ms_layers=["layer1"]
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet50"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet101_efdmix_l123(pretrained=True, **kwargs):
+    from dassl.modeling.ops import EFDMix
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 23, 3],
+        ms_class=EFDMix,
+        ms_layers=["layer1", "layer2", "layer3"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet101"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet101_efdmix_l12(pretrained=True, **kwargs):
+    from dassl.modeling.ops import EFDMix
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 23, 3],
+        ms_class=EFDMix,
+        ms_layers=["layer1", "layer2"],
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet101"])
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def resnet101_efdmix_l1(pretrained=True, **kwargs):
+    from dassl.modeling.ops import EFDMix
+
+    model = ResNet(
+        block=Bottleneck,
+        layers=[3, 4, 23, 3],
+        ms_class=EFDMix,
+        ms_layers=["layer1"]
+    )
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls["resnet101"])
+
+    return model

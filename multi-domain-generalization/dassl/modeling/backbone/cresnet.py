@@ -24,6 +24,10 @@ def gmm_bic_score(estimator, X):
     # Make it negative since GridSearchCV expects a score to maximize
     return -estimator.bic(X)
 
+def wasstertein_distance_two_gaussians(mean_x, mean_y, std_x, std_y):
+    distance = torch.sqrt((mean_x - mean_y) ** 2 + std_x ** 2 + std_y ** 2 - 2 * torch.sqrt(std_x * std_y))
+    return torch.sum(distance)
+    
 def conv3x3(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
     return nn.Conv2d(
@@ -47,6 +51,7 @@ class ConstStyle(nn.Module):
         self.const_cov = None
         self.domain_list = []
         self.scaled_feats = []
+        self.cluster_samples = []
         self.factor = 1.0
     
     def clear_memory(self):
@@ -128,14 +133,16 @@ class ConstStyle(nn.Module):
                         continue
                     else:
                         cluster_sample_y = [pca_data[k] for k in cluster_samples_idx[j]]
-                        pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, cluster_sample_x, seed=self.cfg.SEED, n_projections=50)
+                        pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, cluster_sample_x, seed=self.cfg.SEED, n_projections=64)
                         print(f'Cost to move from cluster {j} to cluster {i} is {pwd}')
                         total_cost += pwd
                 print(f'Total cost of cluster {i}: {total_cost}')
                 ot_score.append(total_cost)
                         
             idx_val = np.argmin(ot_score)
-            print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with log optimal transport score {ot_score[idx_val]}')
+            print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with optimal transport score {ot_score[idx_val]}')
+            print(f'Store cluster {unique_labels[idx_val]} samples...')
+            self.cluster_samples = [pca_data[i] for i in cluster_samples_idx[unique_labels[idx_val]]]
 
         self.const_mean = torch.from_numpy(bayes_cluster.means_[idx_val])
         self.const_cov = torch.from_numpy(bayes_cluster.covariances_[idx_val])
@@ -207,7 +214,7 @@ class ConstStyle(nn.Module):
     #     plt.cla()
     #     plt.clf()
         
-    def forward(self, x, store_feature=False, apply_conststyle=False):
+    def forward(self, x, store_feature=False, apply_conststyle=False, is_test=False):
         if store_feature:
             self.store_style(x)
         
@@ -217,13 +224,16 @@ class ConstStyle(nn.Module):
             sig = (var + self.eps).sqrt()
             # mu, sig = mu.detach(), sig.detach()
             x_normed = (x-mu) / sig
-            # print(f'Before applying ConstStyle: Mean: {torch.mean(mu.squeeze(), dim=(0,1))} | Std: {torch.mean(sig.squeeze(), dim=(0,1))}')
-            if not self.training:
+            if is_test:
                 const_value = torch.reshape(self.const_mean, (2, -1))
                 const_mean = const_value[0].float()
                 const_std = const_value[1].float()
                 const_mean = torch.reshape(const_mean, (1, const_mean.shape[0], 1, 1)).to('cuda')
                 const_std = torch.reshape(const_std, (1, const_std.shape[0], 1, 1)).to('cuda')
+                # min_distance = -1.0
+                # cluster_samples = np.array(self.cluster_samples)
+                # import pdb
+                # pdb.set_trace()
             else:
                 generator = torch.distributions.MultivariateNormal(loc=self.const_mean, covariance_matrix = self.const_cov)
                 style_mean = []
@@ -333,7 +343,7 @@ class CResNet(Backbone):
         self.inplanes = 64
         super().__init__()
         # backbone network
-        self.num_conststyle = 4
+        self.num_conststyle = 3
         self.conststyle = [ConstStyle(cfg) for i in range(self.num_conststyle)]
         self.conv1 = nn.Conv2d(
             3, 64, kernel_size=7, stride=2, padding=3, bias=False
@@ -393,35 +403,35 @@ class CResNet(Backbone):
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
     
-    def stylemaps(self, x, store_feature=False, apply_conststyle=False):
+    def stylemaps(self, x, store_feature=False, apply_conststyle=False, is_test=False):
         x = self.conv1(x)
-        x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        # x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
-        x = self.conststyle[1](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         x = self.layer1(x)
-        x = self.conststyle[2](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        x = self.conststyle[1](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         x = self.layer2(x)
-        x = self.conststyle[3](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        x = self.conststyle[2](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         return x
     
-    def featuremaps(self, x, store_feature=False, apply_conststyle=False):
+    def featuremaps(self, x, store_feature=False, apply_conststyle=False, is_test=False):
         x = self.conv1(x)
-        x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        # x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
-        x = self.conststyle[1](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         x = self.layer1(x)
-        x = self.conststyle[2](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        x = self.conststyle[1](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         x = self.layer2(x)
-        x = self.conststyle[3](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+        x = self.conststyle[2](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         x = self.layer3(x)
         return self.layer4(x)
 
-    def forward(self, x, store_feature=False, apply_conststyle=False):
-        f = self.featuremaps(x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+    def forward(self, x, store_feature=False, apply_conststyle=False, is_test=False):
+        f = self.featuremaps(x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         v = self.global_avgpool(f)
         return v.view(v.size(0), -1)
 

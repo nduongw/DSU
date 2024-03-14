@@ -76,20 +76,21 @@ def setup_cfg(args):
 def main(args):
     cfg = setup_cfg(args)
     if args.wandb:
-        if 'u' in cfg.MODEL.BACKBONE.NAME:
+        if 'uresnet18' in cfg.MODEL.BACKBONE.NAME:
             job_type = 'DSU'
         elif 'c' in cfg.MODEL.BACKBONE.NAME:
-            job_type = 'ConstStyle'
+            job_type = 'ConstStyle3'
+            if cfg.CLUSTER == 'ot':
+                job_type += '-OT'
+            elif cfg.CLUSTER == 'llh':
+                job_type += '-LogLikelihood'
+        elif 'ms' in cfg.MODEL.BACKBONE.NAME:
+            job_type = 'MixStyle'
         else:
             job_type = 'Baseline'
         
         if cfg.MODEL.BACKBONE.PRETRAINED:
             job_type += '-pretrained'
-        
-        if cfg.CLUSTER == 'ot':
-            job_type += '-OT'
-        elif cfg.CLUSTER == 'llh':
-            job_type += '-LogLikelihood'
             
         tracker = wandb.init(
             project = 'StyleDG',

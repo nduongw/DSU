@@ -17,42 +17,9 @@ class ConstStyleModel(SimpleNet):
     """A simple neural network composed of a CNN backbone
     and optionally a head such as mlp for classification.
     """
-    def __init__(self, cfg, model_cfg, num_classes, **kwargs):
-        super().__init__(cfg, model_cfg, num_classes)
-        self.backbone = build_backbone(
-            model_cfg.BACKBONE.NAME,
-            verbose=cfg.VERBOSE,
-            pretrained=model_cfg.BACKBONE.PRETRAINED,
-            pertubration=model_cfg.BACKBONE.PERTUBATION,
-            uncertainty=model_cfg.UNCERTAINTY,
-            pos=model_cfg.POS,
-            cfg=cfg,
-            **kwargs
-        )
-        fdim = self.backbone.out_features
-
-        self.head = None
-        if model_cfg.HEAD.NAME and model_cfg.HEAD.HIDDEN_LAYERS:
-            self.head = build_head(
-                model_cfg.HEAD.NAME,
-                verbose=cfg.VERBOSE,
-                in_features=fdim,
-                hidden_layers=model_cfg.HEAD.HIDDEN_LAYERS,
-                activation=model_cfg.HEAD.ACTIVATION,
-                bn=model_cfg.HEAD.BN,
-                dropout=model_cfg.HEAD.DROPOUT,
-                **kwargs
-            )
-            fdim = self.head.out_features
-
-        self.classifier = None
-        if num_classes > 0:
-            self.classifier = nn.Linear(fdim, num_classes)
-
-        self._fdim = fdim
     
-    def forward(self, x, return_feature=False, store_feature=False, apply_conststyle=False):
-        f = self.backbone(x, store_feature=store_feature, apply_conststyle=apply_conststyle)
+    def forward(self, x, return_feature=False, store_feature=False, apply_conststyle=False, is_test=False):
+        f = self.backbone(x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         if self.head is not None:
             f = self.head(f)
 
@@ -155,11 +122,11 @@ class ConstStyleTrainer(SimpleTrainer):
             for idx, conststyle in enumerate(self.model.backbone.conststyle):
                 conststyle.cal_mean_std(idx, self.epoch)
     
-    def model_inference(self, input):
+    def model_inference(self, input, is_test=False):
         if self.epoch == 0:
             return self.model(input)
         else:
-            return self.model(input, store_feature=False, apply_conststyle=True)
+            return self.model(input, store_feature=False, apply_conststyle=True, is_test=is_test)
 
     def forward_backward(self, batch, epoch):
         input, label = self.parse_batch_train(batch)
@@ -249,4 +216,30 @@ class ConstStyleTrainer(SimpleTrainer):
                 conststyle.const_mean = checkpoint['style_feats']['mean'][idx]
                 conststyle.const_cov = checkpoint['style_feats']['cov'][idx]
                 conststyle.const_std = checkpoint['style_feats']['std'][idx]
-                
+    
+    @torch.no_grad()
+    def test(self):
+        """A generic testing pipeline."""
+        self.set_model_mode('eval')
+        self.evaluator.reset()
+
+        split = self.cfg.TEST.SPLIT
+        print('Do evaluation on {} set'.format(split))
+        data_loader = self.val_loader if split == 'val' else self.test_loader
+        assert data_loader is not None
+
+        for batch_idx, batch in enumerate(data_loader):
+            input, label = self.parse_batch_test(batch)
+            output = self.model_inference(input, is_test=True)
+            self.evaluator.process(output, label)
+
+        results = self.evaluator.evaluate()
+
+        for k, v in results.items():
+            tag = '{}/{}'.format(split, k)
+            if self.args.wandb:
+                self.args.tracker.log({
+                    f'test {k}': v 
+                }, step=self.epoch+1)
+            self.write_scalar(tag, v, self.epoch)
+            

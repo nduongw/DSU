@@ -30,6 +30,7 @@ class SimpleNet(nn.Module):
             pertubration=model_cfg.BACKBONE.PERTUBATION,
             uncertainty=model_cfg.UNCERTAINTY,
             pos=model_cfg.POS,
+            cfg=cfg,
             **kwargs
         )
         fdim = self.backbone.out_features
