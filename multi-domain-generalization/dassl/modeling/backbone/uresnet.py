@@ -471,3 +471,12 @@ def uresnet18(pretrained=True, uncertainty=0.0, pos=[], **kwargs):
 
     return model
 
+@BACKBONE_REGISTRY.register()
+def curesnet18(pretrained=True, uncertainty=0.0, pos=[], **kwargs):
+    model = CUResNet(block=BasicBlock, layers=[2, 2, 2, 2],
+                    pertubration_list=['layer0', 'layer1', 'layer2', 'layer3', 'layer4', 'layer5'], uncertainty=uncertainty, alpha=0.1, pos=pos)
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls['resnet18'])
+
+    return model

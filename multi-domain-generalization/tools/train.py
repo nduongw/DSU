@@ -76,16 +76,18 @@ def setup_cfg(args):
 def main(args):
     cfg = setup_cfg(args)
     if args.wandb:
-        if 'uresnet18' in cfg.MODEL.BACKBONE.NAME:
+        if cfg.MODEL.BACKBONE.NAME == 'uresnet18':
             job_type = 'DSU'
-        elif 'c' in cfg.MODEL.BACKBONE.NAME:
+        elif cfg.MODEL.BACKBONE.NAME == 'cresnet18':
             job_type = 'ConstStyle3'
             if cfg.CLUSTER == 'ot':
                 job_type += '-OT'
             elif cfg.CLUSTER == 'llh':
                 job_type += '-LogLikelihood'
-        elif 'ms' in cfg.MODEL.BACKBONE.NAME:
+        elif cfg.MODEL.BACKBONE.NAME == 'resnet18_ms_l12':
             job_type = 'MixStyle'
+        elif cfg.MODEL.BACKBONE.NAME == 'curesnet18':
+            job_type = 'CSU'
         else:
             job_type = 'Baseline'
         
