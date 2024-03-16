@@ -7,7 +7,7 @@ D2=clipart
 D3=product
 D4=real_world
 SEED=42
-method=baseline
+method=conststyle
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
@@ -16,7 +16,7 @@ method=baseline
 --source-domains ${D2} ${D3} ${D4} \
 --target-domains ${D1} \
 --seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}.yaml \
+--dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D1} \
 --resume false)
@@ -28,7 +28,7 @@ method=baseline
 --source-domains ${D1} ${D3} ${D4} \
 --target-domains ${D2} \
 --seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}.yaml \
+--dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D2} \
 --resume false)
@@ -40,7 +40,7 @@ method=baseline
 --source-domains ${D1} ${D2} ${D4} \
 --target-domains ${D3} \
 --seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}.yaml \
+--dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D3} \
 --resume false)
@@ -52,7 +52,7 @@ method=baseline
 --source-domains ${D1} ${D2} ${D3} \
 --target-domains ${D4} \
 --seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}.yaml \
+--dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D4} \
 --resume false)

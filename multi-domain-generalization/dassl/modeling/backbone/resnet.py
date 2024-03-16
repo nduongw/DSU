@@ -181,6 +181,19 @@ class ResNet(Backbone):
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
+    def stylemaps(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.layer1(x)
+        if "layer1" in self.ms_layers:
+            x = self.mixstyle(x)
+        x = self.layer2(x)
+        if "layer2" in self.ms_layers:
+            x = self.mixstyle(x)
+        return x
+    
     def featuremaps(self, x):
         x = self.conv1(x)
         x = self.bn1(x)

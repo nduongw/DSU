@@ -299,7 +299,18 @@ class UResNet(Backbone):
                 nn.init.normal_(m.weight, 0, 0.01)
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
-
+    
+    def stylemaps(self, x):
+        x = self.conv1(x)
+        x = self.pertubration0(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.pertubration1(x)
+        x = self.layer1(x)
+        x = self.pertubration2(x)
+        return x
+    
     def featuremaps(self, x):
         x = self.conv1(x)
         x = self.pertubration0(x)
@@ -410,7 +421,18 @@ class CUResNet(Backbone):
                 nn.init.normal_(m.weight, 0, 0.01)
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
-
+    
+    def stylemaps(self, x):
+        x = self.conv1(x)
+        x = self.pertubration0(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.pertubration1(x)
+        x = self.layer1(x)
+        x = self.pertubration2(x)
+        return x
+    
     def featuremaps(self, x):
         x = self.conv1(x)
         x = self.pertubration0(x)
