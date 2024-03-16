@@ -121,7 +121,7 @@ class ConstStyle(nn.Module):
                 print(f'Mean log likelihood of cluster {cluster_idx} is {mean_score}')
                 log_likelihood_score.append(mean_score)
 
-            idx_val = np.argmin(log_likelihood_score)
+            idx_val = np.argmax(log_likelihood_score)
             print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with log likelihood score {log_likelihood_score[idx_val]}')
         elif self.cfg.CLUSTER == 'ot':
             ot_score = []
@@ -139,7 +139,7 @@ class ConstStyle(nn.Module):
                 print(f'Total cost of cluster {i}: {total_cost}')
                 ot_score.append(total_cost)
                         
-            idx_val = np.argmax(ot_score)
+            idx_val = np.argmin(ot_score)
             print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with optimal transport cost {ot_score[idx_val]}')
             # print(f'Store cluster {unique_labels[idx_val]} samples...')
             # self.cluster_samples = [pca_data[i] for i in cluster_samples_idx[unique_labels[idx_val]]]
