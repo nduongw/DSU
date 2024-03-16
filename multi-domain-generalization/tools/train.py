@@ -88,6 +88,8 @@ def main(args):
             job_type = 'MixStyle'
         elif cfg.MODEL.BACKBONE.NAME == 'curesnet18':
             job_type = 'CSU'
+        elif cfg.TRAINER.NAME == 'RIDG':
+            job_type = 'RIDG'
         else:
             job_type = 'Baseline'
         
