@@ -7,5 +7,5 @@ DATASET:
 
 MODEL:
   BACKBONE:
-    NAME: 'uresnet18'
+    NAME: 'uresnet50'
     PRETRAINED: True

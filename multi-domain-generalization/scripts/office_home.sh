@@ -9,7 +9,7 @@ D4=real_world
 SEED=42
 method=baseline
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer Vanilla \
@@ -21,7 +21,7 @@ method=baseline
 --output-dir output/dg/${DATASET}/${method}/${D1} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer Vanilla \
@@ -33,7 +33,7 @@ method=baseline
 --output-dir output/dg/${DATASET}/${method}/${D2} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer Vanilla \
@@ -45,7 +45,7 @@ method=baseline
 --output-dir output/dg/${DATASET}/${method}/${D3} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer Vanilla \

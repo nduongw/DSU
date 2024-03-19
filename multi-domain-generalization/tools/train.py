@@ -55,6 +55,8 @@ def reset_cfg(cfg, args):
     if args.cluster:
         cfg.CLUSTER = args.cluster
 
+    if args.num_clusters:
+        cfg.NUM_CLUSTERS = args.num_clusters
     #if args.uncertainty:
     cfg.MODEL.UNCERTAINTY = args.uncertainty
 
@@ -84,6 +86,10 @@ def main(args):
                 job_type += '-OT'
             elif cfg.CLUSTER == 'llh':
                 job_type += '-LogLikelihood'
+            
+            if cfg.NUM_CLUSTERS > 1:
+                job_type += f'-num_clusters_{cfg.NUM_CLUSTERS}'
+                
         elif cfg.MODEL.BACKBONE.NAME == 'resnet18_ms_l12':
             job_type = 'MixStyle'
         elif cfg.MODEL.BACKBONE.NAME == 'curesnet18':
@@ -207,6 +213,6 @@ if __name__ == '__main__':
     parser.add_argument('--option', default='', type=str, help='additional options')
     parser.add_argument('--update_interval', default=25, type=int, help='update cluster interval')
     parser.add_argument('--cluster', default='ot', type=str, help='cluster choosing method')
-    
+    parser.add_argument('--num_clusters', default = 3, type = int, help='number of clusters')
     args = parser.parse_args()
     main(args)

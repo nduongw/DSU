@@ -94,8 +94,8 @@ class ConstStyle(nn.Module):
         # bayes_cluster = GridSearchCV(
         #     GaussianMixture(init_params='k-means++'), param_grid=param_grid, scoring=gmm_bic_score
         # )
-
-        bayes_cluster = BayesianGaussianMixture(n_components=3, covariance_type='full')
+        num_cluster = self.cfg.NUM_CLUSTERS
+        bayes_cluster = BayesianGaussianMixture(n_components=num_cluster, covariance_type='full', init_params='k-means++', max_iter=200)
         bayes_cluster.fit(pca_data)
         
         labels = bayes_cluster.predict(pca_data)
@@ -133,9 +133,14 @@ class ConstStyle(nn.Module):
                         continue
                     else:
                         cluster_sample_y = [pca_data[k] for k in cluster_samples_idx[j]]
-                        pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, cluster_sample_x, seed=self.cfg.SEED, n_projections=64)
-                        print(f'Cost to move from cluster {j} to cluster {i} is {pwd}')
-                        total_cost += pwd
+                        cluster_sample_x = np.array(cluster_sample_x)
+                        cluster_sample_y = np.array(cluster_sample_y)
+                        M = ot.dist(cluster_sample_y, cluster_sample_x)
+                        a, b = np.ones(len(cluster_sample_y)) / len(cluster_sample_y), np.ones(len(cluster_sample_x)) / len(cluster_sample_x) 
+                        cost = ot.emd2(a, b, M)
+                        # pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, cluster_sample_x, seed=self.cfg.SEED, n_projections=128)
+                        print(f'Cost to move from cluster {j} to cluster {i} is {cost}')
+                        total_cost += cost
                 print(f'Total cost of cluster {i}: {total_cost}')
                 ot_score.append(total_cost)
                         
@@ -146,73 +151,6 @@ class ConstStyle(nn.Module):
 
         self.const_mean = torch.from_numpy(bayes_cluster.means_[idx_val])
         self.const_cov = torch.from_numpy(bayes_cluster.covariances_[idx_val])
-
-        #plot features
-        # if self.cfg.DATASET.TARGET_DOMAINS == 'p':
-        #     classes = ['art', 'cartoon', 'sketch']
-        # elif self.cfg.DATASET.TARGET_DOMAINS == 'a':
-        #     classes = ['photo', 'cartoon', 'sketch']
-        # elif self.cfg.DATASET.TARGET_DOMAINS == 'c':
-        #     classes = ['photo', 'art', 'sketch']
-        # elif self.cfg.DATASET.TARGET_DOMAINS == 's':
-        #     classes = ['photo', 'art', 'cartoon']
-        
-        # tsne = TSNE(n_components=2, random_state=self.cfg.SEED)
-        # plot_data = tsne.fit_transform(reshaped_data)
-        
-        # scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=domain_list)
-        # plt.legend(handles=scatter.legend_elements()[0], labels=classes)
-        # save_path = os.path.join(f'{self.cfg.OUTPUT_DIR}', f'features{idx}_epoch{epoch}.png')
-        # plt.savefig(save_path, dpi=200)
-        # plt.close()
-        # plt.cla()
-        # plt.clf()
-        
-        # classes = ['c1', 'c2', 'c3']
-        # scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=labels)
-        # plt.legend(handles=scatter.legend_elements()[0], labels=classes)
-        # save_path = os.path.join(f'{self.cfg.OUTPUT_DIR}', f'cluster{idx}_epoch{epoch}.png')
-        # plt.savefig(save_path, dpi=200)
-        # plt.close()
-        # plt.cla()
-        # plt.clf()
-        
-        # if self.args.wandb:
-        #     self.args.tracker.log({
-        #         f'Mean_domain_{idx}': torch.mean(self.const_mean).item()
-        #     }, step=epoch)
-            
-        #     self.args.tracker.log({
-        #         f'Std_domain_{idx}': torch.mean(self.const_cov).item()
-        #     }, step=epoch)
-    
-    # def plot_style(self, idx, epoch):
-    #     domain_list = np.array(self.domain_list)
-    #     scaled_feats = np.array(self.scaled_feats)
-        
-    #     mu = scaled_feats.mean(axis=(2, 3), keepdims=True) 
-    #     var = scaled_feats.var(axis=(2, 3), keepdims=True)
-    #     stacked_data = np.stack((mu, var), axis=1)
-
-    #     tsne3 = TSNE(n_components=2, random_state=self.args.seed)
-    #     transformed_data = tsne3.fit_transform(stacked_data)
-        
-    #     if args.test_domains == 'p':
-    #         classes = ['art', 'cartoon', 'sketch', 'photo']
-    #     elif args.test_domains == 'a':
-    #         classes = ['photo', 'cartoon', 'sketch', 'art']
-    #     elif args.test_domains == 'c':
-    #         classes = ['photo', 'art', 'sketch', 'cartoon']
-    #     elif args.test_domains == 's':
-    #         classes = ['photo', 'art', 'cartoon', 'sketch']
-    
-    #     scatter = plt.scatter(transformed_data[:, 0], transformed_data[:, 1], c=domain_list)
-    #     plt.legend(handles=scatter.legend_elements()[0], labels=classes)
-    #     save_path = os.path.join(f'results/{args.dataset}/{args.method}_{args.train_domains}_{args.test_domains}_{args.option}', f'style{idx}_features_epoch{epoch}.png')
-    #     plt.savefig(save_path, dpi=200)
-    #     plt.close()
-    #     plt.cla()
-    #     plt.clf()
         
     def forward(self, x, store_feature=False, apply_conststyle=False, is_test=False):
         if store_feature:
@@ -465,4 +403,12 @@ def cresnet18(pretrained=True, cfg=None, **kwargs):
 
     if pretrained:
         init_pretrained_weights(model, model_urls['resnet18'])
+    return model
+
+@BACKBONE_REGISTRY.register()
+def cresnet50(pretrained=True, cfg=None, **kwargs):
+    model = CResNet(block=BasicBlock, layers=[3, 4, 6, 3], cfg=cfg)
+
+    if pretrained:
+        init_pretrained_weights(model, model_urls['resnet50'])
     return model

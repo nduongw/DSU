@@ -14,7 +14,7 @@ from .resnet import (
 from .alexnet import alexnet
 from .mobilenetv2 import mobilenetv2
 from .wide_resnet import wide_resnet_16_4, wide_resnet_28_2
-from .uresnet import uresnet18, curesnet18
+from .uresnet import uresnet18, curesnet18, uresnet50, curesnet50
 from .cnn_digitsdg import cnn_digitsdg
 from .efficientnet import (
     efficientnet_b0, efficientnet_b1, efficientnet_b2, efficientnet_b3,
@@ -26,4 +26,4 @@ from .shufflenetv2 import (
 )
 from .cnn_digitsingle import cnn_digitsingle
 from .cnn_digit5_m3sda import cnn_digit5_m3sda
-from .cresnet import cresnet18
+from .cresnet import cresnet18, cresnet50
