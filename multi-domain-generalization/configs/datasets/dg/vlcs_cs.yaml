@@ -8,4 +8,4 @@ DATASET:
 MODEL:
   BACKBONE:
     NAME: 'cresnet18'
-    PRETRAINED: True
+    PRETRAINED:

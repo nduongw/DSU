@@ -8,8 +8,4 @@ DATASET:
 MODEL:
   BACKBONE:
     NAME: 'resnet18_ms_l12'
-    PRETRAINED: True
-  HEAD:
-    NAME: 'mlp'
-    HIDDEN_LAYERS: [256]
-    ACTIVATION: 'relu'
+    PRETRAINED:

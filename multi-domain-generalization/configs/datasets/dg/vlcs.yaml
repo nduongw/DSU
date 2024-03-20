@@ -8,4 +8,4 @@ DATASET:
 MODEL:
   BACKBONE:
     NAME: 'resnet18'
-    PRETRAINED: True
+    PRETRAINED:
