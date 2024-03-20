@@ -218,7 +218,10 @@ class DatasetWrapper(TorchDataset):
             'impath': item.impath
         }
 
-        img0 = read_image(item.impath)
+        if item.is_array:
+            img0 = item.impath
+        else:
+            img0 = read_image(item.impath)
 
         if self.transform is not None:
             if isinstance(self.transform, (list, tuple)):

@@ -11,5 +11,5 @@ MODEL:
     PRETRAINED: True
   HEAD:
     NAME: 'mlp'
-    HIDDEN_LAYERS: 256
+    HIDDEN_LAYERS: [256]
     ACTIVATION: 'relu'

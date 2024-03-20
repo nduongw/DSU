@@ -4,4 +4,5 @@ from .cifar_c import CIFAR10C, CIFAR100C
 from .digits_dg import DigitsDG
 from .digit_single import DigitSingle
 from .office_home_dg import OfficeHomeDG
-# from .domain_net import DomainNet
+from .domain_net import DomainNetDG
+from .cmnist import ColoredMNIST

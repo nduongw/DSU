@@ -84,8 +84,8 @@ def main(args):
             job_type = 'ConstStyle3'
             if cfg.CLUSTER == 'ot':
                 job_type += '-OT'
-            elif cfg.CLUSTER == 'llh':
-                job_type += '-LogLikelihood'
+            elif cfg.CLUSTER == 'barycenter':
+                job_type += '-BC'
             
             if cfg.NUM_CLUSTERS > 1:
                 job_type += f'-num_clusters_{cfg.NUM_CLUSTERS}'

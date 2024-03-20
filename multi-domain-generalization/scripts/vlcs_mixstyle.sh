@@ -32,7 +32,7 @@ method=mixstyle
 # --output-dir output/dg/${DATASET}/${method}/${D2} \
 # --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \

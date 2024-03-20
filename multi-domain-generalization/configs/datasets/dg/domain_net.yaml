@@ -3,9 +3,9 @@ INPUT:
   TRANSFORMS: ['random_flip', 'random_translation', 'normalize']
 
 DATASET:
-  NAME: 'VLCS'
+  NAME: 'DomainNetDG'
 
 MODEL:
   BACKBONE:
-    NAME: 'cresnet18'
+    NAME: 'resnet18'
     PRETRAINED: True

@@ -47,8 +47,10 @@ class ConstStyle(nn.Module):
         self.std = []
         self.eps = eps
         self.const_mean = None
-        self.const_std = None
         self.const_cov = None
+        self.cum_mean = None
+        self.cum_std = None
+        self.check = False
         self.domain_list = []
         self.scaled_feats = []
         self.cluster_samples = []
@@ -103,6 +105,8 @@ class ConstStyle(nn.Module):
         
         cluster_samples = []
         cluster_samples_idx = []
+        cluster_means = []
+        cluster_covs = []
         for val in unique_labels:
             print(f'Get samples belong to cluster {val}')
             samples = [reshaped_data[i] for i in range(len(labels)) if labels[i] == val]
@@ -111,18 +115,19 @@ class ConstStyle(nn.Module):
             print(f'Cluster {val} has {len(samples)} samples')
             cluster_samples.append(samples)
             cluster_samples_idx.append(samples_idx)
+            
+            cluster_means.append(bayes_cluster.means_[val])
+            cluster_covs.append(bayes_cluster.covariances_[val])
         
-        if self.cfg.CLUSTER == 'llh':
-            log_likelihood_score = []
-            for cluster_idx, cluster_sample_idx in enumerate(cluster_samples_idx):
-                cluster_sample = [pca_data[i] for i in cluster_sample_idx]
-                sample_score = bayes_cluster.score_samples(cluster_sample)
-                mean_score = np.mean(sample_score)
-                print(f'Mean log likelihood of cluster {cluster_idx} is {mean_score}')
-                log_likelihood_score.append(mean_score)
-
-            idx_val = np.argmax(log_likelihood_score)
-            print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with log likelihood score {log_likelihood_score[idx_val]}')
+        if self.cfg.CLUSTER == 'barycenter':
+            cluster_means = np.stack([bayes_cluster.means_[i] for i in range(len(unique_labels))])
+            cluster_covs = np.stack([bayes_cluster.covariances_[i] for i in range(len(unique_labels))])
+            weights = np.ones(len(unique_labels), dtype=np.float64) / len(unique_labels)
+            
+            total_mean, total_cov = ot.gaussian.bures_wasserstein_barycenter(cluster_means, cluster_covs, weights)
+            self.const_mean = torch.from_numpy(total_mean)
+            self.const_cov = torch.from_numpy(total_cov)
+            print(f'Layer {idx} choose distribution with mean {np.mean(total_mean)} and std {np.mean(total_cov)}')
         elif self.cfg.CLUSTER == 'ot':
             ot_score = []
             for i in range(len(cluster_samples_idx)):
@@ -146,11 +151,9 @@ class ConstStyle(nn.Module):
                         
             idx_val = np.argmin(ot_score)
             print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with optimal transport cost {ot_score[idx_val]}')
-            # print(f'Store cluster {unique_labels[idx_val]} samples...')
-            # self.cluster_samples = [pca_data[i] for i in cluster_samples_idx[unique_labels[idx_val]]]
-
-        self.const_mean = torch.from_numpy(bayes_cluster.means_[idx_val])
-        self.const_cov = torch.from_numpy(bayes_cluster.covariances_[idx_val])
+            
+            self.const_mean = torch.from_numpy(bayes_cluster.means_[idx_val])
+            self.const_cov = torch.from_numpy(bayes_cluster.covariances_[idx_val])
         
     def forward(self, x, store_feature=False, apply_conststyle=False, is_test=False):
         if store_feature:
@@ -160,7 +163,7 @@ class ConstStyle(nn.Module):
             mu = x.mean(dim=[2, 3], keepdim=True)
             var = x.var(dim=[2, 3], keepdim=True)
             sig = (var + self.eps).sqrt()
-            # mu, sig = mu.detach(), sig.detach()
+            mu, sig = mu.detach(), sig.detach()
             x_normed = (x-mu) / sig
             if is_test:
                 const_value = torch.reshape(self.const_mean, (2, -1))
@@ -168,10 +171,10 @@ class ConstStyle(nn.Module):
                 const_std = const_value[1].float()
                 const_mean = torch.reshape(const_mean, (1, const_mean.shape[0], 1, 1)).to('cuda')
                 const_std = torch.reshape(const_std, (1, const_std.shape[0], 1, 1)).to('cuda')
-                # min_distance = -1.0
-                # cluster_samples = np.array(self.cluster_samples)
-                # import pdb
-                # pdb.set_trace()
+                # const_mean = torch.cum_mean.to('cuda')
+                # const_std = torch.cum_std.to('cuda')
+                # out = x_normed * const_std + const_mean
+                # return out
             else:
                 generator = torch.distributions.MultivariateNormal(loc=self.const_mean, covariance_matrix = self.const_cov)
                 style_mean = []
@@ -189,6 +192,19 @@ class ConstStyle(nn.Module):
                 const_std = torch.reshape(const_std, (const_std.shape[0], const_std.shape[1], 1, 1)).to('cuda')
                 
             out = x_normed * const_std + const_mean
+                # mean = out.mean(dim=[2, 3], keepdim=True)
+                # var = out.var(dim=[2, 3], keepdim=True)
+                # std = var.sqrt()
+                # if not self.check:
+                #     self.cum_mean = torch.mean(mean, dim=0, keepdim=True)
+                # else:
+                #     self.cum_mean = 0.9 * self.cum_mean + 0.1 * torch.mean(mean, dim=0, keepdim=True)
+                
+                # if not self.check:
+                #     self.cum_std = torch.mean(std, dim=0, keepdim=True)
+                # else:
+                #     self.cum_std = 0.9 * self.cum_std + 0.1 * torch.mean(std, dim=0, keepdim=True)
+                # self.check = True
             return out
         else:
             return x

@@ -1,6 +1,6 @@
 #!/bin/bash
 DATA=./DATA
-DATASET=domain_net
+DATASET=cmnist
 D1=clipart
 D2=infograph
 D3=painting

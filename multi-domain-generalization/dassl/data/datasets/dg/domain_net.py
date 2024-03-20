@@ -1,79 +1,65 @@
 import os.path as osp
 
 from ..build import DATASET_REGISTRY
-from .digits_dg import DigitsDG
-from ..base_dataset import DatasetBase
+from ..base_dataset import Datum, DatasetBase
 
 
 @DATASET_REGISTRY.register()
-class DomainNet(DatasetBase):
-    """Domain Net.
+class DomainNetDG(DatasetBase):
+    """DomainNet.
 
     Statistics:
-        - Around 15,500 images.
-        - 65 classes related to office and home objects.
-        - 4 domains: Art, Clipart, Product, Real World.
-        - URL: http://hemanthdv.org/OfficeHome-Dataset/.
+        - 6 distinct domains: Clipart, Infograph, Painting, Quickdraw,
+        Real, Sketch.
+        - Around 0.6M images.
+        - 345 categories.
+        - URL: http://ai.bu.edu/M3SDA/.
 
     Reference:
-        - Venkateswara et al. Deep Hashing Network for Unsupervised
-        Domain Adaptation. CVPR 2017.
+        - Peng et al. Moment Matching for Multi-Source Domain
+        Adaptation. ICCV 2019.
     """
     dataset_dir = 'domainnet'
-    domains = ['art', 'clipart', 'product', 'real_world']
-    data_url = [
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/groundtruth/clipart.zip",
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/infograph.zip",
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/groundtruth/painting.zip",
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/quickdraw.zip",
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/real.zip",
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/sketch.zip"
+    domains = [
+        'clipart', 'infograph', 'painting', 'quickdraw', 'real', 'sketch'
     ]
 
     def __init__(self, cfg):
         root = osp.abspath(osp.expanduser(cfg.DATASET.ROOT))
         self.dataset_dir = osp.join(root, self.dataset_dir)
-        
-        for url in urls:
-            download_and_extract(url, os.path.join(self.dataset_dir, url.split("/")[-1]))
+        self.split_dir = osp.join(self.dataset_dir, 'splits')
 
-        with open(osp.join(self.dataset_dir, "domain_net_duplicates.txt"), "r") as f:
-        for line in f.readlines():
-            try:
-                os.remove(os.path.join(full_path, line.strip()))
-            except OSError:
-                pass
-            
         self.check_input_domains(
             cfg.DATASET.SOURCE_DOMAINS, cfg.DATASET.TARGET_DOMAINS
         )
 
-        train = self.read_data(
-            self.dataset_dir, cfg.DATASET.SOURCE_DOMAINS, 'train'
-        )
-        val = self.read_data(
-            self.dataset_dir, cfg.DATASET.SOURCE_DOMAINS, 'val'
-        )
-        test = self.read_data(
-            self.dataset_dir, cfg.DATASET.TARGET_DOMAINS, 'all'
-        )
+        train_x = self._read_data(cfg.DATASET.SOURCE_DOMAINS, split='train')
+        train_u = self._read_data(cfg.DATASET.TARGET_DOMAINS, split='train')
+        test = self._read_data(cfg.DATASET.TARGET_DOMAINS, split='test')
 
-        super().__init__(train_x=train, val=val, test=test)
-    
-    def _read_data(self, input_domains, split):
+        super().__init__(train_x=train_x, train_u=train_u, test=test)
+
+    def _read_data(self, input_domains, split='train'):
         items = []
 
         for domain, dname in enumerate(input_domains):
-            dname = dname.upper()
-            path = osp.join(self.dataset_dir, dname, split)
-            folders = listdir_nohidden(path)
-            folders.sort()
+            filename = dname + '_' + split + '.txt'
+            split_file = osp.join(self.split_dir, filename)
 
-            for label, folder in enumerate(folders):
-                impaths = glob.glob(osp.join(path, folder, '*.jpg'))
-
-                for impath in impaths:
-                    item = Datum(impath=impath, label=label, domain=domain)
+            with open(split_file, 'r') as f:
+                lines = f.readlines()
+                for line in lines:
+                    line = line.strip()
+                    impath, label = line.split(' ')
+                    classname = impath.split('/')[1]
+                    impath = osp.join(self.dataset_dir, impath)
+                    label = int(label)
+                    item = Datum(
+                        impath=impath,
+                        label=label,
+                        domain=domain,
+                        classname=classname
+                    )
                     items.append(item)
 
         return items
