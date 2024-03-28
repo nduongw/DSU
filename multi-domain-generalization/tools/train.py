@@ -78,9 +78,9 @@ def setup_cfg(args):
 def main(args):
     cfg = setup_cfg(args)
     if args.wandb:
-        if cfg.MODEL.BACKBONE.NAME == 'uresnet18':
+        if 'uresnet' in cfg.MODEL.BACKBONE.NAME:
             job_type = 'DSU'
-        elif cfg.MODEL.BACKBONE.NAME == 'cresnet18':
+        elif 'cresnet18' in cfg.MODEL.BACKBONE.NAME:
             job_type = 'ConstStyle3'
             if cfg.CLUSTER == 'ot':
                 job_type += '-OT'
@@ -90,9 +90,9 @@ def main(args):
             if cfg.NUM_CLUSTERS > 1:
                 job_type += f'-num_clusters_{cfg.NUM_CLUSTERS}'
                 
-        elif cfg.MODEL.BACKBONE.NAME == 'resnet18_ms_l12':
+        elif 'ms_l12' in cfg.MODEL.BACKBONE.NAME:
             job_type = 'MixStyle'
-        elif cfg.MODEL.BACKBONE.NAME == 'curesnet18':
+        elif 'curesnet18' in cfg.MODEL.BACKBONE.NAME:
             job_type = 'CSU'
         elif cfg.TRAINER.NAME == 'RIDG':
             job_type = 'RIDG'
