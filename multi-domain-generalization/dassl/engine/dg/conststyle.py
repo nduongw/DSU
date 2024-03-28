@@ -1,5 +1,6 @@
 from torch.nn import functional as F
 import torch
+import numpy as np
 import time
 import datetime
 import os.path as osp
@@ -12,6 +13,7 @@ from dassl.utils import (
 from dassl.modeling import build_head, build_backbone
 from dassl.optim import build_optimizer, build_lr_scheduler
 import torch.nn as nn
+import faiss
 
 class ConstStyleModel(SimpleNet):
     """A simple neural network composed of a CNN backbone
@@ -36,6 +38,10 @@ class ConstStyleModel(SimpleNet):
 @TRAINER_REGISTRY.register()
 class ConstStyleTrainer(SimpleTrainer):
     """ConstStyle method."""
+    def __init__(self, cfg, args):
+        super().__init__(cfg, args)
+        self.memory = faiss.IndexFlatL2(self.model.backbone.out_features)
+        self.labels = []
     
     def build_model(self):
         """Build and register model.
@@ -60,6 +66,8 @@ class ConstStyleTrainer(SimpleTrainer):
     def train(self):
         """Generic training loops."""
         self.before_train()
+        self.memory.reset()
+        self.label = []
         for self.epoch in range(self.start_epoch, self.max_epoch):
             self.before_epoch()
             self.run_epoch(self.epoch)
@@ -130,6 +138,10 @@ class ConstStyleTrainer(SimpleTrainer):
 
     def forward_backward(self, batch, epoch):
         input, label = self.parse_batch_train(batch)
+        
+        feats = self.model.backbone(input)
+        self.memory.add(feats.detach().cpu().numpy())
+        self.labels.extend([i.detach().cpu().item() for i in label])
         if epoch == 0:
             output = self.model(input, store_feature=True, apply_conststyle=False)
         elif epoch % self.args.update_interval == 0 and epoch != 0:
@@ -161,12 +173,11 @@ class ConstStyleTrainer(SimpleTrainer):
 
         for name in names:
             model_dict = self._models[name].state_dict()
-            style_feats = {'mean': [], 'cov': [], 'std': []}
+            style_feats = {'mean': [], 'cov': []}
             
             for conststyle in self._models[name].backbone.conststyle:
                 style_feats['mean'].append(conststyle.const_mean)
                 style_feats['cov'].append(conststyle.const_cov)
-                style_feats['std'].append(conststyle.const_std)
 
             optim_dict = None
             if self._optims[name] is not None:
@@ -221,16 +232,21 @@ class ConstStyleTrainer(SimpleTrainer):
     def test(self):
         """A generic testing pipeline."""
         self.set_model_mode('eval')
+        labels = np.array(self.labels)
         self.evaluator.reset()
-
         split = self.cfg.TEST.SPLIT
         print('Do evaluation on {} set'.format(split))
         data_loader = self.val_loader if split == 'val' else self.test_loader
         assert data_loader is not None
-
+        softmax = nn.Softmax()
         for batch_idx, batch in enumerate(data_loader):
             input, label = self.parse_batch_test(batch)
+            feats = self.model.backbone(input)
             output = self.model_inference(input, is_test=True)
+            distances, indices = self.memory.search(feats.detach().cpu().numpy(), 10)
+            for i in range(len(indices)):
+                print(f'Image label {label[i]}\nPredicted label: {softmax(output[i])}')
+                print(f'Closest neighbors value : {labels[indices[i]]}\nDistance: {np.round(distances[i], 2)}\n')
             self.evaluator.process(output, label)
 
         results = self.evaluator.evaluate()
@@ -242,4 +258,4 @@ class ConstStyleTrainer(SimpleTrainer):
                     f'test {k}': v 
                 }, step=self.epoch+1)
             self.write_scalar(tag, v, self.epoch)
-            
+    

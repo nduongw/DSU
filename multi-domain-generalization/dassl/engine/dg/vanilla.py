@@ -11,6 +11,9 @@ class Vanilla(TrainerX):
     def forward_backward(self, batch):
         input, label = self.parse_batch_train(batch)
         output = self.model(input)
+        feats = self.model.backbone(input)
+        self.memory.add(feats.detach().cpu().numpy())
+        self.labels.extend([i.detach().cpu().item() for i in label])
         loss = F.cross_entropy(output, label)
         self.model_backward_and_update(loss)
 

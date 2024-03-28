@@ -3,6 +3,7 @@ import os.path as osp
 import datetime
 from collections import OrderedDict
 import torch
+import numpy as np
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
@@ -14,7 +15,7 @@ from dassl.utils import (
 )
 from dassl.modeling import build_head, build_backbone
 from dassl.evaluation import build_evaluator
-
+import faiss
 
 class SimpleNet(nn.Module):
     """A simple neural network composed of a CNN backbone
@@ -343,6 +344,8 @@ class SimpleTrainer(TrainerBase):
         self.build_data_loader()
         self.build_model()
         self.evaluator = build_evaluator(cfg, lab2cname=self.dm.lab2cname)
+        self.memory = faiss.IndexFlatL2(self.model.backbone.out_features)
+        self.labels = []
 
     def check_cfg(self, cfg):
         """Check whether some variables are set correctly for
@@ -393,6 +396,8 @@ class SimpleTrainer(TrainerBase):
         self.register_model('model', self.model, self.optim, self.sched)
 
     def train(self):
+        self.memory.reset()
+        self.label = []
         super().train(self.start_epoch, self.max_epoch)
 
     def before_train(self):
@@ -446,7 +451,7 @@ class SimpleTrainer(TrainerBase):
         """A generic testing pipeline."""
         self.set_model_mode('eval')
         self.evaluator.reset()
-
+        labels = np.array(self.labels)
         split = self.cfg.TEST.SPLIT
         print('Do evaluation on {} set'.format(split))
         data_loader = self.val_loader if split == 'val' else self.test_loader
@@ -454,7 +459,13 @@ class SimpleTrainer(TrainerBase):
 
         for batch_idx, batch in enumerate(data_loader):
             input, label = self.parse_batch_test(batch)
+            softmax = nn.Softmax()
+            feats = self.model.backbone(input)
             output = self.model_inference(input)
+            distances, indices = self.memory.search(feats.detach().cpu().numpy(), 10)
+            for i in range(len(indices)):
+                print(f'Image label {label[i]}\nPredicted label: {softmax(output[i])}')
+                print(f'Closest neighbors value : {labels[indices[i]]}\nDistance: {np.round(distances[i], 2)}\n')
             self.evaluator.process(output, label)
 
         results = self.evaluator.evaluate()

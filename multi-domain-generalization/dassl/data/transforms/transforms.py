@@ -152,6 +152,7 @@ def build_transform(cfg, is_train=True, choices=None):
         choices (list, optional): list of strings which will overwrite
             cfg.INPUT.TRANSFORMS if given. Default is None.
     """
+    # import pdb; pdb.set_trace()
     if cfg.INPUT.NO_TRANSFORM:
         print('Note: no transform is applied!')
         return None

@@ -313,7 +313,6 @@ class CResNet(Backbone):
 
         self._out_features = 512 * block.expansion
 
-
         self._init_params()
 
     def _make_layer(self, block, planes, blocks, stride=1):
