@@ -140,3 +140,5 @@ debug.sh
 debug.py
 DATA
 wandb
+explore/styled*
+explore/*experiments*

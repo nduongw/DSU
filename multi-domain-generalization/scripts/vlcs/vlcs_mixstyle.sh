@@ -8,17 +8,17 @@ D4=sun
 SEED=42
 method=mixstyle
 
-# (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
-# --root ${DATA} \
-# --trainer Vanilla \
-# --uncertainty 0.5 \
-# --source-domains ${D2} ${D3} ${D4} \
-# --target-domains ${D1} \
-# --seed ${SEED} \
-# --dataset-config-file configs/datasets/dg/${DATASET}_ms.yaml \
-# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
-# --output-dir output/dg/${DATASET}/${method}/${D1} \
-# --resume false)
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+--root ${DATA} \
+--trainer Vanilla \
+--uncertainty 0.5 \
+--source-domains ${D2} ${D3} ${D4} \
+--target-domains ${D1} \
+--seed ${SEED} \
+--dataset-config-file configs/datasets/dg/${DATASET}_ms.yaml \
+--config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+--output-dir output/dg/${DATASET}/${method}/${D1} \
+--resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \

@@ -14,6 +14,7 @@ from dassl.modeling import build_head, build_backbone
 from dassl.optim import build_optimizer, build_lr_scheduler
 import torch.nn as nn
 import faiss
+from pytorch_metric_learning import losses, miners, distances
 
 class ConstStyleModel(SimpleNet):
     """A simple neural network composed of a CNN backbone
@@ -42,6 +43,8 @@ class ConstStyleTrainer(SimpleTrainer):
         super().__init__(cfg, args)
         self.memory = faiss.IndexFlatL2(self.model.backbone.out_features)
         self.labels = []
+        self.triplet_loss = losses.ContrastiveLoss(pos_margin=0.5, neg_margin=0, distance=distances.CosineSimilarity()).to(self.device)
+        self.miner = miners.TripletMarginMiner().to(self.device)
     
     def build_model(self):
         """Build and register model.
@@ -148,7 +151,8 @@ class ConstStyleTrainer(SimpleTrainer):
             output = self.model(input, store_feature=True, apply_conststyle=True)
         else:
             output = self.model(input, store_feature=False, apply_conststyle=True)
-        loss = F.cross_entropy(output, label)
+        # pair = self.miner(feats, label)
+        loss = F.cross_entropy(output, label) + self.triplet_loss(feats, label)
         self.model_backward_and_update(loss)
 
         loss_summary = {
@@ -226,7 +230,7 @@ class ConstStyleTrainer(SimpleTrainer):
             for idx, conststyle in enumerate(self._models[name].backbone.conststyle):
                 conststyle.const_mean = checkpoint['style_feats']['mean'][idx]
                 conststyle.const_cov = checkpoint['style_feats']['cov'][idx]
-                conststyle.const_std = checkpoint['style_feats']['std'][idx]
+                # conststyle.const_std = checkpoint['style_feats']['std'][idx]
     
     @torch.no_grad()
     def test(self):

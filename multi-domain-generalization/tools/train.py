@@ -81,7 +81,7 @@ def main(args):
         if 'uresnet' in cfg.MODEL.BACKBONE.NAME:
             job_type = 'DSU'
         elif 'cresnet18' in cfg.MODEL.BACKBONE.NAME:
-            job_type = 'ConstStyle3'
+            job_type = 'ConstStyle_cl'
             if cfg.CLUSTER == 'ot':
                 job_type += '-OT'
             elif cfg.CLUSTER == 'barycenter':
