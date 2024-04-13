@@ -52,6 +52,7 @@ vgg = net.vgg
 
 vgg.load_state_dict(torch.load('models/vgg_normalised.pth'))
 vgg = nn.Sequential(*list(vgg.children())[:31])
+
 network = net.Net(vgg, decoder)
 network.train()
 network.to(device)
@@ -81,9 +82,6 @@ for i in tqdm(range(100000)):
     style_images = next(test_iter)
     content_images, content_label = trainer.parse_batch_test(content_images)
     style_images, style_label = trainer.parse_batch_test(style_images)
-    
-    if style_images.shape[0] != args.batch_size:
-        continue
     
     loss_c, loss_s = network(content_images, style_images)
     loss_c = 1.0 * loss_c

@@ -36,14 +36,14 @@ class PACS(DatasetBase):
             dst = osp.join(root, 'pacs.zip')
             self.download_data(self.data_url, dst, from_gdrive=True)
         
-        test_path = []
+        # test_path = []
         
-        if osp.exists(f'{self.dataset_dir}/splits/test.txt'):
-            store_file = open(f'{self.dataset_dir}/splits/test.txt', 'r')
-            lines = store_file.readlines()
-            store_file.close()
-            for line in lines:
-                test_path.append(line.strip())
+        # if osp.exists(f'{self.dataset_dir}/splits/test.txt'):
+        #     store_file = open(f'{self.dataset_dir}/splits/test.txt', 'r')
+        #     lines = store_file.readlines()
+        #     store_file.close()
+        #     for line in lines:
+        #         test_path.append(line.strip())
 
         self.check_input_domains(
             cfg.DATASET.SOURCE_DOMAINS, cfg.DATASET.TARGET_DOMAINS
@@ -53,30 +53,31 @@ class PACS(DatasetBase):
         val = self._read_data(cfg.DATASET.SOURCE_DOMAINS, 'crossval')
         test = self._read_data(cfg.DATASET.TARGET_DOMAINS, 'test')
         
-        condition = lambda x: x in test_path
-        filter_train = list(filter(lambda x: not condition(x.impath), train))
-        filter_val = list(filter(lambda x: not condition(x.impath), val))
-        filter_test = list(filter(lambda x: not condition(x.impath), test))
+        # condition = lambda x: x in test_path
+        # filter_train = list(filter(lambda x: not condition(x.impath), train))
+        # filter_val = list(filter(lambda x: not condition(x.impath), val))
+        # filter_test = list(filter(lambda x: not condition(x.impath), test))
 
         train_ds_domain = []
         train_ds_label = []
-        for val in train:
-            train_ds_domain.append(val.domain)
-            train_ds_label.append(val.label)
+        for ele in train:
+            train_ds_domain.append(ele.domain)
+            train_ds_label.append(ele.label)
         value1, count1 = np.unique(train_ds_domain, return_counts=True)
         value2, count2 = np.unique(train_ds_label, return_counts=True)
         print(f'Train dataset statistics| Domain {value1} - count {count1} | Class: {value2} - count {count2}')
         
         test_ds_domain = []
         test_ds_label = []
-        for val in test:
-            test_ds_domain.append(val.domain)
-            test_ds_label.append(val.label)
+        for ele in test:
+            test_ds_domain.append(ele.domain)
+            test_ds_label.append(ele.label)
         value1, count1 = np.unique(test_ds_domain, return_counts=True)
         value2, count2 = np.unique(test_ds_label, return_counts=True)
         print(f'Test dataset statistics| Domain {value1} - count {count1} | Class: {value2} - count {count2}')
         
-        super().__init__(train_x=filter_train, val=filter_val, test=filter_test)
+        # super().__init__(train_x=filter_train, val=filter_val, test=filter_test)
+        super().__init__(train_x=train, val=val, test=test)
 
     def _read_data(self, input_domains, split):
         items = []
@@ -98,8 +99,6 @@ class PACS(DatasetBase):
                 impath_label_list = self._read_split_pacs(file)
 
             for impath, label in impath_label_list:
-                if split == 'test':
-                    domain = 3
                 item = Datum(impath=impath, label=label, domain=domain)
                 items.append(item)
 
@@ -201,7 +200,6 @@ class TotalPACS(DatasetBase):
 
         store_file.close()
         
-        # import pdb; pdb.set_trace()
         super().__init__(train_x=train_ds, val=val_ds, test=test_ds)
     
     def _read_data(self, input_domains, split):

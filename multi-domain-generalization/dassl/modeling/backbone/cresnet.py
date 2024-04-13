@@ -10,6 +10,7 @@ from .backbone import Backbone
 from sklearn.manifold import TSNE
 import os
 import ot
+import random
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -48,12 +49,11 @@ class ConstStyle(nn.Module):
         self.eps = eps
         self.const_mean = None
         self.const_cov = None
-        self.cum_mean = None
-        self.cum_std = None
-        self.check = False
         self.domain_list = []
         self.scaled_feats = []
-        self.cluster_samples = []
+        self.mean_list = []
+        self.std_list = []
+        self.selected_domain_elements = []
         self.factor = 1.0
     
     def clear_memory(self):
@@ -70,12 +70,11 @@ class ConstStyle(nn.Module):
         
         return mu, var
     
-    def store_style(self, x, domains=False):
+    def store_style(self, x, domains):
         mu, var = self.get_style(x)
         self.mean.extend(mu)
         self.std.extend(var)
-        if domains:
-            self.domain_list.extend([i.item() for i in domains])
+        self.domain_list.extend([i.item() for i in domains])
     
     def cal_mean_std(self, idx, epoch):
         domain_list = np.array(self.domain_list)
@@ -89,15 +88,61 @@ class ConstStyle(nn.Module):
         # pca = PCA(n_components=32)
         # pca_data = pca.fit_transform(reshaped_data)
         pca_data = reshaped_data
-        # param_grid = {
-        #     "n_components": range(1, 7),
-        #     "covariance_type": ["full"],
-        # }
-        # bayes_cluster = GridSearchCV(
-        #     GaussianMixture(init_params='k-means++'), param_grid=param_grid, scoring=gmm_bic_score
-        # )
-        num_cluster = self.cfg.NUM_CLUSTERS
-        bayes_cluster = BayesianGaussianMixture(n_components=num_cluster, covariance_type='full', init_params='k-means++', max_iter=200)
+        
+        domain_samples = []
+        domain_idx, counts = np.unique(domain_list, return_counts=True)
+        print(f'Number of elements each domain: {counts}')
+        for ele in domain_idx:
+            samples = pca_data[domain_list == ele]
+            domain_samples.append(samples)
+        
+        domain_mean, domain_cov  = [], []
+        for ele in domain_samples:
+            bayes_cluster = BayesianGaussianMixture(n_components=1, covariance_type='full', max_iter=200)
+            bayes_cluster.fit(ele)
+            domain_mean.append(bayes_cluster.means_)
+            domain_cov.append(bayes_cluster.covariances_)
+        
+        ot_score = []
+        for i in range(len(domain_samples)):
+            total_cost = 0.0
+            x_mean, x_cov = domain_mean[i], domain_cov[i]
+            x_mean = np.squeeze(x_mean)
+            x_cov = np.squeeze(x_cov)
+            # import pdb; pdb.set_trace()
+            x_samples = np.random.multivariate_normal(x_mean, x_cov, size=1000)
+            for j in range(len(domain_samples)):
+                if i == j:
+                    continue
+                else:
+                    y_mean, y_cov = domain_mean[j], domain_cov[j]
+                    y_mean = np.squeeze(y_mean)
+                    y_cov = np.squeeze(y_cov)
+                    y_samples = np.random.multivariate_normal(y_mean, y_cov, size=1000)
+                    M = ot.dist(y_samples, x_samples)
+                    a, b = np.ones(len(y_samples)) / len(y_samples), np.ones(len(x_samples)) / len(x_samples) 
+                    cost = ot.emd2(a, b, M)
+                    # pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, x_samples, seed=self.cfg.SEED, n_projections=128)
+                    print(f'Cost to move from cluster {j} to cluster {i} is {cost}')
+                    total_cost += cost
+            print(f'Total cost of cluster {i}: {total_cost}')
+            ot_score.append(total_cost)
+                    
+        idx_val = np.argmin(ot_score)
+
+        print(f'Layer {idx} chooses cluster {counts[idx_val]}')
+        # self.plot_style_statistics(idx, epoch, reshaped_data, domain_list)
+        self.const_mean = torch.from_numpy(domain_mean[idx_val])
+        self.const_cov = torch.from_numpy(domain_cov[idx_val])
+        self.selected_domain_elements = torch.from_numpy(domain_samples[idx_val])
+        for ele in self.selected_domain_elements:
+            style = np.reshape(ele, (2, -1))
+            self.mean_list.append(style[0])
+            self.std_list.append(style[1])
+        ''' 
+        ### Code for Bayes clustering
+        
+        bayes_cluster = BayesianGaussianMixture(n_components=self.cfg.NUM_CLUSTERS, covariance_type='full', init_params='k-means++', max_iter=200)
         bayes_cluster.fit(pca_data)
         
         labels = bayes_cluster.predict(pca_data)
@@ -128,6 +173,7 @@ class ConstStyle(nn.Module):
             self.const_mean = torch.from_numpy(total_mean)
             self.const_cov = torch.from_numpy(total_cov)
             print(f'Layer {idx} choose distribution with mean {np.mean(total_mean)} and std {np.mean(total_cov)}')
+            self.plot_style_statistics(idx, epoch, reshaped_data, domain_list, labels)
         elif self.cfg.CLUSTER == 'ot':
             ot_score = []
             for i in range(len(cluster_samples_idx)):
@@ -151,13 +197,28 @@ class ConstStyle(nn.Module):
                         
             idx_val = np.argmin(ot_score)
             print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with optimal transport cost {ot_score[idx_val]}')
-            
+            self.plot_style_statistics(idx, epoch, reshaped_data, domain_list, labels)
             self.const_mean = torch.from_numpy(bayes_cluster.means_[idx_val])
             self.const_cov = torch.from_numpy(bayes_cluster.covariances_[idx_val])
+        '''
+    
+    def plot_style_statistics(self, idx, epoch, reshaped_data, domain_list):
+        classes = ['caltech', 'labelme', 'sun']
         
-    def forward(self, x, store_feature=False, apply_conststyle=False, is_test=False):
+        tsne = TSNE(n_components=2, random_state=self.cfg.SEED)
+        plot_data = tsne.fit_transform(reshaped_data)
+        
+        scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=domain_list)
+        plt.legend(handles=scatter.legend_elements()[0], labels=classes)
+        save_path = os.path.join(f'{self.cfg.OUTPUT_DIR}', f'training-features{idx}_epoch{epoch}.png')
+        plt.savefig(save_path, dpi=200)
+        plt.close()
+        plt.cla()
+        plt.clf()
+
+    def forward(self, x, domain, store_feature=False, apply_conststyle=False, is_test=False):
         if store_feature:
-            self.store_style(x)
+            self.store_style(x, domain)
         
         if apply_conststyle:
             mu = x.mean(dim=[2, 3], keepdim=True)
@@ -169,14 +230,16 @@ class ConstStyle(nn.Module):
                 const_value = torch.reshape(self.const_mean, (2, -1))
                 const_mean = const_value[0].float()
                 const_std = const_value[1].float()
-                const_mean = torch.reshape(const_mean, (1, const_mean.shape[0], 1, 1)).to('cuda')
-                const_std = torch.reshape(const_std, (1, const_std.shape[0], 1, 1)).to('cuda')
-                # const_mean = torch.cum_mean.to('cuda')
-                # const_std = torch.cum_std.to('cuda')
-                # out = x_normed * const_std + const_mean
-                # return out
+                # indices = list(range(len(self.mean_list)))
+                random_idx = [0]
+                # import pdb; pdb.set_trace()
+                const_mean = torch.stack([self.mean_list[i] for i in random_idx], dim=0)
+                const_std = torch.stack([self.std_list[i] for i in random_idx], dim=0)
+                const_mean = torch.reshape(const_mean, (1, const_mean.shape[1], 1, 1)).to('cuda')
+                const_std = torch.reshape(const_std, (1, const_std.shape[1], 1, 1)).to('cuda')
             else:
-                generator = torch.distributions.MultivariateNormal(loc=self.const_mean, covariance_matrix = self.const_cov)
+                '''
+                generator = torch.distributions.MultivariateNormal(loc=self.const_mean, covariance_matrix=self.const_cov)
                 style_mean = []
                 style_std = []
                 for i in range(len(x_normed)):
@@ -190,21 +253,29 @@ class ConstStyle(nn.Module):
                 
                 const_mean = torch.reshape(const_mean, (const_mean.shape[0], const_mean.shape[1], 1, 1)).to('cuda')
                 const_std = torch.reshape(const_std, (const_std.shape[0], const_std.shape[1], 1, 1)).to('cuda')
+                '''
+                # apply mixstyle to conststyle
+                style_mean = []
+                style_std = []
+                for i in range(len(x_normed)):
+                    indices = list(range(len(self.mean_list)))
+                    # num_images = random.randint(1, 5)
+                    random_idx = random.sample(indices, 2)
+                    selected_mean = [self.mean_list[i] for i in random_idx]
+                    selected_std = [self.std_list[i] for i in random_idx]
+                    selected_mean = torch.stack(selected_mean)
+                    selected_std = torch.stack(selected_std)
+                    mean = torch.mean(selected_mean, dim=0)
+                    std = torch.mean(selected_std, dim=0)
+                    style_mean.append(mean)
+                    style_std.append(std)
+                const_mean = torch.vstack(style_mean).float()
+                const_std = torch.vstack(style_std).float()
                 
+                const_mean = torch.reshape(const_mean, (const_mean.shape[0], const_mean.shape[1], 1, 1)).to('cuda')
+                const_std = torch.reshape(const_std, (const_std.shape[0], const_std.shape[1], 1, 1)).to('cuda')
+
             out = x_normed * const_std + const_mean
-                # mean = out.mean(dim=[2, 3], keepdim=True)
-                # var = out.var(dim=[2, 3], keepdim=True)
-                # std = var.sqrt()
-                # if not self.check:
-                #     self.cum_mean = torch.mean(mean, dim=0, keepdim=True)
-                # else:
-                #     self.cum_mean = 0.9 * self.cum_mean + 0.1 * torch.mean(mean, dim=0, keepdim=True)
-                
-                # if not self.check:
-                #     self.cum_std = torch.mean(std, dim=0, keepdim=True)
-                # else:
-                #     self.cum_std = 0.9 * self.cum_std + 0.1 * torch.mean(std, dim=0, keepdim=True)
-                # self.check = True
             return out
         else:
             return x
@@ -369,22 +440,22 @@ class CResNet(Backbone):
         x = self.conststyle[2](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         return x
     
-    def featuremaps(self, x, store_feature=False, apply_conststyle=False, is_test=False):
+    def featuremaps(self, x, domain, store_feature=False, apply_conststyle=False, is_test=False):
         x = self.conv1(x)
         # x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
-        x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
+        x = self.conststyle[0](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         x = self.layer1(x)
-        x = self.conststyle[1](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
+        x = self.conststyle[1](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         x = self.layer2(x)
-        x = self.conststyle[2](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
+        x = self.conststyle[2](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         x = self.layer3(x)
         return self.layer4(x)
 
-    def forward(self, x, store_feature=False, apply_conststyle=False, is_test=False):
-        f = self.featuremaps(x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
+    def forward(self, x, domain, store_feature=False, apply_conststyle=False, is_test=False):
+        f = self.featuremaps(x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         v = self.global_avgpool(f)
         return v.view(v.size(0), -1)
 

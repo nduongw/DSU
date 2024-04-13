@@ -36,21 +36,21 @@ method=conststyle
 # --num_clusters 1 \
 # --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
---root ${DATA} \
---trainer ConstStyleTrainer \
---uncertainty 0.5 \
---source-domains ${D1} ${D2} ${D4} \
---target-domains ${D3} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/${D3} \
---cluster barycenter \
---num_clusters 3 \
---resume false)
+# (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+# --root ${DATA} \
+# --trainer ConstStyleTrainer \
+# --uncertainty 0.5 \
+# --source-domains ${D1} ${D2} ${D4} \
+# --target-domains ${D3} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/${D3} \
+# --cluster barycenter \
+# --num_clusters 3 \
+# --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --trainer ConstStyleTrainer \
 --uncertainty 0.5 \

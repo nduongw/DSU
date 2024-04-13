@@ -2,6 +2,7 @@ import net
 from pathlib import Path
 import torch.nn as nn
 import torch
+import os
 # import wandb
 import numpy as np
 from dassl.utils import setup_logger, set_random_seed
@@ -12,32 +13,33 @@ from explore.util import *
 
 do_interpolation = False
 
+def get_style_image():
+    classes = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
+    rand_idx = np.random.randint(10, 20)
+    rand_cls = np.random.randint(0, 7)
+
+    if args.selected_domain == 'photo':
+        if rand_cls == 0:
+            style_path = f'{args.style}{classes[rand_cls]}/056_00{rand_idx}.jpg'
+        elif rand_cls == 1:
+            style_path = f'{args.style}{classes[rand_cls]}/064_00{rand_idx}.jpg'
+        elif rand_cls == 2:
+            style_path = f'{args.style}{classes[rand_cls]}/084_00{rand_idx}.jpg'
+        elif rand_cls == 3:
+            style_path = f'{args.style}{classes[rand_cls]}/063_00{rand_idx}.jpg'
+        elif rand_cls == 4:
+            style_path = f'{args.style}{classes[rand_cls]}/105_00{rand_idx}.jpg'
+        elif rand_cls == 5:
+            style_path = f'{args.style}{classes[rand_cls]}/pic_00{rand_idx}.jpg'
+        elif rand_cls == 6:
+            style_path = f'{args.style}{classes[rand_cls]}/253_00{rand_idx}.jpg'
+    elif args.selected_domain == 'art_painting':
+        style_path = f'{args.style}{classes[rand_cls]}/pic_0{rand_idx}.jpg'
+    
+    return style_path
+
 args = get_args()
 print('Done get arguments\n')
-
-classes = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
-rand_idx = np.random.randint(10, 50)
-rand_cls = np.random.randint(0, 7)
-# import pdb; pdb.set_trace()
-if args.selected_domain == 'photo':
-    if rand_cls == 0:
-        args.style = f'{args.style}{classes[rand_cls]}/056_00{rand_idx}.jpg'
-    elif rand_cls == 1:
-        args.style = f'{args.style}{classes[rand_cls]}/064_00{rand_idx}.jpg'
-    elif rand_cls == 2:
-        args.style = f'{args.style}{classes[rand_cls]}/084_00{rand_idx}.jpg'
-    elif rand_cls == 3:
-        args.style = f'{args.style}{classes[rand_cls]}/063_00{rand_idx}.jpg'
-    elif rand_cls == 4:
-        args.style = f'{args.style}{classes[rand_cls]}/105_00{rand_idx}.jpg'
-    elif rand_cls == 5:
-        args.style = f'{args.style}{classes[rand_cls]}/pic_00{rand_idx}.jpg'
-    elif rand_cls == 6:
-        args.style = f'{args.style}{classes[rand_cls]}/253_00{rand_idx}.jpg'
-elif args.selected_domain == 'art_painting':
-    args.style = f'{args.style}{classes[rand_cls]}/pic_0{rand_idx}.jpg'
-
-print(f'Style image: {args.style}')
 
 cfg = setup_cfg(args)
 if args.wandb:
@@ -103,7 +105,7 @@ vgg = net.vgg
 decoder.eval()
 vgg.eval()
 
-decoder.load_state_dict(torch.load('experiments/decoder_iter_90000.pth.tar'))
+decoder.load_state_dict(torch.load('experiments2/decoder_iter_96000.pth.tar'))
 vgg.load_state_dict(torch.load('models/vgg_normalised.pth'))
 vgg = nn.Sequential(*list(vgg.children())[:31])
 
@@ -136,18 +138,26 @@ for content_path in content_paths:
         save_image(output, str(output_name))
 
     else:  # process one content and one style
-        for style_path in style_paths:
-            content = content_tf(Image.open(str(content_path)))
-            style = style_tf(Image.open(str(style_path)))
-            if args.preserve_color:
-                style = coral(style, content)
-            style = style.to(device).unsqueeze(0)
-            content = content.to(device).unsqueeze(0)
-            with torch.no_grad():
-                output = style_transfer(vgg, decoder, content, style,
-                                        args.alpha)
-            output = output.cpu()
+        style_path = get_style_image()
+        print(f'Style image: {style_path}')
+        style_path = Path(style_path)
+        while not os.path.exists(style_path):
+            style_path = get_style_image()
+            print(f'Another Style image: {style_path}')
+        
+        content = content_tf(Image.open(str(content_path)))
+        style = style_tf(Image.open(str(style_path)))
+        if args.preserve_color:
+            style = coral(style, content)
+        style = style.to(device).unsqueeze(0)
+        content = content.to(device).unsqueeze(0)
+        with torch.no_grad():
+            output = style_transfer(vgg, decoder, content, style,
+                                    args.alpha)
+        output = output.cpu()
 
-            output_name = output_dir / '{:s}.{:s}'.format(
-                content_path.stem, extended_str)
-            save_image(output, str(output_name))
+        output_name = output_dir / '{:s}.{:s}'.format(
+            content_path.stem, extended_str)
+        save_image(output, str(output_name))
+
+print('Done')

@@ -87,7 +87,7 @@ def load_checkpoint(fpath):
     if not osp.exists(fpath):
         raise FileNotFoundError('File is not found at "{}"'.format(fpath))
 
-    map_location = None if torch.cuda.is_available() else 'cpu'
+    map_location = 'cpu'
 
     try:
         checkpoint = torch.load(fpath, map_location=map_location)

@@ -141,18 +141,28 @@ def get_args():
     parser.add_argument('--style_dir', type=str,
                         help='Directory path to a batch of style images')
     parser.add_argument('--vgg', type=str, default='models/vgg_normalised.pth')
-    parser.add_argument('--decoder', type=str, default='models/decoder.pth')
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--lr_decay', type=float, default=5e-5)
     parser.add_argument('--max_iter', type=int, default=160000)
     parser.add_argument('--batch_size', type=int, default=8)
-    parser.add_argument('--style_weight', type=float, default=10.0)
+    parser.add_argument('--style_weight', type=float, default=3.0)
     parser.add_argument('--content_weight', type=float, default=1.0)
+    parser.add_argument('--SSC_weight', type=float, default=3.0)
     parser.add_argument('--n_threads', type=int, default=16)
     parser.add_argument('--save_model_interval', type=int, default=10000)
-
+    # parser.add_argument('--resume', action='store_true', help='train the model from the checkpoint')
+    parser.add_argument('--content_encoder', type=str, default='experiments_micro/content_encoder_iter_160000.pth.tar')
+    parser.add_argument('--style_encoder', type=str, default='experiments_micro/style_encoder_iter_160000.pth.tar')
+    parser.add_argument('--modulator', type=str, default='experiments_micro/modulator_iter_160000.pth.tar')
+    parser.add_argument('--decoder', type=str, default='experiments_micro/decoder_iter_160000.pth.tar')
+    parser.add_argument('--checkpoints', default='./checkpoints',
+                    help='Directory to save the checkpoint')
     parser.add_argument('--save_dir', default='./experiments',
                         help='Directory to save the model')
+    parser.add_argument('--log_dir', default='./logs',
+                    help='Directory to save the log')
+    parser.add_argument('--sample_path', type=str, default='./samples', 
+                    help='Derectory to save the intermediate samples')
     parser.add_argument('--store_folder', default='./styled_images/cartoon/person',
                         help='Directory to save the output image(s)')
     parser.add_argument('--content_size', type=int, default=0,
@@ -274,3 +284,11 @@ def style_transfer(vgg, decoder, content, style, alpha=1.0,
         feat = adaptive_instance_normalization(content_f, style_f)
     feat = feat * alpha + content_f * (1 - alpha)
     return decoder(feat)
+
+def normalization(content_feat):
+    size = content_feat.size()
+    content_mean, content_std = calc_mean_std(content_feat)
+
+    normalized_feat = (content_feat - content_mean.expand(
+        size)) / content_std.expand(size)
+    return normalized_feat
