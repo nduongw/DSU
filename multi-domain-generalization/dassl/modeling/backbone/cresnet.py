@@ -2,7 +2,8 @@ import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.mixture import BayesianGaussianMixture
+from sklearn.mixture import GaussianMixture
+from sklearn.model_selection import GridSearchCV
 import torch
 import copy
 from .build import BACKBONE_REGISTRY
@@ -85,33 +86,38 @@ class ConstStyle(nn.Module):
         std_list = np.array(std_list)
         stacked_data = np.stack((mean_list, std_list), axis=1)
         reshaped_data = stacked_data.reshape((len(mean_list), -1))
-        # pca = PCA(n_components=32)
-        # pca_data = pca.fit_transform(reshaped_data)
-        pca_data = reshaped_data
         
         domain_samples = []
         domain_idx, counts = np.unique(domain_list, return_counts=True)
         print(f'Number of elements each domain: {counts}')
         for ele in domain_idx:
-            samples = pca_data[domain_list == ele]
+            samples = reshaped_data[domain_list == ele]
             domain_samples.append(samples)
         
+        param_grid = {
+            "n_components": range(1, 7),
+            "covariance_type": ["full"],
+        }
+        grid_search = GridSearchCV(
+            GaussianMixture(), param_grid=param_grid, scoring=gmm_bic_score
+        )
+        
+        grid_search.fit(reshaped_data)
         domain_mean, domain_cov  = [], []
-        for ele in domain_samples:
-            bayes_cluster = BayesianGaussianMixture(n_components=1, covariance_type='full', max_iter=200)
-            bayes_cluster.fit(ele)
-            domain_mean.append(bayes_cluster.means_)
-            domain_cov.append(bayes_cluster.covariances_)
+        for val in range(grid_search.best_params_['n_components']):
+            domain_mean.append(grid_search.best_estimator_.means_[val])
+            domain_cov.append(grid_search.best_estimator_.covariances_[val])
+        
+        print(f"Num components: {grid_search.best_params_['n_components']}")
         
         ot_score = []
-        for i in range(len(domain_samples)):
+        for i in range(grid_search.best_params_['n_components']):
             total_cost = 0.0
             x_mean, x_cov = domain_mean[i], domain_cov[i]
             x_mean = np.squeeze(x_mean)
             x_cov = np.squeeze(x_cov)
-            # import pdb; pdb.set_trace()
             x_samples = np.random.multivariate_normal(x_mean, x_cov, size=1000)
-            for j in range(len(domain_samples)):
+            for j in range(grid_search.best_params_['n_components']):
                 if i == j:
                     continue
                 else:
@@ -233,10 +239,10 @@ class ConstStyle(nn.Module):
                 # indices = list(range(len(self.mean_list)))
                 random_idx = [0]
                 # import pdb; pdb.set_trace()
-                const_mean = torch.stack([self.mean_list[i] for i in random_idx], dim=0)
-                const_std = torch.stack([self.std_list[i] for i in random_idx], dim=0)
-                const_mean = torch.reshape(const_mean, (1, const_mean.shape[1], 1, 1)).to('cuda')
-                const_std = torch.reshape(const_std, (1, const_std.shape[1], 1, 1)).to('cuda')
+                # const_mean = torch.stack([self.mean_list[i] for i in random_idx], dim=0)
+                # const_std = torch.stack([self.std_list[i] for i in random_idx], dim=0)
+                const_mean = torch.reshape(const_mean, (1, const_mean.shape[0], 1, 1)).to('cuda')
+                const_std = torch.reshape(const_std, (1, const_std.shape[0], 1, 1)).to('cuda')
             else:
                 '''
                 generator = torch.distributions.MultivariateNormal(loc=self.const_mean, covariance_matrix=self.const_cov)
@@ -260,7 +266,7 @@ class ConstStyle(nn.Module):
                 for i in range(len(x_normed)):
                     indices = list(range(len(self.mean_list)))
                     # num_images = random.randint(1, 5)
-                    random_idx = random.sample(indices, 2)
+                    random_idx = random.sample(indices, 1)
                     selected_mean = [self.mean_list[i] for i in random_idx]
                     selected_std = [self.std_list[i] for i in random_idx]
                     selected_mean = torch.stack(selected_mean)
@@ -493,7 +499,7 @@ def cresnet18(pretrained=True, cfg=None, **kwargs):
 
 @BACKBONE_REGISTRY.register()
 def cresnet50(pretrained=True, cfg=None, **kwargs):
-    model = CResNet(block=BasicBlock, layers=[3, 4, 6, 3], cfg=cfg)
+    model = CResNet(block=Bottleneck, layers=[3, 4, 6, 3], cfg=cfg)
 
     if pretrained:
         init_pretrained_weights(model, model_urls['resnet50'])

@@ -7,5 +7,5 @@ DATASET:
 
 MODEL:
   BACKBONE:
-    NAME: 'cresnet18'
+    NAME: 'cresnet50'
     PRETRAINED: True

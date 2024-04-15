@@ -80,7 +80,7 @@ def main(args):
     if args.wandb:
         if 'uresnet' in cfg.MODEL.BACKBONE.NAME:
             job_type = 'DSU'
-        elif 'cresnet18' in cfg.MODEL.BACKBONE.NAME:
+        elif 'cresnet' in cfg.MODEL.BACKBONE.NAME:
             job_type = 'ConstStyle_cl'
             if cfg.CLUSTER == 'ot':
                 job_type += '-OT'
