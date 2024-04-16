@@ -8,7 +8,7 @@ D4=sun
 SEED=42
 method=conststyle
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --trainer ConstStyleTrainer \
 --uncertainty 0.5 \

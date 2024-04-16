@@ -87,12 +87,8 @@ class ConstStyle(nn.Module):
         stacked_data = np.stack((mean_list, std_list), axis=1)
         reshaped_data = stacked_data.reshape((len(mean_list), -1))
         
-        domain_samples = []
         domain_idx, counts = np.unique(domain_list, return_counts=True)
         print(f'Number of elements each domain: {counts}')
-        for ele in domain_idx:
-            samples = reshaped_data[domain_list == ele]
-            domain_samples.append(samples)
         
         param_grid = {
             "n_components": range(1, 7),
@@ -103,12 +99,15 @@ class ConstStyle(nn.Module):
         )
         
         grid_search.fit(reshaped_data)
-        domain_mean, domain_cov  = [], []
+        predicted_labels = grid_search.predict(reshaped_data)
+    
+        domain_mean, domain_cov, domain_samples  = [], [], []
         for val in range(grid_search.best_params_['n_components']):
             domain_mean.append(grid_search.best_estimator_.means_[val])
             domain_cov.append(grid_search.best_estimator_.covariances_[val])
+            domain_samples.append([reshaped_data[i] for i in range(len(reshaped_data)) if predicted_labels[i] == val])
         
-        print(f"Num components: {grid_search.best_params_['n_components']}")
+        print(f"Num components: {grid_search.best_params_['n_components']}")            
         
         ot_score = []
         for i in range(grid_search.best_params_['n_components']):
@@ -136,11 +135,11 @@ class ConstStyle(nn.Module):
                     
         idx_val = np.argmin(ot_score)
 
-        print(f'Layer {idx} chooses cluster {counts[idx_val]}')
+        print(f'Layer {idx} chooses cluster {len(domain_samples[idx_val])}')
         # self.plot_style_statistics(idx, epoch, reshaped_data, domain_list)
         self.const_mean = torch.from_numpy(domain_mean[idx_val])
         self.const_cov = torch.from_numpy(domain_cov[idx_val])
-        self.selected_domain_elements = torch.from_numpy(domain_samples[idx_val])
+        self.selected_domain_elements = torch.from_numpy(np.array(domain_samples[idx_val]))
         for ele in self.selected_domain_elements:
             style = np.reshape(ele, (2, -1))
             self.mean_list.append(style[0])
@@ -236,11 +235,6 @@ class ConstStyle(nn.Module):
                 const_value = torch.reshape(self.const_mean, (2, -1))
                 const_mean = const_value[0].float()
                 const_std = const_value[1].float()
-                # indices = list(range(len(self.mean_list)))
-                random_idx = [0]
-                # import pdb; pdb.set_trace()
-                # const_mean = torch.stack([self.mean_list[i] for i in random_idx], dim=0)
-                # const_std = torch.stack([self.std_list[i] for i in random_idx], dim=0)
                 const_mean = torch.reshape(const_mean, (1, const_mean.shape[0], 1, 1)).to('cuda')
                 const_std = torch.reshape(const_std, (1, const_std.shape[0], 1, 1)).to('cuda')
             else:
@@ -265,7 +259,6 @@ class ConstStyle(nn.Module):
                 style_std = []
                 for i in range(len(x_normed)):
                     indices = list(range(len(self.mean_list)))
-                    # num_images = random.randint(1, 5)
                     random_idx = random.sample(indices, 1)
                     selected_mean = [self.mean_list[i] for i in random_idx]
                     selected_std = [self.std_list[i] for i in random_idx]
