@@ -57,6 +57,13 @@ def reset_cfg(cfg, args):
 
     if args.num_clusters:
         cfg.NUM_CLUSTERS = args.num_clusters
+
+    # if args.num_conststyles:
+    #     cfg.NUM_CONSTSTYLES = args.num_conststyles
+
+    if args.reduce:
+        cfg.REDUCE = args.reduce
+        
     #if args.uncertainty:
     cfg.MODEL.UNCERTAINTY = args.uncertainty
 
@@ -89,7 +96,7 @@ def main(args):
             
             if cfg.NUM_CLUSTERS > 1:
                 job_type += f'-num_clusters_{cfg.NUM_CLUSTERS}'
-        if 'curesnet' in cfg.MODEL.BACKBONE.NAME:
+        elif 'curesnet' in cfg.MODEL.BACKBONE.NAME:
             job_type = 'CSU'
         elif 'ms_l12' in cfg.MODEL.BACKBONE.NAME:
             job_type = 'MixStyle'
@@ -213,5 +220,6 @@ if __name__ == '__main__':
     parser.add_argument('--update_interval', default=25, type=int, help='update cluster interval')
     parser.add_argument('--cluster', default='ot', type=str, help='cluster choosing method')
     parser.add_argument('--num_clusters', default = 3, type = int, help='number of clusters')
+    parser.add_argument('--reduce', default = 1, type = int, help = 'reduction factor of data')
     args = parser.parse_args()
     main(args)

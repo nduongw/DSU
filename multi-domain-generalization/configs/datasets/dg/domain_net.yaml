@@ -7,5 +7,5 @@ DATASET:
 
 MODEL:
   BACKBONE:
-    NAME: 'resnet18'
+    NAME: 'resnet50'
     PRETRAINED: True

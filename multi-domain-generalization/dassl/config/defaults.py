@@ -21,6 +21,8 @@ _C.USE_CUDA = True
 _C.VERBOSE = True
 _C.CLUSTER = ''
 _C.NUM_CLUSTERS = 0
+_C.NUM_CONSTSTYLES = 0
+_C.REDUCE = 0
 ###########################
 # Input
 ###########################

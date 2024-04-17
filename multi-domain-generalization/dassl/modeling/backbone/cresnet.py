@@ -56,6 +56,7 @@ class ConstStyle(nn.Module):
         self.std_list = []
         self.selected_domain_elements = []
         self.factor = 1.0
+        self.beta = torch.distributions.Beta(0.1, 0.1)
     
     def clear_memory(self):
         self.mean = []
@@ -230,6 +231,10 @@ class ConstStyle(nn.Module):
             var = x.var(dim=[2, 3], keepdim=True)
             sig = (var + self.eps).sqrt()
             mu, sig = mu.detach(), sig.detach()
+            B = x.size(0)
+            lmda = self.beta.sample((B, 1, 1, 1))
+            lmda = lmda.to('cuda')
+            
             x_normed = (x-mu) / sig
             if is_test:
                 const_value = torch.reshape(self.const_mean, (2, -1))
@@ -274,7 +279,9 @@ class ConstStyle(nn.Module):
                 const_mean = torch.reshape(const_mean, (const_mean.shape[0], const_mean.shape[1], 1, 1)).to('cuda')
                 const_std = torch.reshape(const_std, (const_std.shape[0], const_std.shape[1], 1, 1)).to('cuda')
 
-            out = x_normed * const_std + const_mean
+            cosnt_sig = lmda * const_mean + (1-lmda) * mu
+            cosnt_mu = lmda * const_std + (1-lmda) * sig
+            out = x_normed * cosnt_sig + cosnt_mu
             return out
         else:
             return x
