@@ -20,7 +20,7 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D6}_${D2}_${D3}_${D4}_${D5} \
---reduce 1 \
+--reduce 10 \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -33,7 +33,7 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D1}_${D6}_${D3}_${D4}_${D5} \
---reduce 1 \
+--reduce 10 \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -46,7 +46,7 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D1}_${D2}_${D6}_${D4}_${D5} \
---reduce 1 \
+--reduce 10 \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -59,7 +59,7 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D1}_${D2}_${D3}_${D6}_${D5} \
---reduce 1 \
+--reduce 10 \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -72,7 +72,7 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D1}_${D2}_${D3}_${D4}_${D6} \
---reduce 1 \
+--reduce 10 \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -85,7 +85,7 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D1}_${D2}_${D3}_${D4}_${D5} \
---reduce 1 \
+--reduce 10 \
 --resume false)
 
 echo "Running scripts in parallel"
