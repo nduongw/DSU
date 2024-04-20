@@ -78,7 +78,7 @@ method=conststyle
 --num_clusters 3 \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer ConstStyleTrainer \
 --uncertainty 0.5 \
