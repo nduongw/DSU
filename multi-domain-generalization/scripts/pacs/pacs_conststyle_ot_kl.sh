@@ -8,33 +8,35 @@ D4=sketch
 SEED=42
 method=conststyle
 
-# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
-# --root ${DATA} \
-# --trainer ConstStyleTrainer \
-# --uncertainty 0.5 \
-# --source-domains ${D2} ${D3} ${D4} \
-# --target-domains ${D1} \
-# --seed ${SEED} \
-# --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
-# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
-# --output-dir output/dg/${DATASET}/${method}/${D1} \
-# --cluster ot \
-# --num_clusters 3 \
-# --resume false)
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+--root ${DATA} \
+--trainer ConstStyleTrainer \
+--uncertainty 0.5 \
+--source-domains ${D2} ${D3} ${D4} \
+--target-domains ${D1} \
+--seed ${SEED} \
+--dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
+--config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+--output-dir output/dg/${DATASET}/${method}/${D1} \
+--cluster ot \
+--num_clusters 3 \
+--distance kl \
+--resume false)
 
-# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
-# --root ${DATA} \
-# --trainer ConstStyleTrainer \
-# --uncertainty 0.5 \
-# --source-domains ${D1} ${D3} ${D4} \
-# --target-domains ${D2} \
-# --seed ${SEED} \
-# --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
-# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
-# --output-dir output/dg/${DATASET}/${method}/${D2} \
-# --cluster ot \
-# --num_clusters 3 \
-# --resume false)
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+--root ${DATA} \
+--trainer ConstStyleTrainer \
+--uncertainty 0.5 \
+--source-domains ${D1} ${D3} ${D4} \
+--target-domains ${D2} \
+--seed ${SEED} \
+--dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
+--config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+--output-dir output/dg/${DATASET}/${method}/${D2} \
+--cluster ot \
+--num_clusters 3 \
+--distance kl \
+--resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
@@ -48,6 +50,7 @@ method=conststyle
 --output-dir output/dg/${DATASET}/${method}/${D3} \
 --cluster ot \
 --num_clusters 3 \
+--distance kl \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -62,6 +65,7 @@ method=conststyle
 --output-dir output/dg/${DATASET}/${method}/${D4} \
 --cluster ot \
 --num_clusters 3 \
+--distance kl \
 --resume false) 
 
 echo "Running scripts in parallel"

@@ -1,10 +1,10 @@
 #!/bin/bash
 DATA=./DATA
-DATASET=vlcs
-D1=caltech
-D2=labelme
-D3=pascal
-D4=sun
+DATASET=pacs
+D1=art_painting
+D2=cartoon
+D3=photo
+D4=sketch
 SEED=42
 method=conststyle
 
@@ -18,8 +18,9 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D1} \
---cluster barycenter \
+--cluster ot \
 --num_clusters 3 \
+--distance jensen \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -32,8 +33,9 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D2} \
---cluster barycenter \
+--cluster ot \
 --num_clusters 3 \
+--distance jensen \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -46,8 +48,9 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D3} \
---cluster barycenter \
+--cluster ot \
 --num_clusters 3 \
+--distance jensen \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -60,8 +63,9 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D4} \
---cluster barycenter \
+--cluster ot \
 --num_clusters 3 \
+--distance jensen \
 --resume false) 
 
 echo "Running scripts in parallel"

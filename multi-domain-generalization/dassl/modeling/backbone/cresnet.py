@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from sklearn.mixture import GaussianMixture
 from sklearn.mixture import BayesianGaussianMixture
 from sklearn.model_selection import GridSearchCV
+from scipy.stats import entropy
+from scipy.spatial import distance 
 import torch
 import copy
 from .build import BACKBONE_REGISTRY
@@ -12,7 +14,10 @@ from .backbone import Backbone
 from sklearn.manifold import TSNE
 import os
 import ot
-import random
+
+def kl_divergence(p, q):
+    return entropy(p, q)
+
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -113,6 +118,12 @@ class ConstStyle(nn.Module):
             cluster_means.append(bayes_cluster.means_[val])
             cluster_covs.append(bayes_cluster.covariances_[val])
         
+        cluster_generated_samples = []
+        for idx in range(len(unique_labels)):
+            cluster_mean, cluster_cov = cluster_means[idx], cluster_covs[idx]
+            generated_sample = np.random.multivariate_normal(cluster_mean, cluster_cov, 1000)
+            cluster_generated_samples.append(generated_sample)
+        
         if self.cfg.CLUSTER == 'barycenter':
             cluster_means = np.stack([bayes_cluster.means_[i] for i in range(len(unique_labels))])
             cluster_covs = np.stack([bayes_cluster.covariances_[i] for i in range(len(unique_labels))])
@@ -126,25 +137,42 @@ class ConstStyle(nn.Module):
             ot_score = []
             for i in range(len(cluster_samples_idx)):
                 total_cost = 0.0
-                cluster_sample_x = [reshaped_data[x] for x in cluster_samples_idx[i]]
+                # cluster_sample_x = [reshaped_data[x] for x in cluster_samples_idx[i]]
+                cluster_sample_x = cluster_generated_samples[i]
                 for j in range(len(cluster_samples_idx)):
                     if i == j:
                         continue
                     else:
-                        cluster_sample_y = [reshaped_data[k] for k in cluster_samples_idx[j]]
+                        # cluster_sample_y = [reshaped_data[k] for k in cluster_samples_idx[j]]
+                        cluster_sample_y = cluster_generated_samples[j]
                         cluster_sample_x = np.array(cluster_sample_x)
                         cluster_sample_y = np.array(cluster_sample_y)
-                        M = ot.dist(cluster_sample_y, cluster_sample_x)
-                        a, b = np.ones(len(cluster_sample_y)) / len(cluster_sample_y), np.ones(len(cluster_sample_x)) / len(cluster_sample_x) 
-                        cost = ot.emd2(a, b, M)
-                        # pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, cluster_sample_x, seed=self.cfg.SEED, n_projections=128)
-                        print(f'Cost to move from cluster {j} to cluster {i} is {cost}')
+                        if self.cfg.DISTANCE == 'wass':
+                            M = ot.dist(cluster_sample_y, cluster_sample_x)
+                            a, b = np.ones(len(cluster_sample_y)) / len(cluster_sample_y), np.ones(len(cluster_sample_x)) / len(cluster_sample_x) 
+                            cost = ot.emd2(a, b, M)
+                            # pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, cluster_sample_x, seed=self.cfg.SEED, n_projections=128)
+                            print(f'Cost to move from cluster {j} to cluster {i} is {cost}')
+                        elif self.cfg.DISTANCE == 'kl':
+                            cost = kl_divergence(cluster_sample_y, cluster_sample_x)
+                            print(f'KL div from cluster {j} to cluster {i} is {cost}')
+                        elif self.cfg.DISTANCE == 'jensen':
+                            import pdb; pdb.set_trace()
+                            sum_y = np.sum(cluster_sample_y, axis=0)
+                            sum_x = np.sum(cluster_sample_x, axis=0)
+                            cluster_sample_y = cluster_sample_y / sum_y
+                            cluster_sample_x = cluster_sample_x / sum_x
+                            cost = distance.jensenshannon(cluster_sample_y, cluster_sample_x)
+                            print(f'Jensen-Shanon distance from cluster {j} to cluster {i} is {cost}')
+                        elif self.cfg.DISTANCE == 'bhatta':
+                            cost = distance.bhattacharyya(cluster_sample_y.flatten(), cluster_sample_x.flatten())
+                            print(f'Bhattacharyya distance from cluster {j} to cluster {i} is {cost}')
                         total_cost += cost
                 print(f'Total cost of cluster {i}: {total_cost}')
                 ot_score.append(total_cost)
 
             idx_val = np.argmin(ot_score)
-            print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with optimal transport cost {ot_score[idx_val]}')
+            print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with minimal cost {ot_score[idx_val]}')
             self.const_mean = torch.from_numpy(bayes_cluster.means_[idx_val])
             self.const_cov = torch.from_numpy(bayes_cluster.covariances_[idx_val])
     
