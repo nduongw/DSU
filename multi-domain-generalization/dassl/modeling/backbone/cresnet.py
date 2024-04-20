@@ -18,6 +18,22 @@ import ot
 def kl_divergence(p, q):
     return entropy(p, q)
 
+def jensen_shannon_distance(p, q):
+    """
+    method to compute the Jenson-Shannon Distance 
+    between two probability distributions
+    """
+
+    # calculate m
+    m = (p + q) / 2
+
+    # compute Jensen Shannon Divergence
+    divergence = (entropy(p, m) + entropy(q, m)) / 2
+
+    # compute the Jensen Shannon Distance
+    distance = np.sqrt(divergence)
+
+    return distance
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -158,11 +174,11 @@ class ConstStyle(nn.Module):
                             print(f'KL div from cluster {j} to cluster {i} is {cost}')
                         elif self.cfg.DISTANCE == 'jensen':
                             import pdb; pdb.set_trace()
-                            sum_y = np.sum(cluster_sample_y, axis=0)
-                            sum_x = np.sum(cluster_sample_x, axis=0)
-                            cluster_sample_y = cluster_sample_y / sum_y
-                            cluster_sample_x = cluster_sample_x / sum_x
-                            cost = distance.jensenshannon(cluster_sample_y, cluster_sample_x)
+                            # sum_y = np.sum(cluster_sample_y, axis=0)
+                            # sum_x = np.sum(cluster_sample_x, axis=0)
+                            # cluster_sample_y = cluster_sample_y / sum_y
+                            # cluster_sample_x = cluster_sample_x / sum_x
+                            cost = jensen_shannon_distance(cluster_sample_y, cluster_sample_x)
                             print(f'Jensen-Shanon distance from cluster {j} to cluster {i} is {cost}')
                         elif self.cfg.DISTANCE == 'bhatta':
                             cost = distance.bhattacharyya(cluster_sample_y.flatten(), cluster_sample_x.flatten())

@@ -12,7 +12,7 @@ method=conststyle
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
---trainer Vanilla \
+--trainer ConstStyleTrainer \
 --uncertainty 0.5 \
 --source-domains ${D1} \
 --target-domains ${D6} ${D2} ${D3} ${D4} ${D5} \
@@ -25,7 +25,7 @@ method=conststyle
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
---trainer Vanilla \
+--trainer ConstStyleTrainer \
 --uncertainty 0.5 \
 --source-domains ${D2} \
 --target-domains ${D1} ${D6} ${D3} ${D4} ${D5} \
@@ -38,7 +38,7 @@ method=conststyle
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
---trainer Vanilla \
+--trainer ConstStyleTrainer \
 --uncertainty 0.5 \
 --source-domains ${D3} \
 --target-domains ${D1} ${D2} ${D6} ${D4} ${D5} \
@@ -51,7 +51,7 @@ method=conststyle
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
---trainer Vanilla \
+--trainer ConstStyleTrainer \
 --uncertainty 0.5 \
 --source-domains ${D4} \
 --target-domains ${D1} ${D2} ${D3} ${D6} ${D5} \
@@ -64,7 +64,7 @@ method=conststyle
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
---trainer Vanilla \
+--trainer ConstStyleTrainer \
 --uncertainty 0.5 \
 --source-domains ${D5} \
 --target-domains ${D1} ${D2} ${D3} ${D4} ${D6} \
@@ -77,7 +77,7 @@ method=conststyle
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
---trainer Vanilla \
+--trainer ConstStyleTrainer \
 --uncertainty 0.5 \
 --source-domains ${D6} \
 --target-domains ${D1} ${D2} ${D3} ${D4} ${D5} \

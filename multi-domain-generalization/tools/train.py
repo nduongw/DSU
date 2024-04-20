@@ -226,7 +226,7 @@ if __name__ == '__main__':
     parser.add_argument('--update_interval', default=25, type=int, help='update cluster interval')
     parser.add_argument('--cluster', default='ot', type=str, help='cluster choosing method')
     parser.add_argument('--num_clusters', default = 3, type = int, help='number of clusters')
-    parser.add_argument('--distance', default = 'ot', type = str, help='distance metric')
+    parser.add_argument('--distance', default = 'wass', type = str, help='distance metric')
     parser.add_argument('--reduce', default = 1, type = int, help = 'reduction factor of data')
     args = parser.parse_args()
     main(args)
