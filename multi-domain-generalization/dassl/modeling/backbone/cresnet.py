@@ -180,6 +180,9 @@ class ConstStyle(nn.Module):
             sig = (var + self.eps).sqrt()
             mu, sig = mu.detach(), sig.detach()
             
+            if not is_test and np.random.random() > 0.5:
+                return x
+            
             x_normed = (x-mu) / sig
             if is_test:
                 const_value = torch.reshape(self.const_mean, (2, -1))

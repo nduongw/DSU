@@ -61,7 +61,7 @@ method=baseline
 --trainer Vanilla \
 --uncertainty 0.5 \
 --source-domains ${D1} ${D3} \
---target-domains ${D2} ${D4}\
+--target-domains ${D2} ${D4} \
 --seed ${SEED} \
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \

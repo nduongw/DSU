@@ -236,9 +236,9 @@ class ConstStyleTrainer(SimpleTrainer):
             output = self.model_inference(input, domain, is_test=True)
             self.evaluator.process(output, label)
         
-        if self.epoch != 0:
-            for idx, conststyle in enumerate(self.model.backbone.conststyle):
-                conststyle.plot_style_statistics(idx, self.epoch)
+        # if self.epoch != 0:
+        #     for idx, conststyle in enumerate(self.model.backbone.conststyle):
+        #         conststyle.plot_style_statistics(idx, self.epoch)
 
         results = self.evaluator.evaluate()
 
