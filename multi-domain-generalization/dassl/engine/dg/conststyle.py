@@ -129,7 +129,7 @@ class ConstStyleTrainer(SimpleTrainer):
         if self.epoch == 0:
             return self.model(input, domain)
         else:
-            return self.model(input, domain, store_feature=False, apply_conststyle=True, is_test=is_test)
+            return self.model(input, domain, store_feature=True, apply_conststyle=True, is_test=is_test)
 
     def forward_backward(self, batch, epoch):
         input, label, domain = self.parse_batch_train(batch)
@@ -219,7 +219,6 @@ class ConstStyleTrainer(SimpleTrainer):
             for idx, conststyle in enumerate(self._models[name].backbone.conststyle):
                 conststyle.const_mean = checkpoint['style_feats']['mean'][idx]
                 conststyle.const_cov = checkpoint['style_feats']['cov'][idx]
-                # conststyle.const_std = checkpoint['style_feats']['std'][idx]
     
     @torch.no_grad()
     def test(self):
@@ -233,13 +232,13 @@ class ConstStyleTrainer(SimpleTrainer):
 
         for batch_idx, batch in enumerate(data_loader):
             input, label = self.parse_batch_test(batch)
-            domain = batch['domain']
+            domain = torch.tensor([3 for i in range(len(label))])
             output = self.model_inference(input, domain, is_test=True)
-            # distances, indices = self.memory.search(feats.detach().cpu().numpy(), 10)
-            # for i in range(len(indices)):
-            #     print(f'Image label {label[i]}\nPredicted label: {softmax(output[i])}')
-            #     print(f'Closest neighbors value : {labels[indices[i]]}\nDistance: {np.round(distances[i], 2)}\n')
             self.evaluator.process(output, label)
+        
+        if self.epoch != 0:
+            for idx, conststyle in enumerate(self.model.backbone.conststyle):
+                conststyle.plot_style_statistics(idx, self.epoch)
 
         results = self.evaluator.evaluate()
 

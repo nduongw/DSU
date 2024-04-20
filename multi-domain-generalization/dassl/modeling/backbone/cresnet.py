@@ -3,6 +3,7 @@ import torch.utils.model_zoo as model_zoo
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.mixture import GaussianMixture
+from sklearn.mixture import BayesianGaussianMixture
 from sklearn.model_selection import GridSearchCV
 import torch
 import copy
@@ -47,22 +48,19 @@ class ConstStyle(nn.Module):
         self.cfg = cfg
         self.mean = []
         self.std = []
+        self.mean_after = []
+        self.std_after = []
         self.eps = eps
         self.const_mean = None
         self.const_cov = None
         self.domain_list = []
-        self.scaled_feats = []
-        self.mean_list = []
-        self.std_list = []
-        self.selected_domain_elements = []
-        self.factor = 1.0
-        self.beta = torch.distributions.Beta(0.1, 0.1)
     
     def clear_memory(self):
         self.mean = []
         self.std = []
+        self.mean_after = []
+        self.std_after = []
         self.domain_list = []
-        self.scaled_feats = []
         
     def get_style(self, x):
         mu = x.mean(dim=[2, 3], keepdim=True)
@@ -78,6 +76,11 @@ class ConstStyle(nn.Module):
         self.std.extend(var)
         self.domain_list.extend([i.item() for i in domains])
     
+    def store_style_after(self, x):
+        mu, var = self.get_style(x)
+        self.mean_after.extend(mu)
+        self.std_after.extend(var)
+    
     def cal_mean_std(self, idx, epoch):
         domain_list = np.array(self.domain_list)
         #clustering
@@ -88,70 +91,10 @@ class ConstStyle(nn.Module):
         stacked_data = np.stack((mean_list, std_list), axis=1)
         reshaped_data = stacked_data.reshape((len(mean_list), -1))
         
-        domain_idx, counts = np.unique(domain_list, return_counts=True)
-        print(f'Number of elements each domain: {counts}')
-        
-        param_grid = {
-            "n_components": range(1, 7),
-            "covariance_type": ["full"],
-        }
-        grid_search = GridSearchCV(
-            GaussianMixture(), param_grid=param_grid, scoring=gmm_bic_score
-        )
-        
-        grid_search.fit(reshaped_data)
-        predicted_labels = grid_search.predict(reshaped_data)
-    
-        domain_mean, domain_cov, domain_samples  = [], [], []
-        for val in range(grid_search.best_params_['n_components']):
-            domain_mean.append(grid_search.best_estimator_.means_[val])
-            domain_cov.append(grid_search.best_estimator_.covariances_[val])
-            domain_samples.append([reshaped_data[i] for i in range(len(reshaped_data)) if predicted_labels[i] == val])
-        
-        print(f"Num components: {grid_search.best_params_['n_components']}")            
-        
-        ot_score = []
-        for i in range(grid_search.best_params_['n_components']):
-            total_cost = 0.0
-            x_mean, x_cov = domain_mean[i], domain_cov[i]
-            x_mean = np.squeeze(x_mean)
-            x_cov = np.squeeze(x_cov)
-            x_samples = np.random.multivariate_normal(x_mean, x_cov, size=1000)
-            for j in range(grid_search.best_params_['n_components']):
-                if i == j:
-                    continue
-                else:
-                    y_mean, y_cov = domain_mean[j], domain_cov[j]
-                    y_mean = np.squeeze(y_mean)
-                    y_cov = np.squeeze(y_cov)
-                    y_samples = np.random.multivariate_normal(y_mean, y_cov, size=1000)
-                    M = ot.dist(y_samples, x_samples)
-                    a, b = np.ones(len(y_samples)) / len(y_samples), np.ones(len(x_samples)) / len(x_samples) 
-                    cost = ot.emd2(a, b, M)
-                    # pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, x_samples, seed=self.cfg.SEED, n_projections=128)
-                    print(f'Cost to move from cluster {j} to cluster {i} is {cost}')
-                    total_cost += cost
-            print(f'Total cost of cluster {i}: {total_cost}')
-            ot_score.append(total_cost)
-                    
-        idx_val = np.argmin(ot_score)
-
-        print(f'Layer {idx} chooses cluster {len(domain_samples[idx_val])}')
-        # self.plot_style_statistics(idx, epoch, reshaped_data, domain_list)
-        self.const_mean = torch.from_numpy(domain_mean[idx_val])
-        self.const_cov = torch.from_numpy(domain_cov[idx_val])
-        self.selected_domain_elements = torch.from_numpy(np.array(domain_samples[idx_val]))
-        for ele in self.selected_domain_elements:
-            style = np.reshape(ele, (2, -1))
-            self.mean_list.append(style[0])
-            self.std_list.append(style[1])
-        ''' 
-        ### Code for Bayes clustering
-        
         bayes_cluster = BayesianGaussianMixture(n_components=self.cfg.NUM_CLUSTERS, covariance_type='full', init_params='k-means++', max_iter=200)
-        bayes_cluster.fit(pca_data)
+        bayes_cluster.fit(reshaped_data)
         
-        labels = bayes_cluster.predict(pca_data)
+        labels = bayes_cluster.predict(reshaped_data)
         unique_labels, counts = np.unique(labels, return_counts=True)
         
         cluster_samples = []
@@ -179,17 +122,16 @@ class ConstStyle(nn.Module):
             self.const_mean = torch.from_numpy(total_mean)
             self.const_cov = torch.from_numpy(total_cov)
             print(f'Layer {idx} choose distribution with mean {np.mean(total_mean)} and std {np.mean(total_cov)}')
-            self.plot_style_statistics(idx, epoch, reshaped_data, domain_list, labels)
         elif self.cfg.CLUSTER == 'ot':
             ot_score = []
             for i in range(len(cluster_samples_idx)):
                 total_cost = 0.0
-                cluster_sample_x = [pca_data[x] for x in cluster_samples_idx[i]]
+                cluster_sample_x = [reshaped_data[x] for x in cluster_samples_idx[i]]
                 for j in range(len(cluster_samples_idx)):
                     if i == j:
                         continue
                     else:
-                        cluster_sample_y = [pca_data[k] for k in cluster_samples_idx[j]]
+                        cluster_sample_y = [reshaped_data[k] for k in cluster_samples_idx[j]]
                         cluster_sample_x = np.array(cluster_sample_x)
                         cluster_sample_y = np.array(cluster_sample_y)
                         M = ot.dist(cluster_sample_y, cluster_sample_x)
@@ -200,23 +142,29 @@ class ConstStyle(nn.Module):
                         total_cost += cost
                 print(f'Total cost of cluster {i}: {total_cost}')
                 ot_score.append(total_cost)
-                        
+
             idx_val = np.argmin(ot_score)
             print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with optimal transport cost {ot_score[idx_val]}')
-            self.plot_style_statistics(idx, epoch, reshaped_data, domain_list, labels)
             self.const_mean = torch.from_numpy(bayes_cluster.means_[idx_val])
             self.const_cov = torch.from_numpy(bayes_cluster.covariances_[idx_val])
-        '''
     
-    def plot_style_statistics(self, idx, epoch, reshaped_data, domain_list):
-        classes = ['caltech', 'labelme', 'sun']
+    def plot_style_statistics(self, idx, epoch):
+        domain_list = np.array(self.domain_list)
+        #clustering
+        mean_list = copy.copy(self.mean_after)
+        std_list = copy.copy(self.std_after)
+        mean_list = np.array(mean_list)
+        std_list = np.array(std_list)
+        stacked_data = np.stack((mean_list, std_list), axis=1)
+        reshaped_data = stacked_data.reshape((len(mean_list), -1))
         
+        classes = ['in domain 1', 'in domain 2', 'in domain 3', 'out domain']
         tsne = TSNE(n_components=2, random_state=self.cfg.SEED)
         plot_data = tsne.fit_transform(reshaped_data)
         
         scatter = plt.scatter(plot_data[:, 0], plot_data[:, 1], c=domain_list)
         plt.legend(handles=scatter.legend_elements()[0], labels=classes)
-        save_path = os.path.join(f'{self.cfg.OUTPUT_DIR}', f'training-features{idx}_epoch{epoch}.png')
+        save_path = os.path.join(f'{self.cfg.OUTPUT_DIR}', f'testing-features_after{idx}_epoch{epoch}.png')
         plt.savefig(save_path, dpi=200)
         plt.close()
         plt.cla()
@@ -231,9 +179,6 @@ class ConstStyle(nn.Module):
             var = x.var(dim=[2, 3], keepdim=True)
             sig = (var + self.eps).sqrt()
             mu, sig = mu.detach(), sig.detach()
-            B = x.size(0)
-            lmda = self.beta.sample((B, 1, 1, 1))
-            lmda = lmda.to('cuda')
             
             x_normed = (x-mu) / sig
             if is_test:
@@ -243,7 +188,6 @@ class ConstStyle(nn.Module):
                 const_mean = torch.reshape(const_mean, (1, const_mean.shape[0], 1, 1)).to('cuda')
                 const_std = torch.reshape(const_std, (1, const_std.shape[0], 1, 1)).to('cuda')
             else:
-                '''
                 generator = torch.distributions.MultivariateNormal(loc=self.const_mean, covariance_matrix=self.const_cov)
                 style_mean = []
                 style_std = []
@@ -258,34 +202,13 @@ class ConstStyle(nn.Module):
                 
                 const_mean = torch.reshape(const_mean, (const_mean.shape[0], const_mean.shape[1], 1, 1)).to('cuda')
                 const_std = torch.reshape(const_std, (const_std.shape[0], const_std.shape[1], 1, 1)).to('cuda')
-                '''
-                # apply mixstyle to conststyle
-                style_mean = []
-                style_std = []
-                for i in range(len(x_normed)):
-                    indices = list(range(len(self.mean_list)))
-                    random_idx = random.sample(indices, 1)
-                    selected_mean = [self.mean_list[i] for i in random_idx]
-                    selected_std = [self.std_list[i] for i in random_idx]
-                    selected_mean = torch.stack(selected_mean)
-                    selected_std = torch.stack(selected_std)
-                    mean = torch.mean(selected_mean, dim=0)
-                    std = torch.mean(selected_std, dim=0)
-                    style_mean.append(mean)
-                    style_std.append(std)
-                const_mean = torch.vstack(style_mean).float()
-                const_std = torch.vstack(style_std).float()
                 
-                const_mean = torch.reshape(const_mean, (const_mean.shape[0], const_mean.shape[1], 1, 1)).to('cuda')
-                const_std = torch.reshape(const_std, (const_std.shape[0], const_std.shape[1], 1, 1)).to('cuda')
-
-            cosnt_sig = lmda * const_mean + (1-lmda) * mu
-            cosnt_mu = lmda * const_std + (1-lmda) * sig
-            out = x_normed * cosnt_sig + cosnt_mu
+            out = x_normed * const_std + const_mean
+            
+            self.store_style_after(out)
             return out
         else:
             return x
-    
 
 class BasicBlock(nn.Module):
     expansion = 1
@@ -433,22 +356,26 @@ class CResNet(Backbone):
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
     
-    def stylemaps(self, x, store_feature=False, apply_conststyle=False, is_test=False):
+    def stylemaps1(self, x, domain, store_feature=False, apply_conststyle=False, is_test=False):
         x = self.conv1(x)
-        # x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
-        x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
+        x = self.conststyle[0](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
+        return x
+    
+    def stylemaps2(self, x, domain, store_feature=False, apply_conststyle=False, is_test=False):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.conststyle[0](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         x = self.layer1(x)
-        x = self.conststyle[1](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
-        x = self.layer2(x)
-        x = self.conststyle[2](x, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
+        x = self.conststyle[1](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         return x
     
     def featuremaps(self, x, domain, store_feature=False, apply_conststyle=False, is_test=False):
         x = self.conv1(x)
-        # x = self.conststyle[0](x, store_feature=store_feature, apply_conststyle=apply_conststyle)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)

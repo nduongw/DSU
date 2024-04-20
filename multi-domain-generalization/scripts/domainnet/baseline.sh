@@ -20,7 +20,6 @@ method=baseline
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D6} \
---wandb 0 \
 --reduce 10 \
 --resume false)
 
@@ -34,7 +33,6 @@ method=baseline
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D6} \
---wandb 0 \
 --reduce 10 \
 --resume false)
 
@@ -48,7 +46,6 @@ method=baseline
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D6} \
---wandb 0 \
 --reduce 10 \
 --resume false)
 
@@ -62,7 +59,6 @@ method=baseline
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D6} \
---wandb 0 \
 --reduce 10 \
 --resume false)
 
@@ -76,7 +72,6 @@ method=baseline
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D6} \
---wandb 0 \
 --reduce 10 \
 --resume false)
 
@@ -90,7 +85,6 @@ method=baseline
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D6} \
---wandb 0 \
 --reduce 10 \
 --resume false)
 
