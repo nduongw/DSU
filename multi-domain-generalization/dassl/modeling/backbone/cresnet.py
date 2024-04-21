@@ -15,26 +15,6 @@ from sklearn.manifold import TSNE
 import os
 import ot
 
-def kl_divergence(p, q):
-    return entropy(p, q)
-
-def jensen_shannon_distance(p, q):
-    """
-    method to compute the Jenson-Shannon Distance 
-    between two probability distributions
-    """
-
-    # calculate m
-    m = (p + q) / 2
-
-    # compute Jensen Shannon Divergence
-    divergence = (entropy(p, m) + entropy(q, m)) / 2
-
-    # compute the Jensen Shannon Distance
-    distance = np.sqrt(divergence)
-
-    return distance
-
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
     'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
@@ -47,10 +27,6 @@ def gmm_bic_score(estimator, X):
     """Callable to pass to GridSearchCV that will use the BIC score."""
     # Make it negative since GridSearchCV expects a score to maximize
     return -estimator.bic(X)
-
-def wasstertein_distance_two_gaussians(mean_x, mean_y, std_x, std_y):
-    distance = torch.sqrt((mean_x - mean_y) ** 2 + std_x ** 2 + std_y ** 2 - 2 * torch.sqrt(std_x * std_y))
-    return torch.sum(distance)
     
 def conv3x3(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
@@ -62,6 +38,59 @@ def conv3x3(in_planes, out_planes, stride=1):
         padding=1,
         bias=False
     )
+    
+def KLdivergence(x, y):
+    """Compute the Kullback-Leibler divergence between two multivariate samples.
+    Parameters
+    ----------
+    x : 2D array (n,d)
+    Samples from distribution P, which typically represents the true
+    distribution.
+    y : 2D array (m,d)
+    Samples from distribution Q, which typically represents the approximate
+    distribution.
+    Returns
+    -------
+    out : float
+    The estimated Kullback-Leibler divergence D(P||Q).
+    References
+    ----------
+    Pérez-Cruz, F. Kullback-Leibler divergence estimation of
+    continuous distributions IEEE International Symposium on Information
+    Theory, 2008.
+    """
+    from scipy.spatial import cKDTree as KDTree
+
+    # Check the dimensions are consistent
+    x = np.atleast_2d(x)
+    y = np.atleast_2d(y)
+
+    n,d = x.shape
+    m,dy = y.shape
+
+    assert(d == dy)
+
+    xtree = KDTree(x)
+    ytree = KDTree(y)
+
+    r = xtree.query(x, k=2, eps=.01, p=2)[0][:,1]
+    s = ytree.query(x, k=1, eps=.01, p=2)[0]
+
+    return -np.log(r/s).sum() * d / n + np.log(m / (n - 1.))
+
+def JSdivergence(x, y):
+    m = 0.5 * (x + y)
+    return 0.5 * KLdivergence(x, m) + 0.5 * KLdivergence(y, m)
+
+def Bdistance(x, y):
+    x /= x.sum(axis=0)
+    y /= y.sum(axis=0)
+    
+    out = x * y
+    out = np.sum(out, axis=1)
+    out = np.sqrt(np.abs(out))
+    out = np.sum(out)
+    return -np.log(out)
 
 class ConstStyle(nn.Module):
     def __init__(self, cfg, eps=1e-6):
@@ -170,18 +199,13 @@ class ConstStyle(nn.Module):
                             # pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, cluster_sample_x, seed=self.cfg.SEED, n_projections=128)
                             print(f'Cost to move from cluster {j} to cluster {i} is {cost}')
                         elif self.cfg.DISTANCE == 'kl':
-                            cost = kl_divergence(cluster_sample_y, cluster_sample_x)
+                            cost = KLdivergence(cluster_sample_y, cluster_sample_x)
                             print(f'KL div from cluster {j} to cluster {i} is {cost}')
                         elif self.cfg.DISTANCE == 'jensen':
-                            import pdb; pdb.set_trace()
-                            # sum_y = np.sum(cluster_sample_y, axis=0)
-                            # sum_x = np.sum(cluster_sample_x, axis=0)
-                            # cluster_sample_y = cluster_sample_y / sum_y
-                            # cluster_sample_x = cluster_sample_x / sum_x
-                            cost = jensen_shannon_distance(cluster_sample_y, cluster_sample_x)
+                            cost = JSdivergence(cluster_sample_y, cluster_sample_x)
                             print(f'Jensen-Shanon distance from cluster {j} to cluster {i} is {cost}')
                         elif self.cfg.DISTANCE == 'bhatta':
-                            cost = distance.bhattacharyya(cluster_sample_y.flatten(), cluster_sample_x.flatten())
+                            cost = Bdistance(cluster_sample_y, cluster_sample_x)
                             print(f'Bhattacharyya distance from cluster {j} to cluster {i} is {cost}')
                         total_cost += cost
                 print(f'Total cost of cluster {i}: {total_cost}')
