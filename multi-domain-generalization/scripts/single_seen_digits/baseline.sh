@@ -1,10 +1,10 @@
 #!/bin/bash
 DATA=./DATA
-DATASET=pacs
-D1=art_painting
-D2=cartoon
-D3=photo
-D4=sketch
+DATASET=digits_dg
+D1=mnist
+D2=mnist_m
+D3=svhn
+D4=syn
 SEED=42
 method=baseline
 
