@@ -88,28 +88,40 @@ def setup_cfg(args):
 def main(args):
     cfg = setup_cfg(args)
     if args.wandb:
-        if 'uresnet' in cfg.MODEL.BACKBONE.NAME and len(cfg.MODEL.BACKBONE.NAME) == 9:
-            job_type = 'DSU'
-        elif 'cresnet' in cfg.MODEL.BACKBONE.NAME:
-            job_type = 'ConstStyle_cl'
-            if cfg.CLUSTER == 'ot':
-                job_type += '-OT'
-            elif cfg.CLUSTER == 'barycenter':
-                job_type += '-BC'
-            
-            if cfg.NUM_CLUSTERS > 1:
-                job_type += f'-num_clusters_{cfg.NUM_CLUSTERS}'
-            
-            if cfg.DISTANCE:
-                job_type += f'-distance_{cfg.DISTANCE}'
-        elif 'curesnet' in cfg.MODEL.BACKBONE.NAME:
-            job_type = 'CSU'
-        elif 'ms_l12' in cfg.MODEL.BACKBONE.NAME:
-            job_type = 'MixStyle'
-        elif cfg.TRAINER.NAME == 'RIDG':
-            job_type = 'RIDG'
-        else:
-            job_type = 'Baseline'
+        if cfg.DATASET.NAME == 'PACS' or cfg.DATASET.NAME == 'DomainNetDG':
+            if 'uresnet' in cfg.MODEL.BACKBONE.NAME and len(cfg.MODEL.BACKBONE.NAME) == 9:
+                job_type = 'DSU'
+            elif 'cresnet' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'ConstStyle_cl'
+                if cfg.CLUSTER == 'ot':
+                    job_type += '-OT'
+                elif cfg.CLUSTER == 'barycenter':
+                    job_type += '-BC'
+                
+                if cfg.NUM_CLUSTERS > 1:
+                    job_type += f'-num_clusters_{cfg.NUM_CLUSTERS}'
+                
+                if cfg.DISTANCE:
+                    job_type += f'-distance_{cfg.DISTANCE}'
+            elif 'curesnet' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'CSU'
+            elif 'ms_l12' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'MixStyle'
+            elif cfg.TRAINER.NAME == 'RIDG':
+                job_type = 'RIDG'
+            else:
+                job_type = 'Baseline'
+        elif cfg.DATASET.NAME == 'DigitsDG' or cfg.DATASET.NAME == 'CIFAR10C':
+            if 'mixstyle' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'MixStyle'
+            elif 'correlated' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'CSU_2'
+            elif 'uncertainty' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'DSU_2'
+            elif 'conststyle' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'ConstStyle'
+            else:
+                job_type = 'Baseline'
         
         if cfg.MODEL.BACKBONE.PRETRAINED:
             job_type += '-pretrained'
@@ -119,7 +131,7 @@ def main(args):
             entity = 'aiotlab',
             config = args,
             group = f'{cfg.DATASET.NAME}',
-            name = f'train={cfg.DATASET.SOURCE_DOMAINS}_test={cfg.DATASET.TARGET_DOMAINS}_type={args.option}',
+            name = f'train={cfg.DATASET.SOURCE_DOMAINS}_test={cfg.DATASET.TARGET_DOMAINS}',
             job_type = job_type
         )
         args.tracker = tracker
@@ -223,7 +235,7 @@ if __name__ == '__main__':
                         help='pos for uncertainty')
     parser.add_argument('--wandb', default=1, type=int, help='visualize on Wandb')
     parser.add_argument('--option', default='', type=str, help='additional options')
-    parser.add_argument('--update_interval', default=25, type=int, help='update cluster interval')
+    parser.add_argument('--update_interval', default=50, type=int, help='update cluster interval')
     parser.add_argument('--cluster', default='ot', type=str, help='cluster choosing method')
     parser.add_argument('--num_clusters', default = 3, type = int, help='number of clusters')
     parser.add_argument('--distance', default = 'wass', type = str, help='distance metric')
