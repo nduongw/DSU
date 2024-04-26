@@ -82,8 +82,8 @@ class MetaCausal(TrainerX):
             features_adapt = torch.zeros(features_fa.shape).to(self.device)
             for b in range(b_sample_num):
                 for j in range(self.factor_num):
-                    features_adapt[b*self.factor_num+j] = self.AdaptNet[j](features_adapt[b*self.factor_num+j])
-            # import pdb; pdb.set_trace()
+                    features_adapt[b*self.factor_num+j] = self.AdaptNet[j](features_fa[b*self.factor_num+j])
+
             output_adapt = self.model.classifier(features_adapt)
             
             #learning causality
@@ -122,66 +122,47 @@ class MetaCausal(TrainerX):
 
             return loss_summary
     
-    # @torch.no_grad()
-    # def test(self):
-    #     self.set_model_mode('eval')
-    #     self.evaluator.reset()
-    #     split = self.cfg.TEST.SPLIT
-    #     print('Do evaluation on {} set'.format(split))
-    #     data_loader = self.val_loader if split == 'val' else self.test_loader
-    #     assert data_loader is not None
-    #     FA = FactualAugmentIncausal(4, self.factor_num)
-    #     CA = MultiCounterfactualAugmentIncausal(self.factor_num,self.cfg.TRAINER.META_CAUSAL.STRIDE) 
-    #     ps = []
-    #     ys = []
-    #     pt = []
-    #     yt = []
-    #     factor_num = FA.factor_num
-    #     for j in range(factor_num):
-    #         ps.append([])
-    #         ys.append([])
-    #         pt.append([])
-    #         yt.append([])
-    #     ps.append([])
-    #     ys.append([]) 
+    @torch.no_grad()
+    def test(self):
+        self.set_model_mode('eval')
+        self.evaluator.reset()
+        split = self.cfg.TEST.SPLIT
+        print('Do evaluation on {} set'.format(split))
+        data_loader = self.val_loader if split == 'val' else self.test_loader
+        assert data_loader is not None
+        CA = MultiCounterfactualAugmentIncausal(self.factor_num,self.cfg.TRAINER.META_CAUSAL.STRIDE) 
         
-    #     for batch_idx, batch in enumerate(data_loader):
-    #         input, label = self.parse_batch_test(batch)
-    #         b_sample_num = input.size(0)
-    #         with torch.no_grad():
-    #             features = self.model.backbone(input)
-    #             output = self.model(input)
-    #             features = features.repeat((1,self.factor_num)).reshape((-1,features.size(1)))
-    #             output = output.argmax(dim=1)
-    #             ps[-1].append(output.detach().cpu().numpy())
-    #             ys[-1].append(label.detach().cpu().numpy())
-                
-    #             for b_ in range(b_sample_num):
-    #                 for j in range(factor_num):
-    #                     f_adapt = self.AdaptNet[j](features[b_*factor_num+j])
-    #                     p1 = self.model.classifier(f_adapt)
-    #                     p1 = p1.argmax(dim=0)
-    #                     ps[j].append(p1.detach().cpu())
-    #                     ys[j].append(label[b_])
-    #                     p1_t = self.model.classifier(features[b_*factor_num+j])
-    #                     p1_t = p1_t.argmax(dim=0)
-    #                     pt[j].append(p1_t.detach().cpu())
-    #                     yt[j].append(label[b_])
-            
-    #     for j in range(factor_num):
-    #         output = torch.stack(ps[j])
-    #         label = torch.stack(ys[j])
-    #         self.evaluator.process(output, label)
+        for batch_idx, batch in enumerate(data_loader):
+            input, label = self.parse_batch_test(batch)
+            b_sample_num = input.size(0)
+            with torch.no_grad():
+                features = self.model.backbone(input)
+                output = self.model(input)
+                input_ca = CA(input).to(self.device)
+                output_ca = self.model(input_ca)
+                features_repeat = features.repeat((1,CA.factor_num*CA.var_num)).reshape(output_ca.shape)
+                effect_context = features_repeat - output_ca
+                effect_context = effect_context.reshape(b_sample_num,CA.factor_num,CA.var_num,-1)
+                effect_context = effect_context.mean(axis=2).reshape(b_sample_num*CA.factor_num,-1)
+                weight = self.E_to_W(effect_context)
+                weight = weight.reshape(b_sample_num,CA.factor_num)
+                alphas = F.softmax(weight,dim=1)
+                f_adapt = torch.zeros(features.shape).to(self.device)
+                for b in range(b_sample_num):
+                    for j in range(CA.factor_num):
+                        f_adapt[b] = f_adapt[b]+ alphas[b,j]*self.AdaptNet[j](features[b])
+                p_adapt = self.model(f_adapt)
+                self.evaluator.process(p_adapt, label)
 
-    #     results = self.evaluator.evaluate()
+        results = self.evaluator.evaluate()
 
-    #     for k, v in results.items():
-    #         tag = '{}/{}'.format(split, k)
-    #         if self.args.wandb:
-    #             self.args.tracker.log({
-    #                 f'test {k}': v 
-    #             }, step=self.epoch+1)
-    #         self.write_scalar(tag, v, self.epoch)
+        for k, v in results.items():
+            tag = '{}/{}'.format(split, k)
+            if self.args.wandb:
+                self.args.tracker.log({
+                    f'test {k}': v 
+                }, step=self.epoch+1)
+            self.write_scalar(tag, v, self.epoch)
             
 
     def parse_batch_train(self, batch):
