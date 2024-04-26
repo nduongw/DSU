@@ -1,5 +1,5 @@
 import os.path as osp
-import torch
+from sklearn.model_selection import train_test_split
 import numpy as np
 import os
 from ..build import DATASET_REGISTRY
@@ -152,7 +152,6 @@ class TotalPACS(DatasetBase):
             dst = osp.join(root, 'pacs.zip')
             self.download_data(self.data_url, dst, from_gdrive=True)
         
-        # import pdb; pdb.set_trace()
         if osp.exists(f'{self.dataset_dir}/splits/test.txt'):
             os.remove(f'{self.dataset_dir}/splits/test.txt')
 
@@ -163,25 +162,26 @@ class TotalPACS(DatasetBase):
         train = self._read_data(cfg.DATASET.SOURCE_DOMAINS, 'train')
         val = self._read_data(cfg.DATASET.SOURCE_DOMAINS, 'crossval')
         test = self._read_data(cfg.DATASET.TARGET_DOMAINS, 'test')
-        total = []
+        total_data = []
+        total_label = []
         for item in train:
-            total.append(item)
+            total_data.append(item)
+            total_label.append(item.label)
         
         for item in test:
-            total.append(item)
+            total_data.append(item)
+            total_label.append(item.label)
         
         for item in val:
-            total.append(item)
+            total_data.append(item)
+            total_label.append(item.label)
+            
+        X_train, X_test, y_train, y_test = train_test_split(total_data, total_label, random_state=cfg.SEED, test_size=0.2)
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, random_state=cfg.SEED, test_size=0.25)
         
-        train_amount, val_amount, test_amount = len(train), len(val), len(test)
-        
-        train_ds, test_ds = torch.utils.data.random_split(total, [train_amount + val_amount, test_amount])
-        train_ds, val_ds = torch.utils.data.random_split(train_ds, [train_amount, val_amount])
-        
-        store_file = open(f'{self.dataset_dir}/splits/test.txt', 'a')
         train_ds_domain = []
         train_ds_label = []
-        for val in train_ds:
+        for val in X_train:
             train_ds_domain.append(val.domain)
             train_ds_label.append(val.label)
         value1, count1 = np.unique(train_ds_domain, return_counts=True)
@@ -190,17 +190,15 @@ class TotalPACS(DatasetBase):
         
         test_ds_domain = []
         test_ds_label = []
-        for val in test_ds:
+        for val in X_test:
             test_ds_domain.append(val.domain)
             test_ds_label.append(val.label)
-            store_file.write(f'{val.impath}\n')
         value1, count1 = np.unique(test_ds_domain, return_counts=True)
         value2, count2 = np.unique(test_ds_label, return_counts=True)
         print(f'Test dataset statistics| Domain {value1} - count {count1} | Class: {value2} - count {count2}')
-
-        store_file.close()
         
-        super().__init__(train_x=train_ds, val=val_ds, test=test_ds)
+        import pdb; pdb.set_trace()
+        super().__init__(train_x=X_train, val=X_val, test=X_test)
     
     def _read_data(self, input_domains, split):
         items = []

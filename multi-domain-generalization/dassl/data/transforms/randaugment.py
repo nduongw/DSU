@@ -11,6 +11,7 @@ import PIL.ImageOps
 import PIL.ImageDraw
 import PIL.ImageEnhance
 from PIL import Image,ImageStat
+import torchvision.transforms.functional as F
 
 
 def ShearX(img, v):
@@ -531,21 +532,40 @@ class FactualAugmentIncausal:
     
     
 class MultiCounterfactualAugmentIncausal:
-    def __init__(self, factor_num, stride):
+    def __init__(self, factor_num, stride, is_test=False):
         self.causal_list = causal_list(factor_num)
         self.factor_list = factor_list(factor_num)
         self.factor_num = factor_num
         self.stride = stride
+        self.is_test = is_test
 
     def __call__(self, img):
-        for index, (op, minval, maxval) in enumerate(self.causal_list):
-            op = eval('Do'+self.factor_list[index])
-            for i in range(0, 31, self.stride):
-                val = (float(i) / 30) * float(maxval - minval) + minval
-                if index == 0 and i == 0:
-                    imgs = np.array(op(img, val))
-                else:
-                    imgs = np.concatenate((imgs, op(img, val)),-1)
+        if self.is_test:
+            total_imgs = []
+            b, c, h, w = img.shape
+            for i in range(img.shape[0]):
+                new_img = F.to_pil_image(img[i].detach())
+                for index, (op, minval, maxval) in enumerate(self.causal_list):
+                    op = eval('Do'+self.factor_list[index])
+                    for i in range(0, 31, self.stride):
+                        val = (float(i) / 30) * float(maxval - minval) + minval
+                        if index == 0 and i == 0:
+                            imgs = np.array(op(new_img, val))
+                        else:
+                            imgs = np.concatenate((imgs, op(new_img, val)),-1)
+                imgs = imgs.reshape(self.factor_num * 4, c, h, w)
+                total_imgs.append(imgs)
+            imgs = np.concatenate(total_imgs, axis=0)
+
+        else:
+            for index, (op, minval, maxval) in enumerate(self.causal_list):
+                op = eval('Do'+self.factor_list[index])
+                for i in range(0, 31, self.stride):
+                    val = (float(i) / 30) * float(maxval - minval) + minval
+                    if index == 0 and i == 0:
+                        imgs = np.array(op(img, val))
+                    else:
+                        imgs = np.concatenate((imgs, op(img, val)),-1)
 
         return imgs
     

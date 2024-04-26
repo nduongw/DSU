@@ -109,6 +109,8 @@ def main(args):
                 job_type = 'MixStyle'
             elif cfg.TRAINER.NAME == 'RIDG':
                 job_type = 'RIDG'
+            elif cfg.TRAINER.NAME == 'MetaCausal':
+                job_type = 'MetaCausal'
             else:
                 job_type = 'Baseline'
         elif cfg.DATASET.NAME == 'DigitsDG' or cfg.DATASET.NAME == 'CIFAR10C':

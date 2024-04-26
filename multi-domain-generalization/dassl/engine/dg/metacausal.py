@@ -130,7 +130,8 @@ class MetaCausal(TrainerX):
         print('Do evaluation on {} set'.format(split))
         data_loader = self.val_loader if split == 'val' else self.test_loader
         assert data_loader is not None
-        CA = MultiCounterfactualAugmentIncausal(self.factor_num,self.cfg.TRAINER.META_CAUSAL.STRIDE) 
+        var_num = len(list(range(0, 31, self.cfg.TRAINER.META_CAUSAL.STRIDE)))
+        CA = MultiCounterfactualAugmentIncausal(self.factor_num,self.cfg.TRAINER.META_CAUSAL.STRIDE, is_test=True) 
         
         for batch_idx, batch in enumerate(data_loader):
             input, label = self.parse_batch_test(batch)
@@ -138,11 +139,12 @@ class MetaCausal(TrainerX):
             with torch.no_grad():
                 features = self.model.backbone(input)
                 output = self.model(input)
-                input_ca = CA(input).to(self.device)
-                output_ca = self.model(input_ca)
-                features_repeat = features.repeat((1,CA.factor_num*CA.var_num)).reshape(output_ca.shape)
-                effect_context = features_repeat - output_ca
-                effect_context = effect_context.reshape(b_sample_num,CA.factor_num,CA.var_num,-1)
+                input_ca = CA(input)
+                input_ca = torch.from_numpy(input_ca).to(self.device, dtype=torch.float64)
+                output_ca = self.model(input_ca.float())
+                output_repeat = output.repeat((1,CA.factor_num*var_num)).reshape(output_ca.shape)
+                effect_context = output_repeat - output_ca
+                effect_context = effect_context.reshape(b_sample_num,CA.factor_num,var_num,-1)
                 effect_context = effect_context.mean(axis=2).reshape(b_sample_num*CA.factor_num,-1)
                 weight = self.E_to_W(effect_context)
                 weight = weight.reshape(b_sample_num,CA.factor_num)
@@ -151,7 +153,7 @@ class MetaCausal(TrainerX):
                 for b in range(b_sample_num):
                     for j in range(CA.factor_num):
                         f_adapt[b] = f_adapt[b]+ alphas[b,j]*self.AdaptNet[j](features[b])
-                p_adapt = self.model(f_adapt)
+                p_adapt = self.model.classifier(f_adapt)
                 self.evaluator.process(p_adapt, label)
 
         results = self.evaluator.evaluate()

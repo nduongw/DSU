@@ -309,7 +309,7 @@ class AugmentedDatasetWrapper(TorchDataset):
         # print(f'Styled shape: {img_ra.shape}')
 
         img_ca = self._transform_image(self.transform3, img_ra)
-        img_ca = img_ca.reshape(-1, c, h , w)
+        img_ca = img_ca.reshape(-1, c, h, w)
         output['img_ca'] = img_ca
         # print(f'Counterfactual shape: {img_ca.shape}')
         

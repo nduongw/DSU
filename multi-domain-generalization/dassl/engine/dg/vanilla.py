@@ -1,4 +1,5 @@
 from torch.nn import functional as F
+import numpy as np
 
 from dassl.engine import TRAINER_REGISTRY, TrainerX
 from dassl.metrics import compute_accuracy
