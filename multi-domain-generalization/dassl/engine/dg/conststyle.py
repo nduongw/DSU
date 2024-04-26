@@ -16,10 +16,6 @@ import faiss
 from pytorch_metric_learning import losses, miners, distances
 
 class ConstStyleModel(SimpleNet):
-    """A simple neural network composed of a CNN backbone
-    and optionally a head such as mlp for classification.
-    """
-    
     def forward(self, x, domain, return_feature=False, store_feature=False, apply_conststyle=False, is_test=False):
         f = self.backbone(x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         if self.head is not None:
@@ -138,7 +134,12 @@ class ConstStyleTrainer(SimpleTrainer):
             output = self.model(input, domain, store_feature=True, apply_conststyle=False)
         else:
             output = self.model(input, domain, store_feature=True, apply_conststyle=True)
-
+            styled_predict = torch.argmax(output, dim=1)
+            print(f'Output when applying ConstStyle: {styled_predict}')
+            normal_output = self.model(input, domain, store_feature=True, apply_conststyle=False)
+            normal_predict = torch.argmax(normal_output, dim=1)
+            print(f'Output: {normal_predict}')
+            print(f'Label: {label}')
         loss = F.cross_entropy(output, label)
         self.model_backward_and_update(loss)
 

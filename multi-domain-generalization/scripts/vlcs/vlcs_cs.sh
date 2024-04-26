@@ -18,7 +18,8 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D1} \
---cluster barycenter \
+--cluster ot \
+--wandb 0 \
 --num_clusters 3 \
 --resume false)
 
@@ -32,7 +33,8 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D2} \
---cluster barycenter \
+--cluster ot \
+--wandb 0 \
 --num_clusters 3 \
 --resume false)
 
@@ -46,7 +48,8 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D3} \
---cluster barycenter \
+--cluster ot \
+--wandb 0 \
 --num_clusters 3 \
 --resume false)
 
@@ -60,7 +63,8 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D4} \
---cluster barycenter \
+--cluster ot \
+--wandb 0 \
 --num_clusters 3 \
 --resume false) 
 

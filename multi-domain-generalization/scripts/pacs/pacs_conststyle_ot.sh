@@ -8,7 +8,7 @@ D4=sketch
 SEED=42
 method=conststyle
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer ConstStyleTrainer \
 --uncertainty 0.5 \
@@ -20,9 +20,10 @@ method=conststyle
 --output-dir output/dg/${DATASET}/${method}/${D1} \
 --cluster ot \
 --num_clusters 3 \
+--wandb 0 \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer ConstStyleTrainer \
 --uncertainty 0.5 \
@@ -34,9 +35,10 @@ method=conststyle
 --output-dir output/dg/${DATASET}/${method}/${D2} \
 --cluster ot \
 --num_clusters 3 \
+--wandb 0 \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer ConstStyleTrainer \
 --uncertainty 0.5 \
@@ -48,9 +50,10 @@ method=conststyle
 --output-dir output/dg/${DATASET}/${method}/${D3} \
 --cluster ot \
 --num_clusters 3 \
+--wandb 0 \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer ConstStyleTrainer \
 --uncertainty 0.5 \
@@ -62,6 +65,7 @@ method=conststyle
 --output-dir output/dg/${DATASET}/${method}/${D4} \
 --cluster ot \
 --num_clusters 3 \
+--wandb 0 \
 --resume false) 
 
 echo "Running scripts in parallel"

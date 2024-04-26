@@ -248,7 +248,7 @@ class ConstStyle(nn.Module):
             sig = (var + self.eps).sqrt()
             mu, sig = mu.detach(), sig.detach()
             
-            if not is_test and np.random.random() > 0.5:
+            if not is_test and np.random.random() > 0.7:
                 return x
             
             x_normed = (x-mu) / sig

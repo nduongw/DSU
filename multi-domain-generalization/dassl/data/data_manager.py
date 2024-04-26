@@ -6,7 +6,7 @@ from dassl.utils import read_image
 
 from .datasets import build_dataset
 from .samplers import build_sampler
-from .transforms import build_transform
+from .transforms import build_transform, build_augmented_transform
 
 
 def build_data_loader(
@@ -27,20 +27,31 @@ def build_data_loader(
         batch_size=batch_size,
         n_domain=n_domain
     )
+    
+    if dataset_wrapper and is_train == True:
+        dataset_wrapper = AugmentedDatasetWrapper
+        data_loader = torch.utils.data.DataLoader(
+            dataset_wrapper(cfg, data_source, transform=tfm, is_train=is_train),
+            batch_size=batch_size,
+            sampler=sampler,
+            num_workers=cfg.DATALOADER.NUM_WORKERS,
+            drop_last=is_train,
+            pin_memory=(torch.cuda.is_available() and cfg.USE_CUDA)
+        )
 
-    if dataset_wrapper is None:
+    else:
         dataset_wrapper = DatasetWrapper
+        # Build data loader
+        data_loader = torch.utils.data.DataLoader(
+            dataset_wrapper(cfg, data_source, transform=tfm, is_train=is_train),
+            batch_size=batch_size,
+            sampler=sampler,
+            num_workers=cfg.DATALOADER.NUM_WORKERS,
+            drop_last=is_train,
+            pin_memory=(torch.cuda.is_available() and cfg.USE_CUDA)
+        )
 
-    # Build data loader
-    data_loader = torch.utils.data.DataLoader(
-        dataset_wrapper(cfg, data_source, transform=tfm, is_train=is_train),
-        batch_size=batch_size,
-        sampler=sampler,
-        num_workers=cfg.DATALOADER.NUM_WORKERS,
-        drop_last=is_train,
-        pin_memory=(torch.cuda.is_available() and cfg.USE_CUDA)
-    )
-
+    # import pdb; pdb.set_trace()
     return data_loader
 
 
@@ -61,7 +72,7 @@ class DataManager:
             tfm_train = build_transform(cfg, is_train=True)
         else:
             print('* Using custom transform for training')
-            tfm_train = custom_tfm_train
+            tfm_train = custom_tfm_train(cfg, is_train=True)
 
         if custom_tfm_test is None:
             tfm_test = build_transform(cfg, is_train=False)
@@ -222,7 +233,6 @@ class DatasetWrapper(TorchDataset):
             img0 = item.impath
         else:
             img0 = read_image(item.impath)
-
         if self.transform is not None:
             if isinstance(self.transform, (list, tuple)):
                 for i, tfm in enumerate(self.transform):
@@ -238,6 +248,79 @@ class DatasetWrapper(TorchDataset):
         img0 = self.to_tensor(img0)
         output['img0'] = img0
 
+        return output
+
+    def _transform_image(self, tfm, img0):
+        img_list = []
+
+        for k in range(self.k_tfm):
+            img_list.append(tfm(img0))
+
+        img = img_list
+        if len(img) == 1:
+            img = img[0]
+
+        return img
+
+class AugmentedDatasetWrapper(TorchDataset):
+    def __init__(self, cfg, data_source, transform=None, is_train=False, twox=False):
+        self.cfg = cfg
+        self.data_source = data_source
+        self.is_train = is_train
+        self.transform = transform[0]
+        self.transform1 = transform[1]
+        self.transform2 = transform[2]
+        self.transform3 = transform[3]
+        self.twox = twox
+        self.k_tfm = cfg.DATALOADER.K_TRANSFORMS if is_train else 1
+        to_tensor = []
+        to_tensor += [T.Resize(cfg.INPUT.SIZE)]
+        to_tensor += [T.ToTensor()]
+        if 'normalize' in cfg.INPUT.TRANSFORMS:
+            normalize = T.Normalize(
+                mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD
+            )
+            to_tensor += [normalize]
+        self.to_tensor = T.Compose(to_tensor)
+        
+    def __len__(self):
+        return len(self.data_source)
+    
+    def __getitem__(self, idx):
+        item = self.data_source[idx]
+        
+        output = {
+            'label': item.label,
+            'domain': item.domain,
+            'impath': item.impath
+        }
+        
+        if item.is_array:
+            img0 = item.impath
+        else:
+            img0 = read_image(item.impath)
+        # c, h, w = img0.shape
+        img = self._transform_image(self.transform, img0)
+        output['img'] = img
+        
+        img_ra = self._transform_image(self.transform1, img0)
+        output['img_ra'] = img_ra
+        c, h, w = img_ra.shape
+        # print(f'Styled shape: {img_ra.shape}')
+
+        img_ca = self._transform_image(self.transform3, img_ra)
+        img_ca = img_ca.reshape(-1, c, h , w)
+        output['img_ca'] = img_ca
+        # print(f'Counterfactual shape: {img_ca.shape}')
+        
+        img_fa = self._transform_image(self.transform2, img0)
+        img_fa = img_fa.reshape(-1, c, h, w)
+        output['img_fa'] = img_fa
+        # print(f'Factual image shape: {img_fa.shape}')
+        
+        img0 = self.to_tensor(img0)
+        output['img0'] = img0
+        
         return output
 
     def _transform_image(self, tfm, img0):

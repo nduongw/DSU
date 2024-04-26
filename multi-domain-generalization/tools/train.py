@@ -92,7 +92,7 @@ def main(args):
             if 'uresnet' in cfg.MODEL.BACKBONE.NAME and len(cfg.MODEL.BACKBONE.NAME) == 9:
                 job_type = 'DSU'
             elif 'cresnet' in cfg.MODEL.BACKBONE.NAME:
-                job_type = 'ConstStyle_cl'
+                job_type = 'ConstStyle_features_alignment'
                 if cfg.CLUSTER == 'ot':
                     job_type += '-OT'
                 elif cfg.CLUSTER == 'barycenter':

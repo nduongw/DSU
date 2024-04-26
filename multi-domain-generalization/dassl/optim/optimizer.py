@@ -10,7 +10,7 @@ from .radam import RAdam
 AVAI_OPTIMS = ['adam', 'amsgrad', 'sgd', 'rmsprop', 'radam']
 
 
-def build_optimizer(model, optim_cfg):
+def build_optimizer(model, optim_cfg, predefined_params=None):
     """A function wrapper for building an optimizer.
 
     Args:
@@ -42,40 +42,43 @@ def build_optimizer(model, optim_cfg):
             'model given to build_optimizer must be an instance of nn.Module'
         )
 
-    if staged_lr:
-        if isinstance(new_layers, str):
-            if new_layers is None:
-                warnings.warn(
-                    'new_layers is empty, therefore, staged_lr is useless'
-                )
-            new_layers = [new_layers]
+    if not predefined_params:
+        if staged_lr:
+            if isinstance(new_layers, str):
+                if new_layers is None:
+                    warnings.warn(
+                        'new_layers is empty, therefore, staged_lr is useless'
+                    )
+                new_layers = [new_layers]
 
-        if isinstance(model, nn.DataParallel):
-            model = model.module
+            if isinstance(model, nn.DataParallel):
+                model = model.module
 
-        base_params = []
-        base_layers = []
-        new_params = []
+            base_params = []
+            base_layers = []
+            new_params = []
 
-        for name, module in model.named_children():
-            if name in new_layers:
-                new_params += [p for p in module.parameters()]
-            else:
-                base_params += [p for p in module.parameters()]
-                base_layers.append(name)
+            for name, module in model.named_children():
+                if name in new_layers:
+                    new_params += [p for p in module.parameters()]
+                else:
+                    base_params += [p for p in module.parameters()]
+                    base_layers.append(name)
 
-        param_groups = [
-            {
-                'params': base_params,
-                'lr': lr * base_lr_mult
-            },
-            {
-                'params': new_params
-            },
-        ]
+            param_groups = [
+                {
+                    'params': base_params,
+                    'lr': lr * base_lr_mult
+                },
+                {
+                    'params': new_params
+                },
+            ]
 
+        else:
+            param_groups = model.parameters()
     else:
-        param_groups = model.parameters()
+        param_groups = predefined_params
 
     params = []
     for key, value in model.named_parameters():
@@ -114,13 +117,6 @@ def build_optimizer(model, optim_cfg):
             dampening=sgd_dampening,
             nesterov=sgd_nesterov,
         )
-        # optimizer = torch.optim.SGD(
-        #     params,
-        #     momentum=momentum,
-        #     weight_decay=weight_decay,
-        #     dampening=sgd_dampening,
-        #     nesterov=sgd_nesterov,
-        # )
 
     elif optim == 'rmsprop':
         optimizer = torch.optim.RMSprop(

@@ -6,7 +6,7 @@ D2=cartoon
 D3=photo
 D4=sketch
 SEED=42
-method=ridg
+method=metacausal
 
 # (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 # --root ${DATA} \
@@ -34,7 +34,7 @@ method=ridg
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
---trainer RIDG \
+--trainer MetaCausal \
 --uncertainty 0.5 \
 --source-domains ${D1} ${D2} ${D4} \
 --target-domains ${D3} \
@@ -42,19 +42,20 @@ method=ridg
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D3} \
+--wandb 0 \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
---root ${DATA} \
---trainer RIDG \
---uncertainty 0.5 \
---source-domains ${D1} ${D2} ${D3} \
---target-domains ${D4} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/${D4} \
---resume false) 
+# (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+# --root ${DATA} \
+# --trainer MetaCausal \
+# --uncertainty 0.5 \
+# --source-domains ${D1} ${D2} ${D3} \
+# --target-domains ${D4} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/${D4} \
+# --resume false) 
 
 echo "Running scripts in parallel"
 wait # This will wait until both scripts finish
