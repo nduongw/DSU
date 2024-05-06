@@ -187,11 +187,14 @@ class ResNet(Backbone):
         x = self.relu(x)
         x = self.maxpool(x)
         x = self.layer1(x)
-        if "layer1" in self.ms_layers:
-            x = self.mixstyle(x)
         x = self.layer2(x)
-        if "layer2" in self.ms_layers:
-            x = self.mixstyle(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        # if "layer1" in self.ms_layers:
+        #     x = self.mixstyle(x)
+        # x = self.layer2(x)
+        # if "layer2" in self.ms_layers:
+        #     x = self.mixstyle(x)
         return x
     
     def featuremaps(self, x):

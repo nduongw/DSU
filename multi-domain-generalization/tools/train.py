@@ -88,11 +88,11 @@ def setup_cfg(args):
 def main(args):
     cfg = setup_cfg(args)
     if args.wandb:
-        if cfg.DATASET.NAME == 'PACS' or cfg.DATASET.NAME == 'DomainNetDG':
+        if cfg.DATASET.NAME == 'PACS' or cfg.DATASET.NAME == 'DomainNetDG' or cfg.DATASET.NAME == 'Nico':
             if 'uresnet' in cfg.MODEL.BACKBONE.NAME and len(cfg.MODEL.BACKBONE.NAME) == 9:
                 job_type = 'DSU'
             elif 'cresnet' in cfg.MODEL.BACKBONE.NAME:
-                job_type = 'ConstStyle_features_alignment'
+                job_type = 'ConstStyle'
                 if cfg.CLUSTER == 'ot':
                     job_type += '-OT'
                 elif cfg.CLUSTER == 'barycenter':
@@ -127,13 +127,18 @@ def main(args):
         
         if cfg.MODEL.BACKBONE.PRETRAINED:
             job_type += '-pretrained'
+        
+        if cfg.DATASET.NAME == 'CIFAR10C':
+            process_name = f'train={cfg.DATASET.SOURCE_DOMAINS}_test={cfg.DATASET.TARGET_DOMAINS}-{cfg.DATASET.CIFAR_C_LEVEL}'
+        else:
+            process_name = f'train={cfg.DATASET.SOURCE_DOMAINS}_test={cfg.DATASET.TARGET_DOMAINS}'
             
         tracker = wandb.init(
             project = 'StyleDG',
             entity = 'aiotlab',
             config = args,
             group = f'{cfg.DATASET.NAME}',
-            name = f'train={cfg.DATASET.SOURCE_DOMAINS}_test={cfg.DATASET.TARGET_DOMAINS}',
+            name = process_name,
             job_type = job_type
         )
         args.tracker = tracker

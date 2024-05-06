@@ -6,3 +6,4 @@ from .digit_single import DigitSingle
 from .office_home_dg import OfficeHomeDG
 from .domain_net import DomainNetDG
 from .cmnist import ColoredMNIST
+from .nico import Nico

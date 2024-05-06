@@ -35,15 +35,6 @@ class PACS(DatasetBase):
         if not osp.exists(self.dataset_dir):
             dst = osp.join(root, 'pacs.zip')
             self.download_data(self.data_url, dst, from_gdrive=True)
-        
-        # test_path = []
-        
-        # if osp.exists(f'{self.dataset_dir}/splits/test.txt'):
-        #     store_file = open(f'{self.dataset_dir}/splits/test.txt', 'r')
-        #     lines = store_file.readlines()
-        #     store_file.close()
-        #     for line in lines:
-        #         test_path.append(line.strip())
 
         self.check_input_domains(
             cfg.DATASET.SOURCE_DOMAINS, cfg.DATASET.TARGET_DOMAINS
@@ -52,11 +43,6 @@ class PACS(DatasetBase):
         train = self._read_data(cfg.DATASET.SOURCE_DOMAINS, 'train')
         val = self._read_data(cfg.DATASET.SOURCE_DOMAINS, 'crossval')
         test = self._read_data(cfg.DATASET.TARGET_DOMAINS, 'test')
-        
-        # condition = lambda x: x in test_path
-        # filter_train = list(filter(lambda x: not condition(x.impath), train))
-        # filter_val = list(filter(lambda x: not condition(x.impath), val))
-        # filter_test = list(filter(lambda x: not condition(x.impath), test))
 
         train_ds_domain = []
         train_ds_label = []
@@ -76,7 +62,6 @@ class PACS(DatasetBase):
         value2, count2 = np.unique(test_ds_label, return_counts=True)
         print(f'Test dataset statistics| Domain {value1} - count {count1} | Class: {value2} - count {count2}')
         
-        # super().__init__(train_x=filter_train, val=filter_val, test=filter_test)
         super().__init__(train_x=train, val=val, test=test)
 
     def _read_data(self, input_domains, split):

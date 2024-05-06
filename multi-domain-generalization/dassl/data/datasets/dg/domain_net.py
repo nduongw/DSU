@@ -16,7 +16,7 @@ class DomainNetDG(DatasetBase):
     """
     dataset_dir = 'domainnet'
     domains = [
-        'clipart', 'infograph', 'painting', 'quickdraw', 'real', 'sketch'
+        'clipart', 'painting', 'quickdraw', 'real', 'sketch'
     ]
 
     def __init__(self, cfg):

@@ -8,41 +8,44 @@ D4=sketch
 SEED=42
 method=conststyle
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
---root ${DATA} \
---trainer ConstStyleTrainer \
---uncertainty 0.5 \
---source-domains ${D1} \
---target-domains ${D2} ${D3} ${D4} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/${D2}_${D3}_${D4} \
---resume false)
+# (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+# --root ${DATA} \
+# --trainer ConstStyleTrainer \
+# --uncertainty 0.5 \
+# --source-domains ${D1} \
+# --target-domains ${D2} ${D3} ${D4} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/${D2}_${D3}_${D4} \
+# --num_clusters 1 \
+# --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
---root ${DATA} \
---trainer ConstStyleTrainer \
---uncertainty 0.5 \
---source-domains ${D2} \
---target-domains ${D1} ${D3} ${D4} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/${D1}_${D3}_${D4} \
---resume false)
+# (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+# --root ${DATA} \
+# --trainer ConstStyleTrainer \
+# --uncertainty 0.5 \
+# --source-domains ${D2} \
+# --target-domains ${D1} ${D3} ${D4} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/${D1}_${D3}_${D4} \
+# --num_clusters 1 \
+# --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
---root ${DATA} \
---trainer ConstStyleTrainer \
---uncertainty 0.5 \
---source-domains ${D3} \
---target-domains ${D1} ${D2} ${D4} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/${D1}_${D2}_${D4} \
---resume false)
+# (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+# --root ${DATA} \
+# --trainer ConstStyleTrainer \
+# --uncertainty 0.5 \
+# --source-domains ${D3} \
+# --target-domains ${D1} ${D2} ${D4} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/${D1}_${D2}_${D4} \
+# --num_clusters 1 \
+# --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
@@ -54,6 +57,7 @@ method=conststyle
 --dataset-config-file configs/datasets/dg/${DATASET}_cs.yaml \
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D1}_${D2}_${D3} \
+--num_clusters 1 \
 --resume false)
 
 echo "Running scripts in parallel"

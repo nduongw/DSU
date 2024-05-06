@@ -490,7 +490,7 @@ class SimpleTrainer(TrainerBase):
             target_category = 7
             # You can also pass aug_smooth=True and eigen_smooth=True, to apply smoothing.
             grayscale_cam = cam(input_tensor=input_tensor, target_category=target_category)
-            #visualization = show_cam_on_image(rgb_img, grayscale_cam)
+            # visualization = show_cam_on_image(rgb_img, grayscale_cam)
 
             #output = self.model_inference(input)
             #self.evaluator.process(output, label)
