@@ -8,7 +8,7 @@ D4=sketch
 SEED=42
 method=uncertainty
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -20,7 +20,7 @@ method=uncertainty
 --output-dir output/dg/${DATASET}/${method}/${D1} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -32,7 +32,7 @@ method=uncertainty
 --output-dir output/dg/${DATASET}/${method}/${D2} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -44,7 +44,7 @@ method=uncertainty
 --output-dir output/dg/${DATASET}/${method}/${D3} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \

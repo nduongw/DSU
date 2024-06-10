@@ -161,11 +161,19 @@ class DatasetBase:
 
         print('Extracting file ...')
 
-        try:
+        if dst.endswith('.zip'):
             tar = tarfile.open(dst)
             tar.extractall(path=osp.dirname(dst))
             tar.close()
-        except:
+        elif dst.endswith('.tar.gz'):
+            tar = tarfile.open(dst, "r:gz")
+            tar.extractall(os.path.dirname(dst))
+            tar.close()
+        elif dst.endswith('.tar'):
+            tar = tarfile.open(dst, "r:")
+            tar.extractall(os.path.dirname(dst))
+            tar.close()
+        else:
             zip_ref = zipfile.ZipFile(dst, 'r')
             zip_ref.extractall(osp.dirname(dst))
             zip_ref.close()

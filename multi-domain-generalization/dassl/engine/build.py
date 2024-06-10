@@ -8,4 +8,8 @@ def build_trainer(cfg, args):
     check_availability(cfg.TRAINER.NAME, avai_trainers)
     if cfg.VERBOSE:
         print('Loading trainer: {}'.format(cfg.TRAINER.NAME))
+    
+    import pdb; pdb.set_trace()
+    print(f'{TRAINER_REGISTRY.get(cfg.TRAINER.NAME)}')
     return TRAINER_REGISTRY.get(cfg.TRAINER.NAME)(cfg, args)
+

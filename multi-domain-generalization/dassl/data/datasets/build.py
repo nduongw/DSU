@@ -8,4 +8,5 @@ def build_dataset(cfg):
     check_availability(cfg.DATASET.NAME, avai_datasets)
     if cfg.VERBOSE:
         print('Loading dataset: {}'.format(cfg.DATASET.NAME))
+        import pdb; pdb.set_trace()
     return DATASET_REGISTRY.get(cfg.DATASET.NAME)(cfg)

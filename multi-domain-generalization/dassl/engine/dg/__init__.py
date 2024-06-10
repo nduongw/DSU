@@ -5,3 +5,4 @@ from .crossgrad import CrossGrad
 from .conststyle import ConstStyleTrainer
 from .ridg import RIDG
 from .metacausal import MetaCausal
+from .ridg_ver2 import ValueBasedRIDG

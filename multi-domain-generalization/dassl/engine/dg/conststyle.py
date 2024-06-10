@@ -2,18 +2,22 @@ from torch.nn import functional as F
 import torch
 import numpy as np
 import time
-import datetime
 import os.path as osp
 from dassl.engine import *
+import csv
 from dassl.metrics import compute_accuracy
 from dassl.utils import (
-    MetricMeter, AverageMeter, count_num_param, load_checkpoint,
+    MetricMeter, AverageMeter, load_checkpoint,
     save_checkpoint, load_pretrained_weights
 )
 from dassl.optim import build_optimizer, build_lr_scheduler
-import torch.nn as nn
-import faiss
-from pytorch_metric_learning import losses, miners, distances
+
+def logarithmic_degradation(start, end, steps):
+    x = np.linspace(1, steps, steps)
+    return start - (start - end) * (np.log(x) / np.log(steps))
+
+def linear_degradation(start, end, steps):
+    return np.linspace(start, end, steps)
 
 class ConstStyleModel(SimpleNet):
     def forward(self, x, domain, return_feature=False, store_feature=False, apply_conststyle=False, is_test=False):
@@ -36,6 +40,20 @@ class ConstStyleTrainer(SimpleTrainer):
     """ConstStyle method."""
     def __init__(self, cfg, args):
         super().__init__(cfg, args)
+        # self.init = torch.ones(self.num_classes).to(self.device)
+        # self.rational_bank = torch.zeros(self.num_classes, self.num_classes, self.model.backbone.out_features).to(self.device)
+        # self.train_file_name = osp.join(cfg.OUTPUT_DIR, 'train_rational_value.csv')
+        # self.test_file_name = osp.join(cfg.OUTPUT_DIR, 'test_rational_value.csv')
+        # f_train = open(self.train_file_name, 'w')
+        # f_test = open(self.test_file_name, 'w')
+        # csvwriter_train = csv.writer(f_train)
+        # csvwriter_test = csv.writer(f_test)
+        # write_train_data = ['epoch', 'class', 'hindex1', 'hindex2', 'hindex3', 'hindex4', 'hindex5', 'value1', 'value2', 'value3', 'value4', 'value5']
+        # write_test_data = ['epoch', 'class', 'hindex1', 'hindex2', 'hindex3', 'hindex4', 'hindex5', 'value1', 'value2', 'value3', 'value4', 'value5','predicted_class']
+        # csvwriter_train.writerow(write_train_data)
+        # csvwriter_test.writerow(write_test_data)
+        # f_train.close()
+        # f_test.close()
     
     def build_model(self):
         """Build and register model.
@@ -71,6 +89,13 @@ class ConstStyleTrainer(SimpleTrainer):
             conststyle.clear_memory()
     
     def run_epoch(self, epoch):
+        if self.args.dynamic_func == 'loga':
+            momentum = logarithmic_degradation(0.01, self.cfg.TRAINER.RIDG.MOMENTUM, self.max_epoch)
+            reg = logarithmic_degradation(0.1, self.cfg.TRAINER.RIDG.REG, self.max_epoch)
+        elif self.args.dynamic_func == 'linear':
+            momentum = linear_degradation(0.01, self.cfg.TRAINER.RIDG.MOMENTUM, self.max_epoch)
+            reg = linear_degradation(0.1, self.cfg.TRAINER.RIDG.REG, self.max_epoch)
+            
         self.set_model_mode('train')
         losses = MetricMeter()
         batch_time = AverageMeter()
@@ -80,17 +105,12 @@ class ConstStyleTrainer(SimpleTrainer):
         end = time.time()
         for self.batch_idx, batch in enumerate(self.train_loader_x):
             data_time.update(time.time() - end)
+            # loss_summary = self.forward_backward(batch, epoch, momentum[self.epoch], reg[self.epoch])
             loss_summary = self.forward_backward(batch, epoch)
             batch_time.update(time.time() - end)
             losses.update(loss_summary)
 
             if (self.batch_idx + 1) % self.cfg.TRAIN.PRINT_FREQ == 0:
-                nb_this_epoch = self.num_batches - (self.batch_idx + 1)
-                nb_future_epochs = (
-                    self.max_epoch - (self.epoch + 1)
-                ) * self.num_batches
-                eta_seconds = batch_time.avg * (nb_this_epoch+nb_future_epochs)
-                eta = str(datetime.timedelta(seconds=int(eta_seconds)))
                 print(
                     'epoch [{0}/{1}][{2}/{3}]\t'
                     '{losses}\t'
@@ -134,12 +154,6 @@ class ConstStyleTrainer(SimpleTrainer):
             output = self.model(input, domain, store_feature=True, apply_conststyle=False)
         else:
             output = self.model(input, domain, store_feature=True, apply_conststyle=True)
-            styled_predict = torch.argmax(output, dim=1)
-            print(f'Output when applying ConstStyle: {styled_predict}')
-            normal_output = self.model(input, domain, store_feature=True, apply_conststyle=False)
-            normal_predict = torch.argmax(normal_output, dim=1)
-            print(f'Output: {normal_predict}')
-            print(f'Label: {label}')
         loss = F.cross_entropy(output, label)
         self.model_backward_and_update(loss)
 
@@ -152,6 +166,62 @@ class ConstStyleTrainer(SimpleTrainer):
             self.update_lr()
 
         return loss_summary
+    
+    '''for intergrating RIDG'''
+    # def forward_backward(self, batch, epoch, momentum, reg):
+    #     input, label, domain = self.parse_batch_train(batch)
+    #     features = self.model.backbone(input, domain)
+
+    #     if epoch == 0:
+    #         output = self.model(input, domain, store_feature=True, apply_conststyle=False)
+    #     else:
+    #         output = self.model(input, domain, store_feature=True, apply_conststyle=True)
+            
+    #     rational = torch.zeros(self.num_classes, input.shape[0], self.model.backbone.out_features).to(self.device)
+    #     for i in range(self.num_classes):
+    #         rational[i] = (self.model.classifier.weight[i] * features)
+
+    #     classes = torch.unique(label)
+    #     loss_rational = 0.0
+    #     for i in range(classes.shape[0]):
+    #         core_rational = torch.zeros(self.num_classes, self.model.backbone.out_features).to(self.device)
+    #         class_rational = rational[:, label==classes[i]]
+    #         for j in range(self.num_classes):
+    #             s_rational = class_rational[j]
+    #             if j == classes[i]:
+    #                 argmax = torch.argmax(s_rational, dim=1)
+    #                 for idx, val in enumerate(argmax):
+    #                     if core_rational[j][val] == 0 or core_rational[j][val] < s_rational[idx][val]:
+    #                         core_rational[j][val] = s_rational[idx][val]
+    #             else:
+    #                 argmin = torch.argmin(s_rational, dim=1)
+    #                 for idx, val in enumerate(argmin):
+    #                     if core_rational[j][val] == 0 or core_rational[j][val] > s_rational[idx][val]:
+    #                         core_rational[j][val] = s_rational[idx][val]
+
+    #         rational_mean = class_rational.mean(dim=1)
+    #         merged_rational = torch.where(core_rational != 0, core_rational, rational_mean)
+    #         if self.init[classes[i]]:
+    #             self.rational_bank[classes[i]] = merged_rational
+    #             self.init[classes[i]] = False
+    #         else:
+    #             self.rational_bank[classes[i]] = (1 - momentum) * self.rational_bank[classes[i]] + momentum * merged_rational
+    #         loss_rational += ((rational[:, label==classes[i]] - (self.rational_bank[classes[i]].unsqueeze(1)).detach())**2).sum(dim=2).mean()
+        
+    #     ce_loss = F.cross_entropy(output, label)
+    #     loss = ce_loss + reg * loss_rational
+    #     print(f'cross entropy loss: {ce_loss} | rational loss: {reg * loss_rational}')
+    #     self.model_backward_and_update(loss)
+
+    #     loss_summary = {
+    #         'loss': loss.item(),
+    #         'accuracy': compute_accuracy(output, label)[0].item()
+    #     }
+
+    #     if (self.batch_idx + 1) == self.num_batches:
+    #         self.update_lr()
+
+    #     return loss_summary
 
     def parse_batch_train(self, batch):
         input = batch['img']
@@ -236,10 +306,6 @@ class ConstStyleTrainer(SimpleTrainer):
             domain = torch.tensor([3 for i in range(len(label))])
             output = self.model_inference(input, domain, is_test=True)
             self.evaluator.process(output, label)
-        
-        # if self.epoch != 0:
-        #     for idx, conststyle in enumerate(self.model.backbone.conststyle):
-        #         conststyle.plot_style_statistics(idx, self.epoch)
 
         results = self.evaluator.evaluate()
 

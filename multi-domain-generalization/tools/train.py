@@ -60,6 +60,9 @@ def reset_cfg(cfg, args):
     
     if args.distance:
         cfg.DISTANCE = args.distance
+    
+    if args.prob:
+        cfg.TRAINER.CONSTSTYLE.PROB = args.prob
 
     # if args.num_conststyles:
     #     cfg.NUM_CONSTSTYLES = args.num_conststyles
@@ -88,11 +91,22 @@ def setup_cfg(args):
 def main(args):
     cfg = setup_cfg(args)
     if args.wandb:
-        if cfg.DATASET.NAME == 'PACS' or cfg.DATASET.NAME == 'DomainNetDG' or cfg.DATASET.NAME == 'Nico':
+        if cfg.DATASET.NAME == 'DigitsDG' or cfg.DATASET.NAME == 'CIFAR10C':
+            if 'mixstyle' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'MixStyle'
+            elif 'correlated' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'CSU_2'
+            elif 'uncertainty' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'DSU_2'
+            elif 'conststyle' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'ConstStyle'
+            else:
+                job_type = 'Baseline'
+        else:
             if 'uresnet' in cfg.MODEL.BACKBONE.NAME and len(cfg.MODEL.BACKBONE.NAME) == 9:
                 job_type = 'DSU'
             elif 'cresnet' in cfg.MODEL.BACKBONE.NAME:
-                job_type = 'ConstStyle'
+                job_type = f'ConstStyle_frob={args.prob}_wRIDG'
                 if cfg.CLUSTER == 'ot':
                     job_type += '-OT'
                 elif cfg.CLUSTER == 'barycenter':
@@ -108,20 +122,11 @@ def main(args):
             elif 'ms_l12' in cfg.MODEL.BACKBONE.NAME:
                 job_type = 'MixStyle'
             elif cfg.TRAINER.NAME == 'RIDG':
-                job_type = 'RIDG'
+                job_type = 'RIDG_dynamic'
+            elif cfg.TRAINER.NAME == 'ValueBasedRIDG':
+                job_type = f'ValueBasedRIDG_func={args.dynamic_func}'
             elif cfg.TRAINER.NAME == 'MetaCausal':
                 job_type = 'MetaCausal'
-            else:
-                job_type = 'Baseline'
-        elif cfg.DATASET.NAME == 'DigitsDG' or cfg.DATASET.NAME == 'CIFAR10C':
-            if 'mixstyle' in cfg.MODEL.BACKBONE.NAME:
-                job_type = 'MixStyle'
-            elif 'correlated' in cfg.MODEL.BACKBONE.NAME:
-                job_type = 'CSU_2'
-            elif 'uncertainty' in cfg.MODEL.BACKBONE.NAME:
-                job_type = 'DSU_2'
-            elif 'conststyle' in cfg.MODEL.BACKBONE.NAME:
-                job_type = 'ConstStyle'
             else:
                 job_type = 'Baseline'
         
@@ -246,6 +251,8 @@ if __name__ == '__main__':
     parser.add_argument('--cluster', default='ot', type=str, help='cluster choosing method')
     parser.add_argument('--num_clusters', default = 3, type = int, help='number of clusters')
     parser.add_argument('--distance', default = 'wass', type = str, help='distance metric')
+    parser.add_argument('--dynamic_func', default = 'loga', type = str, help='type of degradation function')
     parser.add_argument('--reduce', default = 1, type = int, help = 'reduction factor of data')
+    parser.add_argument('--prob', default = 0.5, type = float)
     args = parser.parse_args()
     main(args)
