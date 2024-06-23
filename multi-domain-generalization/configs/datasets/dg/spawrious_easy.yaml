@@ -3,7 +3,7 @@ INPUT:
   TRANSFORMS: ['random_flip', 'random_translation', 'normalize']
 
 DATASET:
-  NAME: 'Nico'
+  NAME: 'SpawriousO2O_easy'
 
 MODEL:
   BACKBONE:

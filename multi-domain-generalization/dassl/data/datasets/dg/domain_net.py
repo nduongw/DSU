@@ -15,9 +15,7 @@ class DomainNetDG(DatasetBase):
         - URL: http://csr.bu.edu/ftp/visda/2019/multi-source/.
     """
     dataset_dir = 'domainnet'
-    domains = [
-        'clipart', 'painting', 'quickdraw', 'real', 'sketch'
-    ]
+    domains = ['clipart', 'painting', 'real', 'sketch']
 
     def __init__(self, cfg):
         root = osp.abspath(osp.expanduser(cfg.DATASET.ROOT))
@@ -40,17 +38,14 @@ class DomainNetDG(DatasetBase):
         for domain, dname in enumerate(input_domains):
             filename = dname + '_' + split + '.txt'
             split_file = osp.join(self.split_dir, filename)
-            counters = 0
             with open(split_file, 'r') as f:
                 lines = f.readlines()
                 for line in lines:
-                    #Due to OOM, only consider a small set of images for training and testing
-                    #if reduce_rate = 1, use all data
-                    if (counters % self.reduce_rate == 0):
-                        line = line.strip()
-                        impath, label = line.split(' ')
-                        classname = impath.split('/')[1]
-                        impath = osp.join(self.dataset_dir, impath)
+                    line = line.strip()
+                    impath, label = line.split(' ')
+                    classname = impath.split('/')[1]
+                    impath = osp.join(self.dataset_dir, impath)
+                    if osp.exists(impath):
                         label = int(label)
                         item = Datum(
                             impath=impath,
@@ -59,5 +54,4 @@ class DomainNetDG(DatasetBase):
                             classname=classname
                         )
                         items.append(item)
-                    counters += 1
         return items

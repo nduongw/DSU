@@ -40,20 +40,6 @@ class ConstStyleTrainer(SimpleTrainer):
     """ConstStyle method."""
     def __init__(self, cfg, args):
         super().__init__(cfg, args)
-        # self.init = torch.ones(self.num_classes).to(self.device)
-        # self.rational_bank = torch.zeros(self.num_classes, self.num_classes, self.model.backbone.out_features).to(self.device)
-        # self.train_file_name = osp.join(cfg.OUTPUT_DIR, 'train_rational_value.csv')
-        # self.test_file_name = osp.join(cfg.OUTPUT_DIR, 'test_rational_value.csv')
-        # f_train = open(self.train_file_name, 'w')
-        # f_test = open(self.test_file_name, 'w')
-        # csvwriter_train = csv.writer(f_train)
-        # csvwriter_test = csv.writer(f_test)
-        # write_train_data = ['epoch', 'class', 'hindex1', 'hindex2', 'hindex3', 'hindex4', 'hindex5', 'value1', 'value2', 'value3', 'value4', 'value5']
-        # write_test_data = ['epoch', 'class', 'hindex1', 'hindex2', 'hindex3', 'hindex4', 'hindex5', 'value1', 'value2', 'value3', 'value4', 'value5','predicted_class']
-        # csvwriter_train.writerow(write_train_data)
-        # csvwriter_test.writerow(write_test_data)
-        # f_train.close()
-        # f_test.close()
     
     def build_model(self):
         """Build and register model.
@@ -166,62 +152,6 @@ class ConstStyleTrainer(SimpleTrainer):
             self.update_lr()
 
         return loss_summary
-    
-    '''for intergrating RIDG'''
-    # def forward_backward(self, batch, epoch, momentum, reg):
-    #     input, label, domain = self.parse_batch_train(batch)
-    #     features = self.model.backbone(input, domain)
-
-    #     if epoch == 0:
-    #         output = self.model(input, domain, store_feature=True, apply_conststyle=False)
-    #     else:
-    #         output = self.model(input, domain, store_feature=True, apply_conststyle=True)
-            
-    #     rational = torch.zeros(self.num_classes, input.shape[0], self.model.backbone.out_features).to(self.device)
-    #     for i in range(self.num_classes):
-    #         rational[i] = (self.model.classifier.weight[i] * features)
-
-    #     classes = torch.unique(label)
-    #     loss_rational = 0.0
-    #     for i in range(classes.shape[0]):
-    #         core_rational = torch.zeros(self.num_classes, self.model.backbone.out_features).to(self.device)
-    #         class_rational = rational[:, label==classes[i]]
-    #         for j in range(self.num_classes):
-    #             s_rational = class_rational[j]
-    #             if j == classes[i]:
-    #                 argmax = torch.argmax(s_rational, dim=1)
-    #                 for idx, val in enumerate(argmax):
-    #                     if core_rational[j][val] == 0 or core_rational[j][val] < s_rational[idx][val]:
-    #                         core_rational[j][val] = s_rational[idx][val]
-    #             else:
-    #                 argmin = torch.argmin(s_rational, dim=1)
-    #                 for idx, val in enumerate(argmin):
-    #                     if core_rational[j][val] == 0 or core_rational[j][val] > s_rational[idx][val]:
-    #                         core_rational[j][val] = s_rational[idx][val]
-
-    #         rational_mean = class_rational.mean(dim=1)
-    #         merged_rational = torch.where(core_rational != 0, core_rational, rational_mean)
-    #         if self.init[classes[i]]:
-    #             self.rational_bank[classes[i]] = merged_rational
-    #             self.init[classes[i]] = False
-    #         else:
-    #             self.rational_bank[classes[i]] = (1 - momentum) * self.rational_bank[classes[i]] + momentum * merged_rational
-    #         loss_rational += ((rational[:, label==classes[i]] - (self.rational_bank[classes[i]].unsqueeze(1)).detach())**2).sum(dim=2).mean()
-        
-    #     ce_loss = F.cross_entropy(output, label)
-    #     loss = ce_loss + reg * loss_rational
-    #     print(f'cross entropy loss: {ce_loss} | rational loss: {reg * loss_rational}')
-    #     self.model_backward_and_update(loss)
-
-    #     loss_summary = {
-    #         'loss': loss.item(),
-    #         'accuracy': compute_accuracy(output, label)[0].item()
-    #     }
-
-    #     if (self.batch_idx + 1) == self.num_batches:
-    #         self.update_lr()
-
-    #     return loss_summary
 
     def parse_batch_train(self, batch):
         input = batch['img']

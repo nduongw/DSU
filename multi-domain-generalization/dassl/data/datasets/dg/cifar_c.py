@@ -31,7 +31,7 @@ class CIFAR10C(DatasetBase):
     domains = ['cifar10', 'cifar10_c']
 
     def __init__(self, cfg):
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         root = osp.abspath(osp.expanduser(cfg.DATASET.ROOT))
         self.dataset_dir = root
 

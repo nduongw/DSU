@@ -3,9 +3,9 @@ INPUT:
   TRANSFORMS: ['random_flip', 'random_translation', 'normalize']
 
 DATASET:
-  NAME: 'Nico'
+  NAME: 'SpawriousO2O_medium'
 
 MODEL:
   BACKBONE:
-    NAME: 'resnet18_ms_l12'
+    NAME: 'resnet18'
     PRETRAINED: True

@@ -9,6 +9,7 @@ import copy
 import os
 import ot
 from sklearn.manifold import TSNE
+from dassl.modeling.ops import MixStyle
 
 from .build import BACKBONE_REGISTRY
 from .backbone import Backbone
@@ -202,6 +203,10 @@ class ConstStyle(nn.Module):
         self.const_mean = None
         self.const_cov = None
         self.domain_list = []
+        self.bayes_cluster = None
+        self.domain_mean_list = []
+        self.domain_std_list = []
+        self.mixstyle = MixStyle(p=cfg.TRAINER.MIXSTYLE.PRATE, alpha=0.1)
     
     def clear_memory(self):
         self.mean = []
@@ -230,20 +235,17 @@ class ConstStyle(nn.Module):
         self.std_after.extend(var)
     
     def cal_mean_std(self, idx, epoch):
-        domain_list = np.array(self.domain_list)
         #clustering
-        mean_list = copy.copy(self.mean)
-        std_list = copy.copy(self.std)
-        mean_list = np.array(mean_list)
-        std_list = np.array(std_list)
+        mean_list = np.array(self.mean)
+        std_list = np.array(self.std)
         stacked_data = np.stack((mean_list, std_list), axis=1)
         reshaped_data = stacked_data.reshape((len(mean_list), -1))
         
-        bayes_cluster = BayesianGaussianMixture(n_components=self.cfg.NUM_CLUSTERS, covariance_type='full', init_params='k-means++', max_iter=200)
-        bayes_cluster.fit(reshaped_data)
+        self.bayes_cluster = BayesianGaussianMixture(n_components=self.cfg.NUM_CLUSTERS, covariance_type='full', init_params='k-means++', max_iter=200)
+        self.bayes_cluster.fit(reshaped_data)
         
-        labels = bayes_cluster.predict(reshaped_data)
-        unique_labels, counts = np.unique(labels, return_counts=True)
+        labels = self.bayes_cluster.predict(reshaped_data)
+        unique_labels, _ = np.unique(labels, return_counts=True)
         
         cluster_samples = []
         cluster_samples_idx = []
@@ -258,8 +260,11 @@ class ConstStyle(nn.Module):
             cluster_samples.append(samples)
             cluster_samples_idx.append(samples_idx)
             
-            cluster_means.append(bayes_cluster.means_[val])
-            cluster_covs.append(bayes_cluster.covariances_[val])
+            cluster_means.append(self.bayes_cluster.means_[val])
+            cluster_covs.append(self.bayes_cluster.covariances_[val])
+            reshaped_mean = self.bayes_cluster.means_[val].reshape(2, -1)
+            self.domain_mean_list.append(reshaped_mean[0])
+            self.domain_std_list.append(reshaped_mean[1])
         
         cluster_generated_samples = []
         for idx in range(len(unique_labels)):
@@ -268,8 +273,8 @@ class ConstStyle(nn.Module):
             cluster_generated_samples.append(generated_sample)
         
         if self.cfg.CLUSTER == 'barycenter':
-            cluster_means = np.stack([bayes_cluster.means_[i] for i in range(len(unique_labels))])
-            cluster_covs = np.stack([bayes_cluster.covariances_[i] for i in range(len(unique_labels))])
+            cluster_means = np.stack([self.bayes_cluster.means_[i] for i in range(len(unique_labels))])
+            cluster_covs = np.stack([self.bayes_cluster.covariances_[i] for i in range(len(unique_labels))])
             weights = np.ones(len(unique_labels), dtype=np.float64) / len(unique_labels)
             
             total_mean, total_cov = ot.gaussian.bures_wasserstein_barycenter(cluster_means, cluster_covs, weights)
@@ -296,23 +301,14 @@ class ConstStyle(nn.Module):
                             cost = ot.emd2(a, b, M)
                             # pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, cluster_sample_x, seed=self.cfg.SEED, n_projections=128)
                             print(f'Cost to move from cluster {j} to cluster {i} is {cost}')
-                        elif self.cfg.DISTANCE == 'kl':
-                            cost = KLdivergence(cluster_sample_y, cluster_sample_x)
-                            print(f'KL div from cluster {j} to cluster {i} is {cost}')
-                        elif self.cfg.DISTANCE == 'jensen':
-                            cost = JSdivergence(cluster_sample_y, cluster_sample_x)
-                            print(f'Jensen-Shanon distance from cluster {j} to cluster {i} is {cost}')
-                        elif self.cfg.DISTANCE == 'bhatta':
-                            cost = Bdistance(cluster_sample_y, cluster_sample_x)
-                            print(f'Bhattacharyya distance from cluster {j} to cluster {i} is {cost}')
                         total_cost += cost
                 print(f'Total cost of cluster {i}: {total_cost}')
                 ot_score.append(total_cost)
 
             idx_val = np.argmin(ot_score)
             print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with minimal cost {ot_score[idx_val]}')
-            self.const_mean = torch.from_numpy(bayes_cluster.means_[idx_val])
-            self.const_cov = torch.from_numpy(bayes_cluster.covariances_[idx_val])
+            self.const_mean = torch.from_numpy(self.bayes_cluster.means_[idx_val])
+            self.const_cov = torch.from_numpy(self.bayes_cluster.covariances_[idx_val])
     
     def plot_style_statistics(self, idx, epoch):
         domain_list = np.array(self.domain_list)
@@ -336,20 +332,74 @@ class ConstStyle(nn.Module):
         plt.cla()
         plt.clf()
 
+    # def forward(self, x, domain, store_feature=False, apply_conststyle=False, is_test=False):
+    #     if store_feature:
+    #         self.store_style(x, domain)
+        
+    #     if apply_conststyle:
+    #         mu = x.mean(dim=[2, 3], keepdim=True)
+    #         var = x.var(dim=[2, 3], keepdim=True)
+    #         sig = (var + self.eps).sqrt()
+    #         mu, sig = mu.detach(), sig.detach()
+            
+    #         if not is_test and np.random.random() > self.cfg.TRAINER.CONSTSTYLE.PROB:
+    #             return x
+            
+    #         x_normed = (x-mu) / sig
+    #         if is_test:
+    #             const_value = torch.reshape(self.const_mean, (2, -1))
+    #             const_mean = const_value[0].float()
+    #             const_std = const_value[1].float()
+    #             const_mean = torch.reshape(const_mean, (1, const_mean.shape[0], 1, 1)).to('cuda')
+    #             const_std = torch.reshape(const_std, (1, const_std.shape[0], 1, 1)).to('cuda')
+    #         else:
+    #             generator = torch.distributions.MultivariateNormal(loc=self.const_mean, covariance_matrix=self.const_cov)
+    #             style_mean = []
+    #             style_std = []
+    #             for i in range(len(x_normed)):
+    #                 style = generator.sample()
+    #                 style = torch.reshape(style, (2, -1))
+    #                 style_mean.append(style[0])
+    #                 style_std.append(style[1])
+                
+    #             const_mean = torch.vstack(style_mean).float()
+    #             const_std = torch.vstack(style_std).float()
+                
+    #             const_mean = torch.reshape(const_mean, (const_mean.shape[0], const_mean.shape[1], 1, 1)).to('cuda')
+    #             const_std = torch.reshape(const_std, (const_std.shape[0], const_std.shape[1], 1, 1)).to('cuda')
+                
+    #         out = x_normed * const_std + const_mean
+            
+    #         self.store_style_after(out)
+    #         return out
+    #     else:
+    #         return x
+        
     def forward(self, x, domain, store_feature=False, apply_conststyle=False, is_test=False):
         if store_feature:
             self.store_style(x, domain)
         
         if apply_conststyle:
+            domain_mean_list = np.array(self.domain_mean_list)
+            domain_std_list = np.array(self.domain_std_list)
             mu = x.mean(dim=[2, 3], keepdim=True)
             var = x.var(dim=[2, 3], keepdim=True)
-            sig = (var + self.eps).sqrt()
-            mu, sig = mu.detach(), sig.detach()
+            sig = var.sqrt()
+            mu, sig = mu.detach().cpu().numpy(), sig.detach().cpu().numpy()
+            mu, sig = np.squeeze(mu), np.squeeze(sig)
+            style_data = np.hstack((mu, sig))
+            labels = self.bayes_cluster.predict(style_data)
+            selected_means = domain_mean_list[labels]
+            selected_stds = domain_std_list[labels]
+            selected_means = torch.from_numpy(selected_means).float()
+            selected_stds = torch.from_numpy(selected_stds).float()
+            selected_means = torch.reshape(selected_means, (selected_means.shape[0], selected_means.shape[1], 1, 1)).to('cuda')
+            selected_stds = torch.reshape(selected_stds, (selected_stds.shape[0], selected_stds.shape[1], 1, 1)).to('cuda')
             
-            if not is_test and np.random.random() > 0.5:
+            if not is_test and np.random.random() > self.cfg.TRAINER.CONSTSTYLE.PROB:
                 return x
             
-            x_normed = (x-mu) / sig
+            x_normed = (x - selected_means) / (selected_stds + self.eps)
             if is_test:
                 const_value = torch.reshape(self.const_mean, (2, -1))
                 const_mean = const_value[0].float()
@@ -371,7 +421,7 @@ class ConstStyle(nn.Module):
                 
                 const_mean = torch.reshape(const_mean, (const_mean.shape[0], const_mean.shape[1], 1, 1)).to('cuda')
                 const_std = torch.reshape(const_std, (const_std.shape[0], const_std.shape[1], 1, 1)).to('cuda')
-                
+            
             out = x_normed * const_std + const_mean
             
             self.store_style_after(out)
@@ -436,13 +486,10 @@ class UConvNet(Backbone):
         x = self.pertubration0(x)
         x = F.max_pool2d(x, 2)
         x = self.conv2(x)
-        x = self.pertubration1(x)
         x = F.max_pool2d(x, 2)
         x = self.conv3(x)
-        # x = self.pertubration2(x)
         x = F.max_pool2d(x, 2)
         x = self.conv4(x)
-        # x = self.pertubration3(x)
         x = F.max_pool2d(x, 2)
         return x.view(x.size(0), -1)
 
@@ -475,13 +522,10 @@ class CUConvNet(Backbone):
         x = self.pertubration0(x)
         x = F.max_pool2d(x, 2)
         x = self.conv2(x)
-        x = self.pertubration1(x)
         x = F.max_pool2d(x, 2)
         x = self.conv3(x)
-        # x = self.pertubration2(x)
         x = F.max_pool2d(x, 2)
         x = self.conv4(x)
-        # x = self.pertubration3(x)
         x = F.max_pool2d(x, 2)
         return x.view(x.size(0), -1)
     
@@ -519,6 +563,8 @@ class MSConvNet(Backbone):
             x = self.mixstyle(x)
         x = F.max_pool2d(x, 2)
         x = self.conv2(x)
+        if "layer2" in self.ms_layers:
+            x = self.mixstyle(x)
         x = F.max_pool2d(x, 2)
         x = self.conv3(x)
         x = F.max_pool2d(x, 2)
@@ -530,13 +576,20 @@ class ConstConvNet(Backbone):
 
     def __init__(self, c_hidden=64, cfg=None):
         super().__init__()
+        self.cfg = cfg
         self.conv1 = Convolution(3, c_hidden)
         self.conv2 = Convolution(c_hidden, c_hidden)
         self.conv3 = Convolution(c_hidden, c_hidden)
         self.conv4 = Convolution(c_hidden, c_hidden)
-        self.num_conststyle = 1
+        self.num_conststyle = 2
         self.conststyle = [ConstStyle(cfg) for i in range(self.num_conststyle)]
-
+        self.ms_layers = ['layer1', 'layer2']
+        self.mixstyle = MixStyle(p=cfg.TRAINER.MIXSTYLE.PRATE, alpha=0.1)
+        for layer_name in self.ms_layers:
+            assert layer_name in ["layer1", "layer2", "layer3"]
+        print(
+            f"Insert {self.mixstyle.__class__.__name__} after {self.ms_layers}"
+        )
         self._out_features = 2**2 * c_hidden
 
     def _check_input(self, x):
@@ -548,9 +601,18 @@ class ConstConvNet(Backbone):
     def forward(self, x, domain, store_feature=False, apply_conststyle=False, is_test=False):
         self._check_input(x)
         x = self.conv1(x)
-        x = self.conststyle[0](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
-        x = F.max_pool2d(x, 2)
-        x = self.conv2(x)
+        if np.random.random() > self.cfg.TRAINER.CONSTSTYLE.PAPPLY:
+            if "layer1" in self.ms_layers:
+                x = self.mixstyle(x)
+            x = F.max_pool2d(x, 2)
+            if "layer2" in self.ms_layers:
+                x = self.mixstyle(x)
+            x = self.conv2(x)
+        else:
+            x = self.conststyle[0](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
+            x = F.max_pool2d(x, 2)
+            x = self.conv2(x)
+            x = self.conststyle[1](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
         x = F.max_pool2d(x, 2)
         x = self.conv3(x)
         x = F.max_pool2d(x, 2)

@@ -74,7 +74,6 @@ class RIDG(TrainerX):
     
     def save_model(self, epoch, directory, is_best=False):
         names = self.get_model_names()
-
         for name in names:
             model_dict = self._models[name].state_dict()
 

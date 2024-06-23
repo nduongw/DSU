@@ -3,7 +3,7 @@ INPUT:
   TRANSFORMS: ['random_flip', 'random_translation', 'normalize']
 
 DATASET:
-  NAME: 'Nico'
+  NAME: 'Camelyon'
 
 MODEL:
   BACKBONE:

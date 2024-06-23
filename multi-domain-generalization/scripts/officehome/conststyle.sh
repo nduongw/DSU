@@ -9,7 +9,7 @@ D4=real_world
 SEED=42
 method=conststyle
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer ConstStyleTrainer \
@@ -21,10 +21,11 @@ method=conststyle
 --output-dir output/dg/${DATASET}/${method}/${D1} \
 --cluster ot \
 --num_clusters 1 \
---prob 0.0 \
+--update_interval 5 \
+--prob 0.6 \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer ConstStyleTrainer \
@@ -36,10 +37,11 @@ method=conststyle
 --output-dir output/dg/${DATASET}/${method}/${D2} \
 --cluster ot \
 --num_clusters 1 \
---prob 0.0 \
+--update_interval 5 \
+--prob 0.6 \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer ConstStyleTrainer \
@@ -51,10 +53,11 @@ method=conststyle
 --output-dir output/dg/${DATASET}/${method}/${D3} \
 --cluster ot \
 --num_clusters 1 \
---prob 0.0 \
+--update_interval 5 \
+--prob 0.6 \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer ConstStyleTrainer \
@@ -66,5 +69,6 @@ method=conststyle
 --output-dir output/dg/${DATASET}/${method}/${D4} \
 --cluster ot \
 --num_clusters 1 \
---prob 0.0 \
+--update_interval 5 \
+--prob 0.6 \
 --resume false)

@@ -6,7 +6,7 @@ INPUT:
 
 DATASET:
   NAME: 'CIFAR10C'
-  CIFAR_C_TYPE: 'fog'
+  CIFAR_C_TYPE: 'gaussian_noise'
   CIFAR_C_LEVEL: 1
 
 MODEL:

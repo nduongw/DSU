@@ -64,11 +64,14 @@ def reset_cfg(cfg, args):
     if args.prob:
         cfg.TRAINER.CONSTSTYLE.PROB = args.prob
 
-    # if args.num_conststyles:
-    #     cfg.NUM_CONSTSTYLES = args.num_conststyles
-
     if args.reduce:
         cfg.REDUCE = args.reduce
+        
+    if args.mixstyle_prob:
+        cfg.TRAINER.MIXSTYLE.PRATE = args.mixstyle_prob
+    
+    if args.c_prob:
+        cfg.TRAINER.CONSTSTYLE.PAPPLY = args.c_prob
         
     #if args.uncertainty:
     cfg.MODEL.UNCERTAINTY = args.uncertainty
@@ -93,30 +96,20 @@ def main(args):
     if args.wandb:
         if cfg.DATASET.NAME == 'DigitsDG' or cfg.DATASET.NAME == 'CIFAR10C':
             if 'mixstyle' in cfg.MODEL.BACKBONE.NAME:
-                job_type = 'MixStyle'
+                job_type = 'MixStyle2'
             elif 'correlated' in cfg.MODEL.BACKBONE.NAME:
-                job_type = 'CSU_2'
+                job_type = 'CSU2'
             elif 'uncertainty' in cfg.MODEL.BACKBONE.NAME:
-                job_type = 'DSU_2'
+                job_type = 'DSU2'
             elif 'conststyle' in cfg.MODEL.BACKBONE.NAME:
-                job_type = 'ConstStyle'
+                job_type = f'ConstStyle_mix2layers_p={args.prob}_u={args.update_interval}_mp={args.mixstyle_prob}_cp={args.c_prob}'
             else:
                 job_type = 'Baseline'
         else:
             if 'uresnet' in cfg.MODEL.BACKBONE.NAME and len(cfg.MODEL.BACKBONE.NAME) == 9:
                 job_type = 'DSU'
             elif 'cresnet' in cfg.MODEL.BACKBONE.NAME:
-                job_type = f'ConstStyle_frob={args.prob}_wRIDG'
-                if cfg.CLUSTER == 'ot':
-                    job_type += '-OT'
-                elif cfg.CLUSTER == 'barycenter':
-                    job_type += '-BC'
-                
-                if cfg.NUM_CLUSTERS > 1:
-                    job_type += f'-num_clusters_{cfg.NUM_CLUSTERS}'
-                
-                if cfg.DISTANCE:
-                    job_type += f'-distance_{cfg.DISTANCE}'
+                job_type = f'ConstStyle_mix2layers_p={args.prob}_u={args.update_interval}_mp={args.mixstyle_prob}_cp={args.c_prob}'
             elif 'curesnet' in cfg.MODEL.BACKBONE.NAME:
                 job_type = 'CSU'
             elif 'ms_l12' in cfg.MODEL.BACKBONE.NAME:
@@ -129,10 +122,7 @@ def main(args):
                 job_type = 'MetaCausal'
             else:
                 job_type = 'Baseline'
-        
-        if cfg.MODEL.BACKBONE.PRETRAINED:
-            job_type += '-pretrained'
-        
+
         if cfg.DATASET.NAME == 'CIFAR10C':
             process_name = f'train={cfg.DATASET.SOURCE_DOMAINS}_test={cfg.DATASET.TARGET_DOMAINS}-{cfg.DATASET.CIFAR_C_LEVEL}'
         else:
@@ -254,5 +244,7 @@ if __name__ == '__main__':
     parser.add_argument('--dynamic_func', default = 'loga', type = str, help='type of degradation function')
     parser.add_argument('--reduce', default = 1, type = int, help = 'reduction factor of data')
     parser.add_argument('--prob', default = 0.5, type = float)
+    parser.add_argument('--mixstyle_prob', default = 0.5, type = float)
+    parser.add_argument('--c_prob', default = 0.5, type = float)
     args = parser.parse_args()
     main(args)

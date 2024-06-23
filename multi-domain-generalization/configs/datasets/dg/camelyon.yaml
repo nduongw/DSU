@@ -3,9 +3,9 @@ INPUT:
   TRANSFORMS: ['random_flip', 'random_translation', 'normalize']
 
 DATASET:
-  NAME: 'Nico'
+  NAME: 'Camelyon'
 
 MODEL:
   BACKBONE:
-    NAME: 'uresnet18'
+    NAME: 'resnet18'
     PRETRAINED: True

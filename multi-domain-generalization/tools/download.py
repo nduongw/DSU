@@ -143,6 +143,12 @@ def download_cifar10c(data_dir):
     download_and_extract("https://zenodo.org/records/2535967/files/CIFAR-10-C.tar?download=1",
                          os.path.join(data_dir, "cifar10c.tar"))
 
+def download_cifar10(data_dir):
+    # Original URL: http://hemanthdv.org/OfficeHome-Dataset/
+    full_path = stage_path(data_dir, "cifar10")
+
+    download_and_extract("https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz",
+                         os.path.join(data_dir, "cifar-10-python.tar.gz"))
 
 
 # DomainNET ###################################################################
@@ -151,19 +157,19 @@ def download_domain_net(data_dir):
     # Original URL: http://ai.bu.edu/M3SDA/
     full_path = stage_path(data_dir, "domain_net")
 
-    urls = [
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/groundtruth/clipart.zip",
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/infograph.zip",
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/groundtruth/painting.zip",
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/quickdraw.zip",
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/real.zip",
-        "http://csr.bu.edu/ftp/visda/2019/multi-source/sketch.zip"
-    ]
+    # urls = [
+    #     "http://csr.bu.edu/ftp/visda/2019/multi-source/groundtruth/clipart.zip",
+    #     "http://csr.bu.edu/ftp/visda/2019/multi-source/infograph.zip",
+    #     "http://csr.bu.edu/ftp/visda/2019/multi-source/groundtruth/painting.zip",
+    #     "http://csr.bu.edu/ftp/visda/2019/multi-source/quickdraw.zip",
+    #     "http://csr.bu.edu/ftp/visda/2019/multi-source/real.zip",
+    #     "http://csr.bu.edu/ftp/visda/2019/multi-source/sketch.zip"
+    # ]
 
-    for url in urls:
-        download_and_extract(url, os.path.join(full_path, url.split("/")[-1]))
+    # for url in urls:
+    #     download_and_extract(url, os.path.join(full_path, url.split("/")[-1]))
 
-    with open("domainbed/misc/domain_net_duplicates.txt", "r") as f:
+    with open(f"{data_dir}/domain_net_duplicates.txt", "r") as f:
         for line in f.readlines():
             try:
                 os.remove(os.path.join(full_path, line.strip()))
@@ -290,9 +296,9 @@ if __name__ == "__main__":
     # download_domain_net(args.data_dir)
     # download_vlcs(args.data_dir)
     # download_terra_incognita(args.data_dir)
-    # download_spawrious(args.data_dir)
+    download_spawrious(args.data_dir)
     # download_sviro(args.data_dir)
-    Camelyon17Dataset(root_dir=args.data_dir, download=True)
+    # Camelyon17Dataset(root_dir=args.data_dir, download=True)
     # FMoWDataset(root_dir=args.data_dir, download=True)
-    # download_cifar10c(args.data_dir)
+    # download_cifar10(args.data_dir)
     
