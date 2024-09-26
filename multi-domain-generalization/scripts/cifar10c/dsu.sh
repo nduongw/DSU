@@ -3,7 +3,7 @@ DATA=./DATA
 DATASET=cifar10_c
 D1=cifar10
 D2=cifar10_c
-SEED=42
+SEED=40
 method=dsu
 
 (CUDA_VISIBLE_DEVICES=1 python tools/train.py \

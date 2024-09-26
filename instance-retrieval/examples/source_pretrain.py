@@ -90,9 +90,8 @@ def main_worker(args):
     global start_epoch, best_mAP
 
     cudnn.benchmark = True
-
     if not args.evaluate:
-        sys.stdout = Logger(osp.join(args.logs_dir, 'log.txt'))
+        sys.stdout = Logger(osp.join(args.logs_dir, f'log{args.num_cluster}.txt'))
     else:
         log_dir = osp.dirname(args.resume)
         sys.stdout = Logger(osp.join(log_dir, 'log_test.txt'))
@@ -109,8 +108,8 @@ def main_worker(args):
                  args.width, args.batch_size, args.workers, 0, iters)
 
     # Create model
-    model = models.create(args.arch, num_features=args.features, dropout=args.dropout, num_classes=num_classes)
-    print(model)
+    model = models.create(args.arch, args=args, num_features=args.features, dropout=args.dropout, num_classes=num_classes)
+    # print(model)
     model.cuda()
     model = nn.DataParallel(model)
 
@@ -150,14 +149,17 @@ def main_worker(args):
         lr_scheduler.step()
         train_loader_source.new_epoch()
         train_loader_target.new_epoch()
+        if args.arch == 'cresnet50':
+            for conststyle in trainer.model.module.conststyle:
+                conststyle.clear_memory()
 
-        trainer.train(epoch, train_loader_source, train_loader_target, optimizer,
+        trainer.train(args, epoch, train_loader_source, train_loader_target, optimizer,
                       train_iters=len(train_loader_source), print_freq=args.print_freq)
 
         if ((epoch + 1) % args.eval_step == 0 or (epoch == args.epochs - 1)):
 
             print("Test on target domain:")
-            _, mAP = evaluator.evaluate(test_loader_target, dataset_target.query, dataset_target.gallery, cmc_flag=True,
+            _, mAP = evaluator.evaluate(args, epoch, test_loader_target, dataset_target.query, dataset_target.gallery, cmc_flag=True,
                                rerank=args.rerank)
             is_best = mAP > best_mAP
             best_mAP = max(mAP, best_mAP)
@@ -169,11 +171,16 @@ def main_worker(args):
 
             print('\n * Finished epoch {:3d}  target mAP: {:5.1%}  best: {:5.1%}{}\n'.
                   format(epoch, mAP, best_mAP, ' *' if is_best else ''))
+        
+        if args.arch == 'cresnet50':
+            if epoch == 0 or epoch % args.update_interval == 0:
+                for idx, conststyle in enumerate(trainer.model.module.conststyle):
+                    conststyle.cal_mean_std(idx, epoch)
 
 
     print("Test on target domain:")
     evaluator.evaluate(test_loader_target, dataset_target.query, dataset_target.gallery, cmc_flag=True,
-                       rerank=args.rerank)
+                    rerank=args.rerank)
 
 
 if __name__ == '__main__':
@@ -216,6 +223,11 @@ if __name__ == '__main__':
     parser.add_argument('--iters', type=int, default=200)
     parser.add_argument('--seed', type=int, default=1)
     parser.add_argument('--print-freq', type=int, default=10)
+    parser.add_argument('--num_conststyle', type=int, default=3)
+    parser.add_argument('--num_cluster', type=int, default=3)
+    parser.add_argument('--update_interval', type=int, default=20)
+    parser.add_argument('--alpha', type=float, default=0.5)
+    parser.add_argument('--prob', type=float, default=0.6)
     parser.add_argument('--margin', type=float, default=0.0, help='margin for the triplet loss with batch hard')
     # path
     working_dir = osp.dirname(osp.abspath(__file__))

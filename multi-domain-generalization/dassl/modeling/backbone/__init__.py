@@ -14,7 +14,7 @@ from .resnet import (
 from .alexnet import alexnet
 from .mobilenetv2 import mobilenetv2
 from .wide_resnet import wide_resnet_16_4, wide_resnet_28_2, wide_resnet_16_4_mixstyle, wide_resnet_16_4_uncertainty, wide_resnet_16_4_conststyle, wide_resnet_16_4_correlated_uncertainty
-from .uresnet import uresnet18, curesnet18, uresnet50, curesnet50
+from .uresnet import uresnet18, curesnet18, uresnet50, curesnet50, usresnet18, usresnet50, cusresnet18, cusresnet50
 from .cnn_digitsdg import cnn_digitsdg, cnn_digitsdg_mixstyle, cnn_digitsdg_uncertainty, cnn_digitsdg_correlated_uncertainty, cnn_digitsdg_conststyle
 from .efficientnet import (
     efficientnet_b0, efficientnet_b1, efficientnet_b2, efficientnet_b3,

@@ -18,7 +18,7 @@ class PreTrainer(object):
         self.criterion_ce = CrossEntropyLabelSmooth(num_classes).cuda()
         self.criterion_triple = SoftTripletLoss(margin=margin).cuda()
 
-    def train(self, epoch, data_loader_source, data_loader_target, optimizer, train_iters=200, print_freq=1):
+    def train(self, args, epoch, data_loader_source, data_loader_target, optimizer, train_iters=200, print_freq=1):
         self.model.train()
 
         batch_time = AverageMeter()
@@ -36,7 +36,13 @@ class PreTrainer(object):
 
             s_inputs, targets = self._parse_data(source_inputs)
             #t_inputs, _ = self._parse_data(target_inputs)
-            s_features, s_cls_out = self.model(s_inputs)
+            if args.arch == 'cresnet50':
+                if epoch == 0:
+                    s_features, s_cls_out = self.model(s_inputs, store_feature=True, apply_conststyle=False)
+                else:
+                    s_features, s_cls_out = self.model(s_inputs, store_feature=True, apply_conststyle=True)
+            else:
+                s_features, s_cls_out = self.model(s_inputs)
             # target samples: only forward
             # t_features, _ = self.model(t_inputs)
 

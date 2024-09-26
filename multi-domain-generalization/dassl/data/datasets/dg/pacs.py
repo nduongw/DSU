@@ -84,7 +84,11 @@ class PACS(DatasetBase):
                 impath_label_list = self._read_split_pacs(file)
 
             for impath, label in impath_label_list:
-                item = Datum(impath=impath, label=label, domain=domain)
+                if split == 'test':
+                    domain_idx = domain + 10
+                else:
+                    domain_idx = domain
+                item = Datum(impath=impath, label=label, domain=domain_idx)
                 items.append(item)
 
         return items
@@ -205,7 +209,7 @@ class TotalPACS(DatasetBase):
 
             for impath, label in impath_label_list:
                 if split == 'test':
-                    domain = 3
+                    domain += 10
                 item = Datum(impath=impath, label=label, domain=domain)
                 items.append(item)        
         

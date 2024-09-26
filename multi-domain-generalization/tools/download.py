@@ -124,6 +124,7 @@ def download_pacs(data_dir):
               full_path)
 
 
+
 # Office-Home #################################################################
 
 def download_office_home(data_dir):
@@ -150,7 +151,19 @@ def download_cifar10(data_dir):
     download_and_extract("https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz",
                          os.path.join(data_dir, "cifar-10-python.tar.gz"))
 
+def download_gta5(data_dir):
+    # Original URL: http://hemanthdv.org/OfficeHome-Dataset/
+    full_path = stage_path(data_dir, "oxford")
 
+    download_and_extract("https://download.visinf.tu-darmstadt.de/data/from_games/data/01_images.zip",
+                         os.path.join(data_dir, "01_images.zip"))
+
+def download_oxford(data_dir):
+    # Original URL: http://hemanthdv.org/OfficeHome-Dataset/
+    full_path = stage_path(data_dir, "oxford")
+
+    download_and_extract("https://thor.robots.ox.ac.uk/~vgg/data/pets/images.tar.gz",
+                         os.path.join(data_dir, "images.tar.gz"))
 # DomainNET ###################################################################
 
 def download_domain_net(data_dir):
@@ -296,9 +309,11 @@ if __name__ == "__main__":
     # download_domain_net(args.data_dir)
     # download_vlcs(args.data_dir)
     # download_terra_incognita(args.data_dir)
-    download_spawrious(args.data_dir)
+    # download_spawrious(args.data_dir)
+    download_oxford(args.data_dir)
     # download_sviro(args.data_dir)
     # Camelyon17Dataset(root_dir=args.data_dir, download=True)
     # FMoWDataset(root_dir=args.data_dir, download=True)
     # download_cifar10(args.data_dir)
+    
     

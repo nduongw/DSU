@@ -3,10 +3,10 @@ DATA=./DATA
 DATASET=cifar10_c
 D1=cifar10
 D2=cifar10_c
-SEED=42
+SEED=40
 method=baseline
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -18,7 +18,7 @@ method=baseline
 --output-dir output/dg/${DATASET}/${method}/${D2} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -30,7 +30,7 @@ method=baseline
 --output-dir output/dg/${DATASET}/${method}/${D2} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -42,7 +42,7 @@ method=baseline
 --output-dir output/dg/${DATASET}/${method}/${D2} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -54,7 +54,7 @@ method=baseline
 --output-dir output/dg/${DATASET}/${method}/${D2} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \

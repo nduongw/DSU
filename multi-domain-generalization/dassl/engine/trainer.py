@@ -109,6 +109,7 @@ class TrainerBase:
         self._optims = OrderedDict()
         self._scheds = OrderedDict()
         self._writer = None
+        self._best_acc = -1.0
 
     def register_model(self, name='model', model=None, optim=None, sched=None):
         if self.__dict__.get('_models') is None:
@@ -344,6 +345,7 @@ class SimpleTrainer(TrainerBase):
         self.build_data_loader()
         self.build_model()
         self.evaluator = build_evaluator(cfg, lab2cname=self.dm.lab2cname)
+        self._best_acc = -1.0
 
     def check_cfg(self, cfg):
         """Check whether some variables are set correctly for
@@ -437,7 +439,11 @@ class SimpleTrainer(TrainerBase):
         ) % self.cfg.TRAIN.CHECKPOINT_FREQ == 0 if self.cfg.TRAIN.CHECKPOINT_FREQ > 0 else False
 
         if not_last_epoch and do_test and meet_test_freq:
-            self.test()
+            results = self.test()
+            if results['accuracy'] > self._best_acc:
+                print(f'Test accuracy increases from {round(self._best_acc, 2)} to {round(results["accuracy"], 2)} --> save model')
+                self.save_model(self.epoch, self.output_dir)
+                self._best_acc = results['accuracy']
 
         if not_last_epoch and meet_checkpoint_freq:
             self.save_model(self.epoch, self.output_dir)
@@ -454,7 +460,6 @@ class SimpleTrainer(TrainerBase):
 
         for batch_idx, batch in enumerate(data_loader):
             input, label = self.parse_batch_test(batch)
-            softmax = nn.Softmax()
             output = self.model_inference(input)
             self.evaluator.process(output, label)
 
@@ -467,6 +472,8 @@ class SimpleTrainer(TrainerBase):
                     f'test {k}': v 
                 }, step=self.epoch+1)
             self.write_scalar(tag, v, self.epoch)
+        
+        return results
 
     @torch.no_grad()
     def grad_cam(self):

@@ -5,7 +5,7 @@ D1=art_painting
 D2=cartoon
 D3=photo
 D4=sketch
-SEED=42
+SEED=13
 method=csu
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \

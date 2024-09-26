@@ -20,10 +20,10 @@ method=conststyle
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D1} \
 --cluster ot \
---num_clusters 1 \
+--num_clusters 3 \
 --update_interval 25 \
---c_prob 0.5 \
---prob 0.6 \
+--prob 0.5 \
+--conststyle_type ver1 \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -37,10 +37,10 @@ method=conststyle
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D2} \
 --cluster ot \
---num_clusters 1 \
+--num_clusters 3 \
 --update_interval 25 \
---c_prob 0.5 \
---prob 0.6 \
+--conststyle_type ver1 \
+--prob 0.5 \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -54,10 +54,10 @@ method=conststyle
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D3} \
 --cluster ot \
---num_clusters 1 \
+--num_clusters 3 \
 --update_interval 25 \
---c_prob 0.5 \
---prob 0.6 \
+--conststyle_type ver1 \
+--prob 0.5 \
 --resume false)
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
@@ -71,8 +71,8 @@ method=conststyle
 --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
 --output-dir output/dg/${DATASET}/${method}/${D4} \
 --cluster ot \
---num_clusters 1 \
+--num_clusters 3 \
 --update_interval 25 \
---c_prob 0.5 \
---prob 0.6 \
+--conststyle_type ver1 \
+--prob 0.5 \
 --resume false)

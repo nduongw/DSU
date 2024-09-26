@@ -53,7 +53,11 @@ class VLCS(DatasetBase):
                 impaths = glob.glob(osp.join(path, folder, '*.jpg'))
 
                 for impath in impaths:
-                    item = Datum(impath=impath, label=label, domain=domain)
+                    if split == 'test':
+                        domain_idx = domain + 10
+                    else:
+                        domain_idx = domain
+                    item = Datum(impath=impath, label=label, domain=domain_idx)
                     items.append(item)
 
         return items

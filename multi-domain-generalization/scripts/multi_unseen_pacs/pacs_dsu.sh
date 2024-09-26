@@ -5,10 +5,10 @@ D1=art_painting
 D2=cartoon
 D3=photo
 D4=sketch
-SEED=42
+SEED=13
 method=dsu
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -20,7 +20,7 @@ method=dsu
 --output-dir output/dg/${DATASET}/${method}/${D1}_${D2} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -32,7 +32,7 @@ method=dsu
 --output-dir output/dg/${DATASET}/${method}/${D1}_${D3} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -44,7 +44,7 @@ method=dsu
 --output-dir output/dg/${DATASET}/${method}/${D1}_${D4} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -56,7 +56,7 @@ method=dsu
 --output-dir output/dg/${DATASET}/${method}/${D2}_${D3} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \
@@ -68,7 +68,7 @@ method=dsu
 --output-dir output/dg/${DATASET}/${method}/${D2}_${D4} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer Vanilla \
 --uncertainty 0.5 \

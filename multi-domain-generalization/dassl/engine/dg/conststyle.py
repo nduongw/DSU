@@ -3,25 +3,19 @@ import torch
 import numpy as np
 import time
 import os.path as osp
+import torch.nn as nn
 from dassl.engine import *
-import csv
 from dassl.metrics import compute_accuracy
 from dassl.utils import (
     MetricMeter, AverageMeter, load_checkpoint,
     save_checkpoint, load_pretrained_weights
 )
 from dassl.optim import build_optimizer, build_lr_scheduler
-
-def logarithmic_degradation(start, end, steps):
-    x = np.linspace(1, steps, steps)
-    return start - (start - end) * (np.log(x) / np.log(steps))
-
-def linear_degradation(start, end, steps):
-    return np.linspace(start, end, steps)
+from dassl.evaluation import build_evaluator
 
 class ConstStyleModel(SimpleNet):
-    def forward(self, x, domain, return_feature=False, store_feature=False, apply_conststyle=False, is_test=False):
-        f = self.backbone(x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
+    def forward(self, x, domain, return_feature=False, store_feature=False, apply_conststyle=False, is_test=False, apply_rate=0.0):
+        f = self.backbone(x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test, apply_rate=apply_rate)
         if self.head is not None:
             f = self.head(f)
 
@@ -40,6 +34,9 @@ class ConstStyleTrainer(SimpleTrainer):
     """ConstStyle method."""
     def __init__(self, cfg, args):
         super().__init__(cfg, args)
+        self.evaluator2 = build_evaluator(cfg, lab2cname=self.dm.lab2cname)
+        self.evaluator3 = build_evaluator(cfg, lab2cname=self.dm.lab2cname)
+        self.evaluator4 = build_evaluator(cfg, lab2cname=self.dm.lab2cname)
     
     def build_model(self):
         """Build and register model.
@@ -73,27 +70,14 @@ class ConstStyleTrainer(SimpleTrainer):
     def before_epoch(self):
         for conststyle in self.model.backbone.conststyle:
             conststyle.clear_memory()
-    
+        
     def run_epoch(self, epoch):
-        if self.args.dynamic_func == 'loga':
-            momentum = logarithmic_degradation(0.01, self.cfg.TRAINER.RIDG.MOMENTUM, self.max_epoch)
-            reg = logarithmic_degradation(0.1, self.cfg.TRAINER.RIDG.REG, self.max_epoch)
-        elif self.args.dynamic_func == 'linear':
-            momentum = linear_degradation(0.01, self.cfg.TRAINER.RIDG.MOMENTUM, self.max_epoch)
-            reg = linear_degradation(0.1, self.cfg.TRAINER.RIDG.REG, self.max_epoch)
-            
         self.set_model_mode('train')
         losses = MetricMeter()
-        batch_time = AverageMeter()
-        data_time = AverageMeter()
         self.num_batches = len(self.train_loader_x)
 
-        end = time.time()
         for self.batch_idx, batch in enumerate(self.train_loader_x):
-            data_time.update(time.time() - end)
-            # loss_summary = self.forward_backward(batch, epoch, momentum[self.epoch], reg[self.epoch])
-            loss_summary = self.forward_backward(batch, epoch)
-            batch_time.update(time.time() - end)
+            loss_summary = self.forward_backward(batch)
             losses.update(loss_summary)
 
             if (self.batch_idx + 1) % self.cfg.TRAIN.PRINT_FREQ == 0:
@@ -119,24 +103,27 @@ class ConstStyleTrainer(SimpleTrainer):
                     }, step=self.epoch+1)
                     
             self.write_scalar('train/lr', self.get_current_lr(), n_iter)
-
-            end = time.time()
-    
+        
     def update_cluster(self):
         if self.epoch == 0 or self.epoch % self.args.update_interval == 0:
             for idx, conststyle in enumerate(self.model.backbone.conststyle):
                 conststyle.cal_mean_std(idx, self.epoch)
+        elif self.epoch == 1:
+            for idx, conststyle in enumerate(self.model.backbone.conststyle):
+                conststyle.calculate_domain_distance(idx)
     
-    def model_inference(self, input, domain, is_test=False):
+    def model_inference(self, input, label, domain, is_test=False, apply_rate=0.0):
         if self.epoch == 0:
-            return self.model(input, domain)
+            output = self.model(input, domain)
+        elif self.epoch % self.args.update_interval != 0:
+            output = self.model(input, domain, store_feature=True, apply_conststyle=True, is_test=is_test, apply_rate=apply_rate)
         else:
-            return self.model(input, domain, store_feature=True, apply_conststyle=True, is_test=is_test)
+            output = self.model(input, domain, apply_conststyle=True, is_test=is_test, apply_rate=apply_rate)
+        return output
 
-    def forward_backward(self, batch, epoch):
+    def forward_backward(self, batch):
         input, label, domain = self.parse_batch_train(batch)
-
-        if epoch == 0:
+        if self.epoch == 0:
             output = self.model(input, domain, store_feature=True, apply_conststyle=False)
         else:
             output = self.model(input, domain, store_feature=True, apply_conststyle=True)
@@ -226,19 +213,48 @@ class ConstStyleTrainer(SimpleTrainer):
         """A generic testing pipeline."""
         self.set_model_mode('eval')
         self.evaluator.reset()
+        self.evaluator2.reset()
+        self.evaluator3.reset()
+        self.evaluator4.reset()
         split = self.cfg.TEST.SPLIT
         print('Do evaluation on {} set'.format(split))
         data_loader = self.val_loader if split == 'val' else self.test_loader
         assert data_loader is not None
-
         for batch_idx, batch in enumerate(data_loader):
             input, label = self.parse_batch_test(batch)
-            domain = torch.tensor([3 for i in range(len(label))])
-            output = self.model_inference(input, domain, is_test=True)
-            self.evaluator.process(output, label)
-
+            domain = batch['domain']
+            if self.cfg.TRAINER.CONSTSTYLE.TYPE == 'ver2' or self.cfg.TRAINER.CONSTSTYLE.TYPE == 'ver3':
+                output_list = []
+                for i in range(self.cfg.NUM_CLUSTERS):
+                    output = self.model_inference(input, label, domain, is_test=True)
+                    output_list.append(output)
+                self.evaluator.process_multiple(output_list, label)
+            else:
+                if self.epoch == 0:
+                    output = self.model_inference(input, label, domain, is_test=True)
+                    self.evaluator.process(output, label)
+                    self.evaluator2.process(output, label)
+                    self.evaluator3.process(output, label)
+                    self.evaluator4.process(output, label)
+                else:
+                    output = self.model_inference(input, label, domain, is_test=True, apply_rate=0.1)
+                    output2 = self.model_inference(input, label, domain, is_test=True)
+                    mean_output = (output + output2) / 2
+                    sup_output = torch.where(output > output2, output, output2)
+                    self.evaluator.process(output, label)
+                    self.evaluator2.process(output2, label)
+                    self.evaluator3.process(mean_output, label)
+                    self.evaluator4.process(sup_output, label)
+                
+        print('Result with fully converted prediction:')
         results = self.evaluator.evaluate()
-
+        print('Result with half converted prediction:')
+        results2 = self.evaluator2.evaluate()
+        print('Result with combination converted prediction:')
+        results3 = self.evaluator3.evaluate()
+        print('Result with superior converted prediction:')
+        results4 = self.evaluator4.evaluate()
+        
         for k, v in results.items():
             tag = '{}/{}'.format(split, k)
             if self.args.wandb:
@@ -246,4 +262,30 @@ class ConstStyleTrainer(SimpleTrainer):
                     f'test {k}': v 
                 }, step=self.epoch+1)
             self.write_scalar(tag, v, self.epoch)
+        
+        for k, v in results2.items():
+            tag = '{}/{}'.format(split, k)
+            if self.args.wandb:
+                self.args.tracker.log({
+                    f'test_half {k}': v 
+                }, step=self.epoch+1)
+            self.write_scalar(tag, v, self.epoch)
+        
+        for k, v in results3.items():
+            tag = '{}/{}'.format(split, k)
+            if self.args.wandb:
+                self.args.tracker.log({
+                    f'test_comb {k}': v 
+                }, step=self.epoch+1)
+            self.write_scalar(tag, v, self.epoch)
+        
+        for k, v in results4.items():
+            tag = '{}/{}'.format(split, k)
+            if self.args.wandb:
+                self.args.tracker.log({
+                    f'test_sup {k}': v 
+                }, step=self.epoch+1)
+            self.write_scalar(tag, v, self.epoch)
+
+        return results4
     

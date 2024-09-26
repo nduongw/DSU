@@ -1,4 +1,4 @@
-export NGPUS=4
+export NGPUS=2
 # train on source data
 python -m torch.distributed.launch --nproc_per_node=$NGPUS train_src.py -cfg configs/deeplabv2_r101_src.yaml OUTPUT_DIR results/src_r101_try/
 # train with fine-grained adversarial alignment

@@ -3,7 +3,7 @@ import os.path as osp
 from collections import OrderedDict, defaultdict
 import torch
 from sklearn.metrics import confusion_matrix
-
+import torch.nn as nn
 from .build import EVALUATOR_REGISTRY
 
 
@@ -47,13 +47,61 @@ class Classification(EvaluatorBase):
     def process(self, mo, gt):
         # mo (torch.Tensor): model output [batch, num_classes]
         # gt (torch.LongTensor): ground truth [batch]
+        # print(f'total: {self._total}')
+        # softmax = nn.Softmax(dim=1)
+        # score = softmax(mo)
         pred = mo.max(1)[1]
+        # for i in range(len(score)):
+        #     if pred[i] != gt[i]:
+        #         print(f'Score :{score[i].max().item()} - Pred: {pred[i].item()} | {gt[i].item()}')
         matched = pred.eq(gt).float()
         self._correct += int(matched.sum().item())
         self._total += gt.shape[0]
 
         self._y_true.extend(gt.data.cpu().numpy().tolist())
         self._y_pred.extend(pred.data.cpu().numpy().tolist())
+
+        if self._per_class_res is not None:
+            for i, label in enumerate(gt):
+                label = label.item()
+                matched_i = int(matched[i].item())
+                self._per_class_res[label].append(matched_i)
+    
+    def process2(self, mo, gt):
+        # mo (torch.Tensor): model output [batch, num_classes]
+        # gt (torch.LongTensor): ground truth [batch]
+        matched = mo.eq(gt).float()
+        self._correct += int(matched.sum().item())
+        self._total += gt.shape[0]
+
+        self._y_true.extend(gt.data.cpu().numpy().tolist())
+        self._y_pred.extend(mo.data.cpu().numpy().tolist())
+
+        if self._per_class_res is not None:
+            for i, label in enumerate(gt):
+                label = label.item()
+                matched_i = int(matched[i].item())
+                self._per_class_res[label].append(matched_i)
+    
+    def process_multiple(self, mo, gt):
+        mean_pred = torch.zeros_like(mo[0])
+        mean_pred = torch.zeros_like(mo[0])
+        for val in mo:
+            pred = self.softmax(val)
+            max_idx, max_val = pred.max(1)[1], pred.max(1)[0]
+            print(f'Indices coresspond with highest value: {max_idx}, {max_val}')
+            print(f'Prediction of output: {val}\n')
+            mean_pred += pred
+        
+        final_pred = mean_pred.max(1)[1]
+        print(f'Final prediction: {final_pred}\n')
+        print(f'Groundtruth: {gt}\n')
+        matched = final_pred.eq(gt).float()
+        self._correct += int(matched.sum().item())
+        self._total += gt.shape[0]
+
+        self._y_true.extend(gt.data.cpu().numpy().tolist())
+        self._y_pred.extend(final_pred.data.cpu().numpy().tolist())
 
         if self._per_class_res is not None:
             for i, label in enumerate(gt):

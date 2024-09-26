@@ -15,8 +15,8 @@ class DDAIG(TrainerX):
     https://arxiv.org/abs/2003.06054.
     """
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
+    def __init__(self, cfg, args):
+        super().__init__(cfg, args)
         self.lmda = cfg.TRAINER.DDAIG.LMDA
         self.clamp = cfg.TRAINER.DDAIG.CLAMP
         self.clamp_min = cfg.TRAINER.DDAIG.CLAMP_MIN

@@ -14,7 +14,7 @@ def fix_bn(m):
     if classname.find('BatchNorm') != -1:
         m.track_running_stats=False
 
-def extract_features(model, data_loader, print_freq=10, metric=None):
+def extract_features(args, epoch, model, data_loader, print_freq=10, metric=None):
     model.eval()
     model.apply(fix_bn)
     batch_time = AverageMeter()
@@ -28,7 +28,7 @@ def extract_features(model, data_loader, print_freq=10, metric=None):
         for i, (imgs, fnames, pids, _) in enumerate(data_loader):
             data_time.update(time.time() - end)
 
-            outputs = extract_cnn_feature(model, imgs)
+            outputs = extract_cnn_feature(args, epoch, model, imgs)
             for fname, output, pid in zip(fnames, outputs, pids):
                 features[fname] = output
                 labels[fname] = pid
@@ -112,9 +112,9 @@ class Evaluator(object):
         super(Evaluator, self).__init__()
         self.model = model
 
-    def evaluate(self, data_loader, query, gallery, metric=None, cmc_flag=False, rerank=False, pre_features=None):
+    def evaluate(self, args, epoch, data_loader, query, gallery, metric=None, cmc_flag=False, rerank=False, pre_features=None):
         if (pre_features is None):
-            features, _ = extract_features(self.model, data_loader)
+            features, _ = extract_features(args, epoch, self.model, data_loader)
         else:
             features = pre_features
         distmat, query_features, gallery_features = pairwise_distance(features, query, gallery, metric=metric)

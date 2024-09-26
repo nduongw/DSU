@@ -6,7 +6,7 @@ D2=cartoon
 D3=photo
 D4=sketch
 SEED=42
-method=uncertainty
+method=csu
 
 (CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \

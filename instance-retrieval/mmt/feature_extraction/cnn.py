@@ -4,12 +4,18 @@ from collections import OrderedDict
 
 from ..utils import to_torch
 
-def extract_cnn_feature(model, inputs, modules=None):
+def extract_cnn_feature(args, epoch, model, inputs, modules=None):
     model.eval()
     # with torch.no_grad():
     inputs = to_torch(inputs).cuda()
     if modules is None:
-        outputs = model(inputs)
+        if args.arch == 'cresnet50':
+            if epoch == 0:
+                outputs = model(inputs)
+            else:
+                outputs = model(inputs, apply_conststyle=True, is_test=True, apply_rate=0.5)
+        else:
+            outputs = model(inputs)
         outputs = outputs.data.cpu()
         return outputs
     # Register forward hook for each module

@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 from mmcv.runner import load_checkpoint
-from torchvision.models.utils import load_state_dict_from_url
 
 
 __all__ = [

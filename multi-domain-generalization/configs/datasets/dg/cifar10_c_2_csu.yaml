@@ -6,7 +6,7 @@ INPUT:
 
 DATASET:
   NAME: 'CIFAR10C'
-  CIFAR_C_TYPE: 'gaussian_noise'
+  CIFAR_C_TYPE: 'glass_blur'
   CIFAR_C_LEVEL: 2
 
 MODEL:

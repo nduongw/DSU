@@ -1,6 +1,5 @@
 import torch.nn as nn
 from mmcv.runner import load_checkpoint
-from torchvision.models.utils import load_state_dict_from_url
 import torch
 import numpy as np
 
@@ -60,173 +59,6 @@ class DistributionUncertainty(nn.Module):
         x = x * gamma.reshape(x.shape[0], x.shape[1], 1, 1) + beta.reshape(x.shape[0], x.shape[1], 1, 1)
 
         return x
-
-class ConstStyle(nn.Module):
-    def __init__(self, cfg, eps=1e-6):
-        super().__init__()
-        self.cfg = cfg
-        self.mean = []
-        self.std = []
-        self.eps = eps
-        self.const_mean = None
-        self.const_cov = None
-        self.cum_mean = None
-        self.cum_std = None
-        self.check = False
-        self.domain_list = []
-        self.scaled_feats = []
-        self.cluster_samples = []
-        self.factor = 1.0
-    
-    def clear_memory(self):
-        self.mean = []
-        self.std = []
-        self.domain_list = []
-        self.scaled_feats = []
-        
-    def get_style(self, x):
-        mu = x.mean(dim=[2, 3], keepdim=True)
-        var = x.var(dim=[2, 3], keepdim=True)
-        var = var.sqrt()
-        mu, var = mu.detach().squeeze().cpu().numpy(), var.detach().squeeze().cpu().numpy()
-        
-        return mu, var
-    
-    def store_style(self, x, domains=False):
-        mu, var = self.get_style(x)
-        self.mean.extend(mu)
-        self.std.extend(var)
-        if domains:
-            self.domain_list.extend([i.item() for i in domains])
-    
-    def cal_mean_std(self, idx, epoch):
-        domain_list = np.array(self.domain_list)
-        #clustering
-        mean_list = copy.copy(self.mean)
-        std_list = copy.copy(self.std)
-        mean_list = np.array(mean_list)
-        std_list = np.array(std_list)
-        stacked_data = np.stack((mean_list, std_list), axis=1)
-        reshaped_data = stacked_data.reshape((len(mean_list), -1))
-        # pca = PCA(n_components=32)
-        # pca_data = pca.fit_transform(reshaped_data)
-        pca_data = reshaped_data
-        # param_grid = {
-        #     "n_components": range(1, 7),
-        #     "covariance_type": ["full"],
-        # }
-        # bayes_cluster = GridSearchCV(
-        #     GaussianMixture(init_params='k-means++'), param_grid=param_grid, scoring=gmm_bic_score
-        # )
-        num_cluster = self.cfg.NUM_CLUSTERS
-        bayes_cluster = BayesianGaussianMixture(n_components=num_cluster, covariance_type='full', init_params='k-means++', max_iter=200)
-        bayes_cluster.fit(pca_data)
-        
-        labels = bayes_cluster.predict(pca_data)
-        unique_labels, counts = np.unique(labels, return_counts=True)
-        
-        cluster_samples = []
-        cluster_samples_idx = []
-        for val in unique_labels:
-            print(f'Get samples belong to cluster {val}')
-            samples = [reshaped_data[i] for i in range(len(labels)) if labels[i] == val]
-            samples_idx = [i for i in range(len(labels)) if labels[i] == val]
-            samples = np.stack(samples)
-            print(f'Cluster {val} has {len(samples)} samples')
-            cluster_samples.append(samples)
-            cluster_samples_idx.append(samples_idx)
-        
-        if self.cfg.CLUSTER == 'llh':
-            log_likelihood_score = []
-            for cluster_idx, cluster_sample_idx in enumerate(cluster_samples_idx):
-                cluster_sample = [pca_data[i] for i in cluster_sample_idx]
-                sample_score = bayes_cluster.score_samples(cluster_sample)
-                mean_score = np.mean(sample_score)
-                print(f'Mean log likelihood of cluster {cluster_idx} is {mean_score}')
-                log_likelihood_score.append(mean_score)
-
-            idx_val = np.argmax(log_likelihood_score)
-            print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with log likelihood score {log_likelihood_score[idx_val]}')
-        elif self.cfg.CLUSTER == 'ot':
-            ot_score = []
-            for i in range(len(cluster_samples_idx)):
-                total_cost = 0.0
-                cluster_sample_x = [pca_data[x] for x in cluster_samples_idx[i]]
-                for j in range(len(cluster_samples_idx)):
-                    if i == j:
-                        continue
-                    else:
-                        cluster_sample_y = [pca_data[k] for k in cluster_samples_idx[j]]
-                        cluster_sample_x = np.array(cluster_sample_x)
-                        cluster_sample_y = np.array(cluster_sample_y)
-                        M = ot.dist(cluster_sample_y, cluster_sample_x)
-                        a, b = np.ones(len(cluster_sample_y)) / len(cluster_sample_y), np.ones(len(cluster_sample_x)) / len(cluster_sample_x) 
-                        cost = ot.emd2(a, b, M)
-                        # pwd = ot.sliced.sliced_wasserstein_distance(cluster_sample_y, cluster_sample_x, seed=self.cfg.SEED, n_projections=128)
-                        print(f'Cost to move from cluster {j} to cluster {i} is {cost}')
-                        total_cost += cost
-                print(f'Total cost of cluster {i}: {total_cost}')
-                ot_score.append(total_cost)
-                        
-            idx_val = np.argmin(ot_score)
-            print(f'Layer {idx} chooses cluster {unique_labels[idx_val]} with optimal transport cost {ot_score[idx_val]}')
-            
-        self.const_mean = torch.from_numpy(bayes_cluster.means_[idx_val])
-        self.const_cov = torch.from_numpy(bayes_cluster.covariances_[idx_val])
-        
-    def forward(self, x, store_feature=False, apply_conststyle=False, is_test=False):
-        if store_feature:
-            self.store_style(x)
-        
-        if apply_conststyle:
-            mu = x.mean(dim=[2, 3], keepdim=True)
-            var = x.var(dim=[2, 3], keepdim=True)
-            sig = (var + self.eps).sqrt()
-            mu, sig = mu.detach(), sig.detach()
-            x_normed = (x-mu) / sig
-            if is_test:
-                # const_value = torch.reshape(self.const_mean, (2, -1))
-                # const_mean = const_value[0].float()
-                # const_std = const_value[1].float()
-                # const_mean = torch.reshape(const_mean, (1, const_mean.shape[0], 1, 1)).to('cuda')
-                # const_std = torch.reshape(const_std, (1, const_std.shape[0], 1, 1)).to('cuda')
-                const_mean = torch.cum_mean.to('cuda')
-                const_std = torch.cum_std.to('cuda')
-                out = x_normed * const_std + const_mean
-                return out
-            else:
-                generator = torch.distributions.MultivariateNormal(loc=self.const_mean, covariance_matrix = self.const_cov)
-                style_mean = []
-                style_std = []
-                for i in range(len(x_normed)):
-                    style = generator.sample()
-                    style = torch.reshape(style, (2, -1))
-                    style_mean.append(style[0])
-                    style_std.append(style[1])
-                
-                const_mean = torch.vstack(style_mean).float()
-                const_std = torch.vstack(style_std).float()
-                
-                const_mean = torch.reshape(const_mean, (const_mean.shape[0], const_mean.shape[1], 1, 1)).to('cuda')
-                const_std = torch.reshape(const_std, (const_std.shape[0], const_std.shape[1], 1, 1)).to('cuda')
-                
-            out = x_normed * const_std + const_mean
-            mean = out.mean(dim=[2, 3], keepdim=True)
-            var = out.var(dim=[2, 3], keepdim=True)
-            std = var.sqrt()
-            if not self.check:
-                self.cum_mean = torch.mean(mean, dim=0, keepdim=True)
-            else:
-                self.cum_mean = 0.9 * self.cum_mean + 0.1 * torch.mean(mean, dim=0, keepdim=True)
-            
-            if not self.check:
-                self.cum_std = torch.mean(std, dim=0, keepdim=True)
-            else:
-                self.cum_std = 0.9 * self.cum_std + 0.1 * torch.mean(std, dim=0, keepdim=True)
-            self.check = True
-            return out
-        else:
-            return x
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
     """3x3 convolution with padding"""
@@ -338,12 +170,8 @@ class ResNet(nn.Module):
             self.perbutation = DistributionUncertainty(p=uncertainty)
         else:
             self.perbutation = torch.nn.Identity()
-        
-        if conststyle:
-            self.conststyle = [ConstStyle(cfg) for i in pos]
 
         self.pos = pos
-
 
         self.inplanes = 64
         self.dilation = 1

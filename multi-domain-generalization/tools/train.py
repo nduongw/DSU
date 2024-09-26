@@ -70,8 +70,14 @@ def reset_cfg(cfg, args):
     if args.mixstyle_prob:
         cfg.TRAINER.MIXSTYLE.PRATE = args.mixstyle_prob
     
-    if args.c_prob:
-        cfg.TRAINER.CONSTSTYLE.PAPPLY = args.c_prob
+    if args.alpha:
+        cfg.TRAINER.CONSTSTYLE.ALPHA = args.alpha
+    
+    if args.conststyle_type:
+        cfg.TRAINER.CONSTSTYLE.TYPE = args.conststyle_type
+    
+    if args.num_conststyle:
+        cfg.TRAINER.CONSTSTYLE.NUM_CONSTSTYLE = args.num_conststyle
         
     #if args.uncertainty:
     cfg.MODEL.UNCERTAINTY = args.uncertainty
@@ -94,7 +100,7 @@ def setup_cfg(args):
 def main(args):
     cfg = setup_cfg(args)
     if args.wandb:
-        if cfg.DATASET.NAME == 'DigitsDG' or cfg.DATASET.NAME == 'CIFAR10C':
+        if cfg.DATASET.NAME == 'DigitsDG' or cfg.DATASET.NAME == 'CIFAR10C' or cfg.DATASET.NAME == 'DigitSingle':
             if 'mixstyle' in cfg.MODEL.BACKBONE.NAME:
                 job_type = 'MixStyle2'
             elif 'correlated' in cfg.MODEL.BACKBONE.NAME:
@@ -102,22 +108,30 @@ def main(args):
             elif 'uncertainty' in cfg.MODEL.BACKBONE.NAME:
                 job_type = 'DSU2'
             elif 'conststyle' in cfg.MODEL.BACKBONE.NAME:
-                job_type = f'ConstStyle_mix2layers_p={args.prob}_u={args.update_interval}_mp={args.mixstyle_prob}_cp={args.c_prob}'
+                job_type = f'ConstStyle_mix2layers_p={args.prob}_u={args.update_interval}_mp={args.mixstyle_prob}_alpha={args.alpha}'
             else:
                 job_type = 'Baseline'
         else:
             if 'uresnet' in cfg.MODEL.BACKBONE.NAME and len(cfg.MODEL.BACKBONE.NAME) == 9:
                 job_type = 'DSU'
             elif 'cresnet' in cfg.MODEL.BACKBONE.NAME:
-                job_type = f'ConstStyle_mix2layers_p={args.prob}_u={args.update_interval}_mp={args.mixstyle_prob}_cp={args.c_prob}'
+                job_type = f'ConstStyle_multipred_{args.conststyle_type}_p={args.prob}_u={args.update_interval}_mp={args.mixstyle_prob}_alpha={args.alpha}'
+            elif 'usresnet' in cfg.MODEL.BACKBONE.NAME and len(cfg.MODEL.BACKBONE.NAME) == 10:
+                job_type = 'StyleDSU'
             elif 'curesnet' in cfg.MODEL.BACKBONE.NAME:
                 job_type = 'CSU'
             elif 'ms_l12' in cfg.MODEL.BACKBONE.NAME:
                 job_type = 'MixStyle'
+            elif 'efdmix' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'EFDMix'
             elif cfg.TRAINER.NAME == 'RIDG':
-                job_type = 'RIDG_dynamic'
-            elif cfg.TRAINER.NAME == 'ValueBasedRIDG':
-                job_type = f'ValueBasedRIDG_func={args.dynamic_func}'
+                job_type = 'RIDG'
+            elif cfg.TRAINER.NAME == 'DDAIG':
+                job_type = 'DDAIG'
+            elif cfg.TRAINER.NAME == 'Mixup':
+                job_type = 'Mixup'
+            elif cfg.TRAINER.NAME == 'Cutmix':
+                job_type = 'Cutmix'
             elif cfg.TRAINER.NAME == 'MetaCausal':
                 job_type = 'MetaCausal'
             else:
@@ -245,6 +259,9 @@ if __name__ == '__main__':
     parser.add_argument('--reduce', default = 1, type = int, help = 'reduction factor of data')
     parser.add_argument('--prob', default = 0.5, type = float)
     parser.add_argument('--mixstyle_prob', default = 0.5, type = float)
-    parser.add_argument('--c_prob', default = 0.5, type = float)
+    parser.add_argument('--alpha', default = 0.5, type = float)
+    parser.add_argument('--conststyle_type', default = 'ver1', type = str, help='distance metric')
+    parser.add_argument('--num_conststyle', default = 3, type = int, help='number of integrated conststyle layers')
+    parser.add_argument('--cutmix_prob', default = 0.5, type = float, help='cutmix probability')
     args = parser.parse_args()
     main(args)

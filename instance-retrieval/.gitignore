@@ -142,3 +142,4 @@ debug.py
 DATA
 wandb
 explore/
+logs/
