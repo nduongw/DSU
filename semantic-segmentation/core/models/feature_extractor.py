@@ -48,3 +48,21 @@ class resnet_feature_extractor(nn.Module):
     def forward(self, x):
         out = self.backbone(x)['out']
         return out
+
+class cresnet_feature_extractor(nn.Module):
+    def __init__(self, backbone_name, num_conststyle=3, args=None, pretrained_weights=None, aux=False, pretrained_backbone=True, freeze_bn=False):
+        super(resnet_feature_extractor, self).__init__()
+        bn_layer = nn.BatchNorm2d
+        if freeze_bn:
+            bn_layer = FrozenBatchNorm2d
+        backbone = resnet.__dict__[backbone_name](
+                pretrained=pretrained_backbone, num_conststyle=num_conststyle, args=args,
+                replace_stride_with_dilation=[False, True, True], pretrained_weights=pretrained_weights, norm_layer=bn_layer)
+        return_layers = {'layer4': 'out'}
+        if aux:
+            return_layers['layer3'] = 'aux'
+        self.backbone = IntermediateLayerGetter(backbone, return_layers=return_layers)
+    
+    def forward(self, x):
+        out = self.backbone(x)['out']
+        return out

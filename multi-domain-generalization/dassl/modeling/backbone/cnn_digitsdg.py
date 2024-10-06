@@ -305,37 +305,66 @@ class ConstStyle(nn.Module):
         plt.cla()
         plt.clf()
     
+    # def calculate_domain_distance(self, idx):
+    #     mean_list = np.array(self.mean)
+    #     std_list = np.array(self.std)
+    #     domain_list = np.array(self.domain)
+    #     stacked_data = np.stack((mean_list, std_list), axis=1)
+    #     reshaped_data = stacked_data.reshape((len(mean_list), -1))
+        
+    #     unique_domain = np.unique(domain_list)
+    #     print(f'Unique domain: {unique_domain}')
+    #     seen_domain_mean, seen_domain_cov = [], []
+    #     unseen_domain_mean, unseen_domain_cov = [], []
+    #     for val in unique_domain:
+    #         domain_feats = reshaped_data[domain_list == val]
+    #         domain_distribution = BayesianGaussianMixture(n_components=1, covariance_type='full', init_params='k-means++', max_iter=200)
+    #         domain_distribution.fit(domain_feats)
+    #         if val < 10:
+    #             seen_domain_mean.append(domain_distribution.means_[0])
+    #             seen_domain_cov.append(domain_distribution.covariances_[0])
+    #         else:
+    #             unseen_domain_mean.append(domain_distribution.means_[0])
+    #             unseen_domain_cov.append(domain_distribution.covariances_[0])
+        
+    #     total_distance = 0.0
+    #     for i in range(len(seen_domain_mean)):
+    #         for j in range(len(unseen_domain_mean)):
+    #             distance = wasserstein_distance_multivariate(unseen_domain_mean[j], unseen_domain_cov[j], seen_domain_mean[i], seen_domain_cov[i])
+    #             total_distance += distance
+        
+    #     print(f'Total distance from seen to unseen domain of layer {idx}: {total_distance}')
+        # center_to_unseen_dist = wasserstein_distance_multivariate(unseen_domain_mean[0], unseen_domain_cov[0], self.const_mean.numpy(), self.const_cov.numpy())
+        # print(f'Distance from center to unseen domain of layer {idx}: {center_to_unseen_dist}\n')
     def calculate_domain_distance(self, idx):
         mean_list = np.array(self.mean)
         std_list = np.array(self.std)
         domain_list = np.array(self.domain)
         stacked_data = np.stack((mean_list, std_list), axis=1)
         reshaped_data = stacked_data.reshape((len(mean_list), -1))
-        
         unique_domain = np.unique(domain_list)
         print(f'Unique domain: {unique_domain}')
         seen_domain_mean, seen_domain_cov = [], []
         unseen_domain_mean, unseen_domain_cov = [], []
+        seen_feats, unseen_feats = [], []
         for val in unique_domain:
-            domain_feats = reshaped_data[domain_list == val]
-            domain_distribution = BayesianGaussianMixture(n_components=1, covariance_type='full', init_params='k-means++', max_iter=200)
-            domain_distribution.fit(domain_feats)
             if val < 10:
-                seen_domain_mean.append(domain_distribution.means_[0])
-                seen_domain_cov.append(domain_distribution.covariances_[0])
+                seen_feats.extend(reshaped_data[domain_list == val])
             else:
-                unseen_domain_mean.append(domain_distribution.means_[0])
-                unseen_domain_cov.append(domain_distribution.covariances_[0])
+                unseen_feats.extend(reshaped_data[domain_list == val])
+                
+        seen_dist = BayesianGaussianMixture(n_components=1, covariance_type='full', init_params='k-means++', max_iter=200)
+        seen_dist.fit(seen_feats)
+        seen_domain_mean.append(seen_dist.means_[0])
+        seen_domain_cov.append(seen_dist.covariances_[0])
         
-        total_distance = 0.0
-        for i in range(len(seen_domain_mean)):
-            for j in range(len(unseen_domain_mean)):
-                distance = wasserstein_distance_multivariate(unseen_domain_mean[j], unseen_domain_cov[j], seen_domain_mean[i], seen_domain_cov[i])
-                total_distance += distance
+        unseen_dist = BayesianGaussianMixture(n_components=1, covariance_type='full', init_params='k-means++', max_iter=200)
+        unseen_dist.fit(unseen_feats)
+        unseen_domain_mean.append(unseen_dist.means_[0])
+        unseen_domain_cov.append(unseen_dist.covariances_[0])
         
-        print(f'Total distance from seen to unseen domain of layer {idx}: {total_distance}')
-        # center_to_unseen_dist = wasserstein_distance_multivariate(unseen_domain_mean[0], unseen_domain_cov[0], self.const_mean.numpy(), self.const_cov.numpy())
-        # print(f'Distance from center to unseen domain of layer {idx}: {center_to_unseen_dist}\n')
+        distance = wasserstein_distance_multivariate(unseen_domain_mean[0], unseen_domain_cov[0], seen_domain_mean[0], seen_domain_cov[0])
+        print(f'Total distance from seen to unseen domain of layer {idx}: {distance}')
 
     def forward(self, x, domain, store_feature=False, apply_conststyle=False, is_test=False, apply_rate=0.0):
         if store_feature:
@@ -550,15 +579,9 @@ class ConstConvNet(Backbone):
         self.conv2 = Convolution(c_hidden, c_hidden)
         self.conv3 = Convolution(c_hidden, c_hidden)
         self.conv4 = Convolution(c_hidden, c_hidden)
-        self.num_conststyle = 1
+        self.num_conststyle = 2
         self.conststyle = [ConstStyle(i, cfg) for i in range(self.num_conststyle)]
         self.ms_layers = ['layer1', 'layer2']
-        self.mixstyle = MixStyle(p=cfg.TRAINER.MIXSTYLE.PRATE, alpha=0.1)
-        for layer_name in self.ms_layers:
-            assert layer_name in ["layer1", "layer2", "layer3"]
-        print(
-            f"Insert {self.mixstyle.__class__.__name__} after {self.ms_layers}"
-        )
         self._out_features = 2**2 * c_hidden
 
     def _check_input(self, x):
@@ -573,7 +596,7 @@ class ConstConvNet(Backbone):
         x = self.conststyle[0](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test, apply_rate=apply_rate)
         x = F.max_pool2d(x, 2)
         x = self.conv2(x)
-        # x = self.conststyle[1](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test)
+        x = self.conststyle[1](x, domain, store_feature=store_feature, apply_conststyle=apply_conststyle, is_test=is_test, apply_rate=apply_rate)
         x = F.max_pool2d(x, 2)
         x = self.conv3(x)
         x = F.max_pool2d(x, 2)
@@ -639,5 +662,18 @@ def cnn_digitsdg_conststyle(cfg=None, **kwargs):
         for Domain Generalisation. AAAI 2020.
     """
     model = ConstConvNet(c_hidden=64, cfg=cfg)
+    init_network_weights(model, init_type='kaiming')
+    return model
+
+@BACKBONE_REGISTRY.register()
+def cnn_digitsdg_efd(**kwargs):
+    """
+    This architecture was used for DigitsDG dataset in:
+
+        - Zhou et al. Deep Domain-Adversarial Image Generation
+        for Domain Generalisation. AAAI 2020.
+    """
+    from dassl.modeling.ops import EFDMix
+    model = MSConvNet(c_hidden=64, ms_class=EFDMix, ms_layers=["layer1", "layer2"])
     init_network_weights(model, init_type='kaiming')
     return model

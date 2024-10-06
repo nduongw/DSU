@@ -5,7 +5,7 @@ D1=caltech
 D2=labelme
 D3=pascal
 D4=sun
-SEED=42
+SEED=40
 method=baseline
 
 # (CUDA_VISIBLE_DEVICES=1 python tools/train.py \

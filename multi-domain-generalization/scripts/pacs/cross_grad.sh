@@ -8,57 +8,125 @@ D4=sketch
 SEED=42
 method=CrossGrad
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer CrossGrad \
+# --uncertainty 0.5 \
+# --source-domains ${D2} ${D3} ${D4} \
+# --target-domains ${D1} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/${D1} \
+# --resume false)
+
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer CrossGrad \
+# --uncertainty 0.5 \
+# --source-domains ${D1} ${D3} ${D4} \
+# --target-domains ${D2} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/${D2} \
+# --resume false)
+
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer CrossGrad \
+# --uncertainty 0.5 \
+# --source-domains ${D1} ${D2} ${D4} \
+# --target-domains ${D3} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/${D3} \
+# --resume false)
+
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer CrossGrad \
+# --uncertainty 0.5 \
+# --source-domains ${D1} ${D2} ${D3} \
+# --target-domains ${D4} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/${D4} \
+# --resume false) 
+
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer CrossGrad \
 --uncertainty 0.5 \
---source-domains ${D2} ${D3} ${D4} \
---target-domains ${D1} \
+--source-domains ${D1} ${D2} \
+--target-domains ${D3} ${D4} \
 --seed ${SEED} \
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
---config-file configs/trainers/dg/ddaig/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/${D1} \
---wandb 0 \
+--config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+--output-dir output/dg/${DATASET}/${method}/verify3/${D1}_${D2}-${D3}_${D4} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer CrossGrad \
 --uncertainty 0.5 \
---source-domains ${D1} ${D3} ${D4} \
---target-domains ${D2} \
+--source-domains ${D1} ${D3} \
+--target-domains ${D2} ${D4} \
 --seed ${SEED} \
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
---config-file configs/trainers/dg/ddaig/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/${D2} \
---wandb 0 \
+--config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+--output-dir output/dg/${DATASET}/${method}/verify3/${D1}_${D3}-${D2}_${D4} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer CrossGrad \
 --uncertainty 0.5 \
---source-domains ${D1} ${D2} ${D4} \
---target-domains ${D3} \
+--source-domains ${D2} ${D3} \
+--target-domains ${D1} ${D4} \
 --seed ${SEED} \
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
---config-file configs/trainers/dg/ddaig/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/${D3} \
---wandb 0 \
+--config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+--output-dir output/dg/${DATASET}/${method}/verify3/${D2}_${D3}-${D1}_${D4} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 --root ${DATA} \
 --trainer CrossGrad \
 --uncertainty 0.5 \
---source-domains ${D1} ${D2} ${D3} \
---target-domains ${D4} \
+--source-domains ${D3} ${D4} \
+--target-domains ${D1} ${D2} \
 --seed ${SEED} \
 --dataset-config-file configs/datasets/dg/${DATASET}.yaml \
---config-file configs/trainers/dg/ddaig/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/${D4} \
---wandb 0 \
---resume false) 
+--config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+--output-dir output/dg/${DATASET}/${method}/verify3/${D3}_${D4}-${D1}_${D2} \
+--resume false)
+
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+--root ${DATA} \
+--trainer CrossGrad \
+--uncertainty 0.5 \
+--source-domains ${D2} ${D4} \
+--target-domains ${D1} ${D3} \
+--seed ${SEED} \
+--dataset-config-file configs/datasets/dg/${DATASET}.yaml \
+--config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+--output-dir output/dg/${DATASET}/${method}/verify3/${D2}_${D4}-${D1}_${D3} \
+--resume false)
+
+(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+--root ${DATA} \
+--trainer CrossGrad \
+--uncertainty 0.5 \
+--source-domains ${D1} ${D4} \
+--target-domains ${D2} ${D3} \
+--seed ${SEED} \
+--dataset-config-file configs/datasets/dg/${DATASET}.yaml \
+--config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+--output-dir output/dg/${DATASET}/${method}/verify3/${D1}_${D4}-${D2}_${D3} \
+--resume false)
 
 echo "Running scripts in parallel"
 wait # This will wait until both scripts finish

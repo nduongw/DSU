@@ -60,7 +60,6 @@ class ConstStyle5(nn.Module):
         self.const_mean = None
         self.const_cov = None
         self.bayes_cluster = None
-        self.beta = torch.distributions.Beta(0.3, 0.3)
     
     def clear_memory(self):
         self.mean = []
@@ -128,29 +127,36 @@ class ConstStyle5(nn.Module):
         domain_list = np.array(self.domain)
         stacked_data = np.stack((mean_list, std_list), axis=1)
         reshaped_data = stacked_data.reshape((len(mean_list), -1))
-        
         unique_domain = np.unique(domain_list)
         print(f'Unique domain: {unique_domain}')
         seen_domain_mean, seen_domain_cov = [], []
         unseen_domain_mean, unseen_domain_cov = [], []
+        seen_feats, unseen_feats = [], []
         for val in unique_domain:
-            domain_feats = reshaped_data[domain_list == val]
-            domain_distribution = BayesianGaussianMixture(n_components=1, covariance_type='full', init_params='k-means++', max_iter=200)
-            domain_distribution.fit(domain_feats)
             if val < 10:
-                seen_domain_mean.append(domain_distribution.means_[0])
-                seen_domain_cov.append(domain_distribution.covariances_[0])
+                seen_feats.extend(reshaped_data[domain_list == val])
             else:
-                unseen_domain_mean.append(domain_distribution.means_[0])
-                unseen_domain_cov.append(domain_distribution.covariances_[0])
+                unseen_feats.extend(reshaped_data[domain_list == val])
+        seen_dist = BayesianGaussianMixture(n_components=1, covariance_type='full', init_params='k-means++', max_iter=200)
+        seen_dist.fit(seen_feats)
+        seen_domain_mean.append(seen_dist.means_[0])
+        seen_domain_cov.append(seen_dist.covariances_[0])
         
-        total_distance = 0.0
-        for i in range(len(seen_domain_mean)):
-            for j in range(len(unseen_domain_mean)):
-                distance = wasserstein_distance_multivariate(unseen_domain_mean[j], unseen_domain_cov[j], seen_domain_mean[i], seen_domain_cov[i])
-                total_distance += distance
+        unseen_dist = BayesianGaussianMixture(n_components=1, covariance_type='full', init_params='k-means++', max_iter=200)
+        unseen_dist.fit(unseen_feats)
+        unseen_domain_mean.append(unseen_dist.means_[0])
+        unseen_domain_cov.append(unseen_dist.covariances_[0])
         
-        print(f'Total distance from seen to unseen domain of layer {idx}: {total_distance}')
+        distance = wasserstein_distance_multivariate(unseen_domain_mean[0], unseen_domain_cov[0], seen_domain_mean[0], seen_domain_cov[0])
+        print(f'Total distance from seen to unseen domain of layer {idx}: {distance}')
+        
+        # total_distance = 0.0
+        # for i in range(len(seen_domain_mean)):
+        #     for j in range(len(unseen_domain_mean)):
+        #         distance = wasserstein_distance_multivariate(unseen_domain_mean[j], unseen_domain_cov[j], seen_domain_mean[i], seen_domain_cov[i])
+        #         total_distance += distance
+        
+        # print(f'Total distance from seen to unseen domain of layer {idx}: {total_distance}')
         # center_to_unseen_dist = wasserstein_distance_multivariate(unseen_domain_mean[0], unseen_domain_cov[0], self.const_mean.numpy(), self.const_cov.numpy())
         # print(f'Distance from center to unseen domain of layer {idx}: {center_to_unseen_dist}\n')
 

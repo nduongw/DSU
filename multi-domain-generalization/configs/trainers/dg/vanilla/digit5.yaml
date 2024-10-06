@@ -9,7 +9,7 @@ OPTIM:
   NAME: 'sgd'
   LR: 0.05
   STEPSIZE: [20]
-  MAX_EPOCH: 100
+  MAX_EPOCH: 2
 
 TRAIN:
   PRINT_FREQ: 20

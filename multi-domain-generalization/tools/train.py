@@ -48,6 +48,10 @@ def reset_cfg(cfg, args):
 
     if args.backbone:
         cfg.MODEL.BACKBONE.NAME = args.backbone
+    
+    if args.batch_size:
+        cfg.DATALOADER.TRAIN_X.BATCH_SIZE = args.batch_size
+        cfg.DATALOADER.TRAIN_U.BATCH_SIZE = args.batch_size
 
     if args.head:
         cfg.MODEL.HEAD.NAME = args.head
@@ -87,12 +91,12 @@ def reset_cfg(cfg, args):
 
 def setup_cfg(args):
     cfg = get_cfg_default()
-    reset_cfg(cfg, args)
     if args.dataset_config_file:
         cfg.merge_from_file(args.dataset_config_file)
     if args.config_file:
         cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
+    reset_cfg(cfg, args)
     cfg.freeze()
     return cfg
 
@@ -109,6 +113,18 @@ def main(args):
                 job_type = 'DSU2'
             elif 'conststyle' in cfg.MODEL.BACKBONE.NAME:
                 job_type = f'ConstStyle_mix2layers_p={args.prob}_u={args.update_interval}_mp={args.mixstyle_prob}_alpha={args.alpha}'
+            elif 'efd' in cfg.MODEL.BACKBONE.NAME:
+                job_type = 'EFDMix'
+            elif cfg.TRAINER.NAME == 'RIDG':
+                job_type = 'RIDG'
+            elif cfg.TRAINER.NAME == 'DDAIG':
+                job_type = 'DDAIG'
+            elif cfg.TRAINER.NAME == 'Mixup':
+                job_type = 'Mixup'
+            elif cfg.TRAINER.NAME == 'Cutmix':
+                job_type = 'Cutmix'
+            elif cfg.TRAINER.NAME == 'CrossGrad':
+                job_type = 'CrossGrad'
             else:
                 job_type = 'Baseline'
         else:
@@ -132,6 +148,8 @@ def main(args):
                 job_type = 'Mixup'
             elif cfg.TRAINER.NAME == 'Cutmix':
                 job_type = 'Cutmix'
+            elif cfg.TRAINER.NAME == 'CrossGrad':
+                job_type = 'CrossGrad'
             elif cfg.TRAINER.NAME == 'MetaCausal':
                 job_type = 'MetaCausal'
             else:
@@ -250,6 +268,7 @@ if __name__ == '__main__':
     parser.add_argument('--pos', nargs='+', type=int, default=[],
                         help='pos for uncertainty')
     parser.add_argument('--wandb', default=1, type=int, help='visualize on Wandb')
+    parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--option', default='', type=str, help='additional options')
     parser.add_argument('--update_interval', default=25, type=int, help='update cluster interval')
     parser.add_argument('--cluster', default='ot', type=str, help='cluster choosing method')

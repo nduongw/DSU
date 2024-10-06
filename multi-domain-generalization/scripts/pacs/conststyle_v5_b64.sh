@@ -1,14 +1,14 @@
 #!/bin/bash
 DATA=./DATA
-DATASET=digits_dg
-D1=mnist
-D2=mnist_m
-D3=svhn
-D4=syn
+DATASET=pacs
+D1=art_painting
+D2=cartoon
+D3=photo
+D4=sketch
 SEED=42
 method=conststyle
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer ConstStyleTrainer \
@@ -24,9 +24,10 @@ method=conststyle
 --prob 0.5 \
 --alpha 0.5 \
 --conststyle_type ver5 \
+--batch_size 64 \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer ConstStyleTrainer \
@@ -42,9 +43,10 @@ method=conststyle
 --conststyle_type ver5 \
 --prob 0.5 \
 --alpha 0.5 \
+--batch_size 64 \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer ConstStyleTrainer \
@@ -60,9 +62,10 @@ method=conststyle
 --conststyle_type ver5 \
 --prob 0.5 \
 --alpha 0.5 \
+--batch_size 64 \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
 --root ${DATA} \
 --uncertainty 0.5 \
 --trainer ConstStyleTrainer \
@@ -78,8 +81,6 @@ method=conststyle
 --conststyle_type ver5 \
 --prob 0.5 \
 --alpha 0.5 \
+--batch_size 64 \
 --resume false)
 
-echo "Running scripts in parallel"
-wait # This will wait until both scripts finish
-echo "Script done running"

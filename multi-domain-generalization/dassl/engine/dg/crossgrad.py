@@ -14,8 +14,8 @@ class CrossGrad(TrainerX):
     https://arxiv.org/abs/1804.10745.
     """
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
+    def __init__(self, cfg, args):
+        super().__init__(cfg, args)
         self.eps_f = cfg.TRAINER.CG.EPS_F
         self.eps_d = cfg.TRAINER.CG.EPS_D
         self.alpha_f = cfg.TRAINER.CG.ALPHA_F

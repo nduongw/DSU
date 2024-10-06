@@ -13,42 +13,6 @@ method=dsu
 --trainer Vanilla \
 --uncertainty 0.5 \
 --source-domains ${D4} \
---target-domains ${D1} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
---resume false)
-
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
---root ${DATA} \
---trainer Vanilla \
---uncertainty 0.5 \
---source-domains ${D3} \
---target-domains ${D1} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
---resume false)
-
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
---root ${DATA} \
---trainer Vanilla \
---uncertainty 0.5 \
---source-domains ${D2} \
---target-domains ${D1} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
---resume false)
-
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
---root ${DATA} \
---trainer Vanilla \
---uncertainty 0.5 \
---source-domains ${D1} \
 --target-domains ${D2} \
 --seed ${SEED} \
 --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
@@ -56,101 +20,137 @@ method=dsu
 --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
 --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
---root ${DATA} \
---trainer Vanilla \
---uncertainty 0.5 \
---source-domains ${D3} \
---target-domains ${D2} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
---resume false)
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer Vanilla \
+# --uncertainty 0.5 \
+# --source-domains ${D3} \
+# --target-domains ${D1} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
+# --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
---root ${DATA} \
---trainer Vanilla \
---uncertainty 0.5 \
---source-domains ${D3} \
---target-domains ${D2} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
---resume false)
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer Vanilla \
+# --uncertainty 0.5 \
+# --source-domains ${D2} \
+# --target-domains ${D1} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
+# --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
---root ${DATA} \
---trainer Vanilla \
---uncertainty 0.5 \
---source-domains ${D1} \
---target-domains ${D3} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
---resume false)
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer Vanilla \
+# --uncertainty 0.5 \
+# --source-domains ${D1} \
+# --target-domains ${D2} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
+# --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
---root ${DATA} \
---trainer Vanilla \
---uncertainty 0.5 \
---source-domains ${D2} \
---target-domains ${D3} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
---resume false)
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer Vanilla \
+# --uncertainty 0.5 \
+# --source-domains ${D3} \
+# --target-domains ${D2} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
+# --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
---root ${DATA} \
---trainer Vanilla \
---uncertainty 0.5 \
---source-domains ${D4} \
---target-domains ${D3} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
---resume false)
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer Vanilla \
+# --uncertainty 0.5 \
+# --source-domains ${D3} \
+# --target-domains ${D2} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
+# --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
---root ${DATA} \
---trainer Vanilla \
---uncertainty 0.5 \
---source-domains ${D3} \
---target-domains ${D4} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
---resume false)
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer Vanilla \
+# --uncertainty 0.5 \
+# --source-domains ${D1} \
+# --target-domains ${D3} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
+# --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
---root ${DATA} \
---trainer Vanilla \
---uncertainty 0.5 \
---source-domains ${D1} \
---target-domains ${D4} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
---resume false)
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer Vanilla \
+# --uncertainty 0.5 \
+# --source-domains ${D2} \
+# --target-domains ${D3} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
+# --resume false)
 
-(CUDA_VISIBLE_DEVICES=1 python tools/train.py \
---root ${DATA} \
---trainer Vanilla \
---uncertainty 0.5 \
---source-domains ${D2} \
---target-domains ${D4} \
---seed ${SEED} \
---dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
---config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
---output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
---resume false)
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer Vanilla \
+# --uncertainty 0.5 \
+# --source-domains ${D4} \
+# --target-domains ${D3} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
+# --resume false)
+
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer Vanilla \
+# --uncertainty 0.5 \
+# --source-domains ${D3} \
+# --target-domains ${D4} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
+# --resume false)
+
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer Vanilla \
+# --uncertainty 0.5 \
+# --source-domains ${D1} \
+# --target-domains ${D4} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
+# --resume false)
+
+# (CUDA_VISIBLE_DEVICES=1 python tools/train.py \
+# --root ${DATA} \
+# --trainer Vanilla \
+# --uncertainty 0.5 \
+# --source-domains ${D2} \
+# --target-domains ${D4} \
+# --seed ${SEED} \
+# --dataset-config-file configs/datasets/dg/${DATASET}_dsu.yaml \
+# --config-file configs/trainers/dg/vanilla/${DATASET}.yaml \
+# --output-dir output/dg/${DATASET}/${method}/verify23/${D1} \
+# --resume false)
 
 echo "Running scripts in parallel"
 wait # This will wait until both scripts finish

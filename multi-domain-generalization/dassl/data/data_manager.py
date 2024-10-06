@@ -79,7 +79,6 @@ class DataManager:
         else:
             print('* Using custom transform for testing')
             tfm_test = custom_tfm_test
-
         # Build train_loader_x
         train_loader_x = build_data_loader(
             cfg,

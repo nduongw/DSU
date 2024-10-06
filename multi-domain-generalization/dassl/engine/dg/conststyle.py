@@ -108,13 +108,14 @@ class ConstStyleTrainer(SimpleTrainer):
         if self.epoch == 0 or self.epoch % self.args.update_interval == 0:
             for idx, conststyle in enumerate(self.model.backbone.conststyle):
                 conststyle.cal_mean_std(idx, self.epoch)
-        elif self.epoch == 1:
-            for idx, conststyle in enumerate(self.model.backbone.conststyle):
-                conststyle.calculate_domain_distance(idx)
+                # conststyle.calculate_domain_distance(idx)
+        # elif self.epoch == 0:
+        #     for idx, conststyle in enumerate(self.model.backbone.conststyle):
+                
     
     def model_inference(self, input, label, domain, is_test=False, apply_rate=0.0):
         if self.epoch == 0:
-            output = self.model(input, domain)
+            output = self.model(input, domain, store_feature=True)
         elif self.epoch % self.args.update_interval != 0:
             output = self.model(input, domain, store_feature=True, apply_conststyle=True, is_test=is_test, apply_rate=apply_rate)
         else:

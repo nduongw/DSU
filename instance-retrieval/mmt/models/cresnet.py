@@ -2,8 +2,6 @@ from __future__ import absolute_import
 
 from torch import nn
 from torch.nn import functional as F
-from torch.nn import init
-import torchvision
 import torch
 import torch.utils.model_zoo as model_zoo
 

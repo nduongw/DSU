@@ -91,7 +91,7 @@ def main_worker(args):
 
     cudnn.benchmark = True
     if not args.evaluate:
-        sys.stdout = Logger(osp.join(args.logs_dir, f'log{args.num_cluster}.txt'))
+        sys.stdout = Logger(osp.join(args.logs_dir, f'log_cluster={args.num_cluster}_layers={args.num_conststyle}_update={args.update_interval}.txt'))
     else:
         log_dir = osp.dirname(args.resume)
         sys.stdout = Logger(osp.join(log_dir, 'log_test.txt'))
@@ -179,7 +179,7 @@ def main_worker(args):
 
 
     print("Test on target domain:")
-    evaluator.evaluate(test_loader_target, dataset_target.query, dataset_target.gallery, cmc_flag=True,
+    evaluator.evaluate(args, epoch, test_loader_target, dataset_target.query, dataset_target.gallery, cmc_flag=True,
                     rerank=args.rerank)
 
 

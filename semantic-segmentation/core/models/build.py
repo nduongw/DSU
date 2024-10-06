@@ -1,7 +1,7 @@
 import logging
 import torch
 from . import resnet, vgg
-from .feature_extractor import vgg_feature_extractor, resnet_feature_extractor
+from .feature_extractor import vgg_feature_extractor, resnet_feature_extractor, cresnet_feature_extractor
 from .classifier import ASPP_Classifier_V2
 from .discriminator import *
 
@@ -13,10 +13,12 @@ def build_model(cfg):
         raise NotImplementedError
     return model
 
-def build_feature_extractor(cfg):
+def build_feature_extractor(cfg, args):
     model_name, backbone_name = cfg.MODEL.NAME.split('_')
     if backbone_name.startswith('resnet'):
         backbone = resnet_feature_extractor(backbone_name, uncertainty=cfg.MODEL.UNCERTAINTY, pos=cfg.MODEL.POS, pretrained_weights=cfg.MODEL.WEIGHTS, aux=False, pretrained_backbone=True, freeze_bn=cfg.MODEL.FREEZE_BN)
+    elif backbone_name.startswith('cresnet'):
+        backbone = cresnet_feature_extractor(backbone_name, num_conststyle=args.num_conststyle, args=args, pretrained_weights=cfg.MODEL.WEIGHTS, aux=False, pretrained_backbone=True, freeze_bn=cfg.MODEL.FREEZE_BN)
     elif backbone_name.startswith('vgg'):
         backbone = vgg_feature_extractor(backbone_name, pretrained_weights=cfg.MODEL.WEIGHTS, aux=False, pretrained_backbone=True, freeze_bn=cfg.MODEL.FREEZE_BN)
     else:

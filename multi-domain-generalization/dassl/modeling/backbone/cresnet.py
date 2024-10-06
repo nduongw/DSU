@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
-from dassl.modeling.ops import ConstStyle, ConstStyle2, ConstStyle3, ConstStyle4, ConstStyle5, ConstStyle6
+from dassl.modeling.ops import ConstStyle5
 from .build import BACKBONE_REGISTRY
 from .backbone import Backbone
 
@@ -115,24 +115,10 @@ class CResNet(Backbone):
         super().__init__()
         # backbone network
         self.num_conststyle = cfg.TRAINER.CONSTSTYLE.NUM_CONSTSTYLE
-        if cfg.TRAINER.CONSTSTYLE.TYPE == 'ver2':
-            print('Aapplying conststyle ver2...')
-            self.conststyle = [ConstStyle2(cfg) for i in range(self.num_conststyle)]
-        elif cfg.TRAINER.CONSTSTYLE.TYPE == 'ver3':
-            print('Aapplying conststyle ver3...')
-            self.conststyle = [ConstStyle3(cfg) for i in range(self.num_conststyle)]
-        elif cfg.TRAINER.CONSTSTYLE.TYPE == 'ver4':
-            print('Aapplying conststyle ver4...')
-            self.conststyle = [ConstStyle4(cfg) for i in range(self.num_conststyle)]
-        elif cfg.TRAINER.CONSTSTYLE.TYPE == 'ver5':
-            print('Aapplying conststyle ver5...')
-            self.conststyle = [ConstStyle5(i, cfg) for i in range(self.num_conststyle)]
-        elif cfg.TRAINER.CONSTSTYLE.TYPE == 'ver6':
-            print('Aapplying conststyle ver6...')
-            self.conststyle = [ConstStyle6(i, cfg) for i in range(self.num_conststyle)]
-        else:
-            print('Aapplying conststyle ver1...')
-            self.conststyle = [ConstStyle(cfg) for i in range(self.num_conststyle)]
+
+        print('Aapplying conststyle ver5...')
+        self.conststyle = [ConstStyle5(i, cfg) for i in range(self.num_conststyle)]
+        
         self.conv1 = nn.Conv2d(
             3, 64, kernel_size=7, stride=2, padding=3, bias=False
         )

@@ -36,11 +36,11 @@ def strip_prefix_if_present(state_dict, prefix):
     return stripped_state_dict
 
 
-def train(cfg, local_rank, distributed):
+def train(cfg, args, local_rank, distributed):
     logger = logging.getLogger("FADA.trainer")
     logger.info("Start training")
 
-    feature_extractor = build_feature_extractor(cfg)
+    feature_extractor = build_feature_extractor(cfg, args)
     device = torch.device(cfg.MODEL.DEVICE)
     feature_extractor.to(device)
 
@@ -62,12 +62,12 @@ def train(cfg, local_rank, distributed):
         #     feature_extractor = torch.nn.SyncBatchNorm.convert_sync_batchnorm(feature_extractor)
         feature_extractor = torch.nn.parallel.DistributedDataParallel(
             feature_extractor, device_ids=[local_rank], output_device=local_rank,
-            find_unused_parameters=True, process_group=pg1
+            find_unused_parameters=False, process_group=pg1
         )
         pg2 = torch.distributed.new_group(range(torch.distributed.get_world_size()))
         classifier = torch.nn.parallel.DistributedDataParallel(
             classifier, device_ids=[local_rank], output_device=local_rank,
-            find_unused_parameters=True, process_group=pg2
+            find_unused_parameters=False, process_group=pg2
         )
         torch.autograd.set_detect_anomaly(True)
         torch.distributed.barrier()
@@ -86,23 +86,23 @@ def train(cfg, local_rank, distributed):
 
     iteration = 0
 
-    if cfg.resume:
-        logger.info("Loading checkpoint from {}".format(cfg.resume))
-        checkpoint = torch.load(cfg.resume, map_location=torch.device('cpu'))
-        model_weights = checkpoint['feature_extractor'] if distributed else strip_prefix_if_present(
-            checkpoint['feature_extractor'], 'module.')
-        feature_extractor.load_state_dict(model_weights)
-        classifier_weights = checkpoint['classifier'] if distributed else strip_prefix_if_present(
-            checkpoint['classifier'], 'module.')
-        classifier.load_state_dict(classifier_weights)
-        if "optimizer_fea" in checkpoint:
-            logger.info("Loading optimizer_fea from {}".format(cfg.resume))
-            optimizer.load(checkpoint['optimizer_fea'])
-        if "optimizer_cls" in checkpoint:
-            logger.info("Loading optimizer_cls from {}".format(cfg.resume))
-            optimizer.load(checkpoint['optimizer_cls'])
-        if "iteration" in checkpoint:
-            iteration = checkpoint['iteration']
+    # if cfg.resume:
+    #     logger.info("Loading checkpoint from {}".format(cfg.resume))
+    #     checkpoint = torch.load(cfg.resume, map_location=torch.device('cpu'))
+    #     model_weights = checkpoint['feature_extractor'] if distributed else strip_prefix_if_present(
+    #         checkpoint['feature_extractor'], 'module.')
+    #     feature_extractor.load_state_dict(model_weights)
+    #     classifier_weights = checkpoint['classifier'] if distributed else strip_prefix_if_present(
+    #         checkpoint['classifier'], 'module.')
+    #     classifier.load_state_dict(classifier_weights)
+    #     if "optimizer_fea" in checkpoint:
+    #         logger.info("Loading optimizer_fea from {}".format(cfg.resume))
+    #         optimizer.load(checkpoint['optimizer_fea'])
+    #     if "optimizer_cls" in checkpoint:
+    #         logger.info("Loading optimizer_cls from {}".format(cfg.resume))
+    #         optimizer.load(checkpoint['optimizer_cls'])
+    #     if "iteration" in checkpoint:
+    #         iteration = checkpoint['iteration']
 
     src_train_data = build_dataset(cfg, mode='train', is_source=True)
 
@@ -144,7 +144,7 @@ def train(cfg, local_rank, distributed):
         optimizer_cls.zero_grad()
         src_input = src_input.cuda(non_blocking=True)
         src_label = src_label.cuda(non_blocking=True).long()
-
+        
         size = src_label.shape[-2:]
         pred = classifier(feature_extractor(src_input), size)
 
@@ -277,7 +277,7 @@ def main():
                         help="path to config file",
                         type=str,
                         )
-    parser.add_argument("--local_rank", type=int, default=-1)
+    parser.add_argument("--local_rank", "--local-rank", type=int, default=-1)
     parser.add_argument(
         "--skip-test",
         dest="skip_test",
@@ -311,23 +311,25 @@ def main():
         torch.distributed.init_process_group(
             backend="nccl", init_method="env://"
         )
-        # RANK = int(os.environ["RANK"])
-        # if 'CUDA_VISIBLE_DEVICES' in os.environ.keys():
-        #     NGPUS_PER_NODE = len(os.environ['CUDA_VISIBLE_DEVICES'].split(','))
-        # else:
-        #     NGPUS_PER_NODE = torch.cuda.device_count()
-        # assert NGPUS_PER_NODE > 0, "CUDA is not supported"
+
+        RANK = int(os.environ["RANK"])
+        if 'CUDA_VISIBLE_DEVICES' in os.environ.keys():
+            NGPUS_PER_NODE = len(os.environ['CUDA_VISIBLE_DEVICES'].split(','))
+        else:
+            NGPUS_PER_NODE = torch.cuda.device_count()
+        assert NGPUS_PER_NODE > 0, "CUDA is not supported"
+        print(f'Rank: {RANK} | {NGPUS_PER_NODE}')
         # GPU = RANK % NGPUS_PER_NODE
-        # torch.cuda.set_device(GPU)
-        # master_address = os.environ['MASTER_ADDR']
-        # master_port = int(os.environ['MASTER_PORT'])
-        # WORLD_SIZE = int(os.environ['WORLD_SIZE'])
-        # torch.distributed.init_process_group(backend='nccl',
-        #                                      init_method='tcp://{}:{}'.format(
-        #                                          master_address, master_port),
-        #                                      rank=RANK, world_size=WORLD_SIZE)
-        # NUM_GPUS = WORLD_SIZE
-        # print(f"RANK and WORLD_SIZE in environ: {RANK}/{WORLD_SIZE}")
+        torch.cuda.set_device(0)
+        master_address = os.environ['MASTER_ADDR']
+        master_port = int(os.environ['MASTER_PORT'])
+        WORLD_SIZE = int(os.environ['WORLD_SIZE'])
+        torch.distributed.init_process_group(backend='nccl',
+                                             init_method='tcp://{}:{}'.format(
+                                                 master_address, master_port),
+                                             rank=RANK, world_size=WORLD_SIZE)
+        NUM_GPUS = WORLD_SIZE
+        print(f"RANK and WORLD_SIZE in environ: {RANK}/{WORLD_SIZE}")
 
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
@@ -347,7 +349,7 @@ def main():
         logger.info(config_str)
     logger.info("Running with config:\n{}".format(cfg))
 
-    model = train(cfg, args.local_rank, args.distributed)
+    model = train(cfg, args, args.local_rank, args.distributed)
 
     if not args.skip_test:
         run_test(cfg, model, args.local_rank, args.distributed)
